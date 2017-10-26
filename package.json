@@ -1,0 +1,35 @@
+{
+  "name": "fastify-session",
+  "version": "0.0.0",
+  "description": "a session plugin for fastify",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test/*",
+    "lint": "./node_modules/eslint/bin/eslint.js index.js"
+  },
+  "keywords": [
+    "session",
+    "fastify"
+  ],
+  "author": "Denis Fäcke",
+  "license": "MIT",
+  "dependencies": {
+    "cookie-signature": "^1.0.6",
+    "fastify-plugin": "^0.1.1",
+    "uid-safe": "^2.1.5"
+  },
+  "engines": {
+    "node": ">= 6.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SerayaEryn/fastify-session.git"
+  },
+  "devDependencies": {
+    "eslint": "^4.9.0",
+    "fastify": "^0.30.2",
+    "fastify-cookie": "^1.0.3",
+    "request": "^2.83.0",
+    "tap": "^10.7.2"
+  }
+}
