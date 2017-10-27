@@ -38,8 +38,8 @@ function session(fastify, opts, next) {
 						return;
 					}
 					if(!session) {
-						done()
-						return
+						newSession(secret, reply, done);
+						return;
 					}
 					session.expires = Date.now() + 900000;
 					saveSession(decryptedSessionId, session, reply, done);
