@@ -36,6 +36,46 @@ test('should set session cookie', t => {
     });
 });
 
+
+
+test('should set session cookie', t => {
+    t.plan(11);
+    const fastify = Fastify();
+
+    const options = {
+        secret: 'geheim'
+    }
+    fastify.register(fastifyCookie);
+    fastify.register(fastifySession, options);
+    fastify.get('/', (request, reply) => {
+        reply.send(200);
+    })
+    fastify.listen(0, err => {
+        t.error(err);
+        request({
+            method: 'GET',
+            uri: 'http://localhost:' + fastify.server.address().port
+        }, (err, response, body) => {
+            t.error(err);
+            t.strictEqual(response.statusCode, 200);
+            t.ok(response.headers['set-cookie'][0].includes('Secure'));
+            t.ok(response.headers['set-cookie'][0].includes('sessionId'));
+            t.ok(response.headers['set-cookie'][0].includes('HttpOnly'));
+            fastify.server.unref();
+            request({
+                method: 'GET',
+                uri: 'http://localhost:' + fastify.server.address().port
+            }, (err, response, body) => {
+                t.error(err);
+                t.strictEqual(response.statusCode, 200);
+                t.ok(response.headers['set-cookie'][0].includes('Secure'));
+                t.ok(response.headers['set-cookie'][0].includes('sessionId'));
+                t.ok(response.headers['set-cookie'][0].includes('HttpOnly'));
+            });
+        });
+    });
+});
+
 test('should set session cookie using the specified cookie name', t => {
 	t.plan(6);
 	const fastify = Fastify();

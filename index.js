@@ -26,11 +26,11 @@ function session(fastify, opts, next) {
 		}
 		let sessionId = request.cookies[cookieName];
 		if (!sessionId) {
-			newSession(secret, reply, done);
+			newSession(secret, request, reply, done);
 		} else {
 			const decryptedSessionId = cookieSignature.unsign(sessionId, secret);
 			if (decryptedSessionId === false) {
-				newSession(secret, reply, done);
+				newSession(secret, request, reply, done);
 			} else {
 				store.get(decryptedSessionId, (err, session) => {
 					if (err) {
@@ -38,30 +38,30 @@ function session(fastify, opts, next) {
 						return;
 					}
 					if(!session) {
-						newSession(secret, reply, done);
+						newSession(secret, request, reply, done);
 						return;
 					}
 					session.expires = Date.now() + 900000;
-					saveSession(decryptedSessionId, session, reply, done);
+					saveSession(decryptedSessionId, session, request, reply, done);
 				});
 			}
 		}
 	}
 
-	function newSession(secret, reply, done) {
+	function newSession(secret, request, reply, done) {
 		const sessionId = uid(24);
 		const encryptedSessionId = cookieSignature.sign(sessionId, secret);
 		const session = new Session(encryptedSessionId, {}, Date.now() + 900000);
-		saveSession(sessionId, session, reply, done);
+		saveSession(sessionId, session, request, reply, done);
 	}
 
-	function saveSession(sessionId, session, reply, done) {
+	function saveSession(sessionId, session, request, reply, done) {
 		store.set(sessionId, session, (err) => {
 			if (err) {
 				done(err);
 				return;
 			}
-			fastify.decorateRequest('session', session);
+			request.session = session;
 			const cookieOptions = getCookieOptions();
 			reply.setCookie(cookieName, session.encryptedSessionId, cookieOptions);
 			done();
