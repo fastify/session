@@ -26,15 +26,11 @@ function session(fastify, opts, next) {
 		}
 		let sessionId = request.cookies[cookieName];
 		if (!sessionId) {
-			const sessionId = uid(24);
-			const session = newSession(sessionId, secret);
-			saveSession(sessionId, session, reply, done);
+			newSession(secret, reply, done);
 		} else {
 			const decryptedSessionId = cookieSignature.unsign(sessionId, secret);
 			if (decryptedSessionId === false) {
-				const sessionId = uid(24);
-				const session = newSession(sessionId, secret);
-				saveSession(sessionId, session, reply, done);
+				newSession(secret, reply, done);
 			} else {
 				store.get(decryptedSessionId, (err, session) => {
 					if (err) {
@@ -52,9 +48,11 @@ function session(fastify, opts, next) {
 		}
 	}
 
-	function newSession(sessionId, secret) {
+	function newSession(secret, reply, done) {
+		const sessionId = uid(24);
 		const encryptedSessionId = cookieSignature.sign(sessionId, secret);
-		return new Session(encryptedSessionId, {}, Date.now() + 900000);
+		const session = new Session(encryptedSessionId, {}, Date.now() + 900000);
+		saveSession(sessionId, session, reply, done);
 	}
 
 	function saveSession(sessionId, session, reply, done) {
