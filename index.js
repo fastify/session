@@ -26,13 +26,15 @@ function session(fastify, opts, next) {
 		}
 		let sessionId = request.cookies[cookieName];
 		if (!sessionId) {
-			const session = newSession(secret);
-			saveSession(session, reply, done);
+			const sessionId = uid(24);
+			const session = newSession(sessionId, secret);
+			saveSession(sessionId, session, reply, done);
 		} else {
 			const decryptedSessionId = cookieSignature.unsign(sessionId, secret);
 			if (decryptedSessionId === false) {
-				const session = newSession(secret);
-				saveSession(session, reply, done);
+				const sessionId = uid(24);
+				const session = newSession(sessionId, secret);
+				saveSession(sessionId, session, reply, done);
 			} else {
 				store.get(decryptedSessionId, (err, session) => {
 					if (err) {
@@ -44,20 +46,19 @@ function session(fastify, opts, next) {
 						return
 					}
 					session.expires = Date.now() + 900000;
-					saveSession(session, reply, done);
+					saveSession(decryptedSessionId, session, reply, done);
 				});
 			}
 		}
 	}
 
-	function newSession(secret) {
-		const sessionId = uid(24);
+	function newSession(sessionId, secret) {
 		const encryptedSessionId = cookieSignature.sign(sessionId, secret);
-		return new Session(sessionId, encryptedSessionId, {}, Date.now() + 900000);
+		return new Session(encryptedSessionId, {}, Date.now() + 900000);
 	}
 
-	function saveSession(session, reply, done) {
-		store.save(session, (err) => {
+	function saveSession(sessionId, session, reply, done) {
+		store.set(sessionId, session, (err) => {
 			if (err) {
 				done(err);
 				return;
@@ -89,8 +90,7 @@ class Store {
 		this.store = {}
 	}
 
-	save(session, callback) {
-		const sessionId = session.sessionId;
+	set(sessionId, session, callback) {
 		this.store[sessionId] = session;
 		callback();
 	}
@@ -98,21 +98,20 @@ class Store {
 	get(sessionId, callback) {
 		const session = this.store[sessionId];
 		if (session && session.expires && session.expires <= Date.now()) {
-			this.delete(sessionId, callback);
+			this.destroy(sessionId, callback);
 			return;
 		}
 		callback(null, session);
 	}
 
-	delete(sessionId, callback) {
+	destroy(sessionId, callback) {
 		this.store[sessionId] = undefined;
 		callback()
 	}
 }
 
 class Session {
-	constructor(sessionId, encryptedSessionId, sessionData, expires) {
-		this.sessionId = sessionId;
+	constructor(encryptedSessionId, sessionData, expires) {
 		this.encryptedSessionId = encryptedSessionId;
 		this.sessionData = sessionData;
 		this.expires = expires;

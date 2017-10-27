@@ -75,8 +75,7 @@ test('should set session cookie using the specified cookie name', t => {
     fastify.register(fastifyCookie);
     fastify.register(fastifyPlugin((fastify, opts, next) => {
     	fastify.addHook('preHandler', (request, reply, done) => {
-    		request.sessionStore.save({
-	    		sessionId: 'SMB5v0wS8tpP-GEP-_h0Libil682NPf0',
+    		request.sessionStore.set('SMB5v0wS8tpP-GEP-_h0Libil682NPf0', {
 	    		expires: Date.now() + 900000
 	    	}, (err) => {
 	        	done(err)

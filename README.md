@@ -24,8 +24,8 @@ app.register(fastifySession, {secret: 'a secret'});
 * `secret` (required) - 
 * `cookieName` (optional) - the name of the session cookie. Defaults to sessionId.
 * `cookie` - the options object for the session cookie. May have the properties `path`, `maxAge`, `httpOnly`, `secure`, `expires`, `sameSite` and `domain`.
-* `store``- a session store. Needs the following methods: 
-save(session, callback)
+* `store`- a session store. Needs the following methods: 
+set(sessionId, session, callback)
 get(sessionId, callback)
 
 ## License
