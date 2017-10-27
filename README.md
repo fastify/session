@@ -20,14 +20,31 @@ const app = fastify();
 app.register(fastifyCookie);
 app.register(fastifySession, {secret: 'a secret'});
 ```
-## Options
-* `secret` (required) - 
-* `cookieName` (optional) - the name of the session cookie. Defaults to sessionId.
-* `cookie` - the options object for the session cookie. May have the properties `path`, `maxAge`, `httpOnly`, `secure`, `expires`, `sameSite` and `domain`.
-* `store`- a session store. Needs the following methods: 
-set(sessionId, session, callback)
-get(sessionId, callback)
+## API
+### session(fastify, options, next)
+#### options
+##### secret (required) 
+The secret used for sign the cookie.
+
+##### cookieName (optional) 
+The name of the session cookie. Defaults to sessionId.
+
+##### cookie
+The options object for the session cookie. May have the following properties:
+* `path`
+* `maxAge`
+* `httpOnly`,
+* `secure`
+* `expires`
+* `sameSite`
+* `domain`
+
+##### store
+A session store. Needs the following methods: 
+* set(sessionId, session, callback)
+* get(sessionId, callback)
+Defaults to a simple in memory store.
 
 ## License
 
-[MIT License](./LICENSE)
+[MIT](./LICENSE)
