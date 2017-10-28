@@ -133,10 +133,11 @@ test('should set session cookie with expires', t => {
         }, (err, response, body) => {
             t.error(err);
             t.strictEqual(response.statusCode, 200);
-            t.ok(response.headers['set-cookie'][0].includes('Expires=Fri, 01 Feb 1901 00:01:01 GMT'));
-            t.ok(response.headers['set-cookie'][0].includes('Secure'));
-            t.ok(response.headers['set-cookie'][0].includes('sessionId'));
-            t.ok(response.headers['set-cookie'][0].includes('HttpOnly'));
+            const splitCookieHeader = response.headers['set-cookie'][0].split('; ');
+            t.strictEqual(splitCookieHeader[2], 'Expires=Fri, 01 Feb 1901 00:01:01 GMT');
+            t.ok(splitCookieHeader[0].includes('sessionId'));
+            t.strictEqual(splitCookieHeader[3], 'HttpOnly');
+            t.strictEqual(splitCookieHeader[4], 'Secure');
         })
     });
 });
