@@ -72,8 +72,8 @@ function session(fastify, opts, next) {
 		return {
 			path: cookieOpts.path || '/',
 			maxAge: cookieOpts.maxAge || null,
-			httpOnly: cookieOpts.httpOnly || true,
-			secure: cookieOpts.secure || true,
+			httpOnly: cookieOpts.httpOnly !== undefined ? cookieOpts.httpOnly : true,
+			secure: cookieOpts.secure !== undefined ? cookieOpts.secure : true,
 			expires: cookieOpts.expires || null,
 			sameSite: cookieOpts.sameSite || null,
 			domain: cookieOpts.domain || null
