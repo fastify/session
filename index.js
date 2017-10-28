@@ -41,10 +41,24 @@ function session(fastify, opts, next) {
 						newSession(secret, request, reply, done);
 						return;
 					}
+					if (session && session.expires && session.expires <= Date.now()) {
+						this.destroy(sessionId, getDestroyCallback(secret, request, reply, done));
+						return;
+					}
 					session.expires = Date.now() + 900000;
 					saveSession(decryptedSessionId, session, request, reply, done);
 				});
 			}
+		}
+	}
+
+	function getDestroyCallback(secret, request, reply, done) {
+		return function destroyCallback(err) {
+			if (err) {
+				done(err);
+				return;
+			}
+			newSession(secret, request, reply, done);
 		}
 	}
 
@@ -95,10 +109,6 @@ class Store {
 
 	get(sessionId, callback) {
 		const session = this.store[sessionId];
-		if (session && session.expires && session.expires <= Date.now()) {
-			this.destroy(sessionId, callback);
-			return;
-		}
 		callback(null, session);
 	}
 

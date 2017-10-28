@@ -40,6 +40,7 @@ The options object for the session cookie. May have the following properties:
 A session store. Needs the following methods: 
 * set(sessionId, session, callback)
 * get(sessionId, callback)
+* destroy(sessionId, callback)
 
 Defaults to a simple in memory store.
 
