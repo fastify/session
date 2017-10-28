@@ -112,11 +112,12 @@ test('should set session non HttpOnly cookie', t => {
 test('should set session cookie with expires', t => {
     t.plan(7);
     const fastify = Fastify();
-
+    const date = new Date();
+    date.setTime(34214461000);
     const options = {
         secret: 'geheim',
         cookie: {
-            expires: new Date(1, 1, 1, 1, 1, 1)
+            expires: date
         }
     }
     fastify.register(fastifyCookie);
@@ -134,7 +135,7 @@ test('should set session cookie with expires', t => {
             t.error(err);
             t.strictEqual(response.statusCode, 200);
             const splitCookieHeader = response.headers['set-cookie'][0].split('; ');
-            t.strictEqual(splitCookieHeader[2], 'Expires=Fri, 01 Feb 1901 00:01:01 GMT');
+            t.strictEqual(splitCookieHeader[2], 'Expires=Mon, 01 Feb 1971 00:01:01 GMT');
             t.ok(splitCookieHeader[0].includes('sessionId'));
             t.strictEqual(splitCookieHeader[3], 'HttpOnly');
             t.strictEqual(splitCookieHeader[4], 'Secure');
