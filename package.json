@@ -6,8 +6,8 @@
   "scripts": {
     "test": "tap test/*",
     "lint": "./node_modules/eslint/bin/eslint.js index.js",
-    "coverage": "npm run test --  --cov",
-    "coverage-report": "npm run coverage && tap --coverage-report=lcov"
+    "coveralls": "npm run test --  --cov",
+    "coverage-report": "npm run coveralls && tap --coverage-report=lcov"
   },
   "keywords": [
     "session",
@@ -28,6 +28,7 @@
     "url": "git+https://github.com/SerayaEryn/fastify-session.git"
   },
   "devDependencies": {
+    "coveralls": "^3.0.0",
     "eslint": "^4.9.0",
     "fastify": "^0.30.2",
     "fastify-cookie": "^1.0.3",
