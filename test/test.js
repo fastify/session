@@ -36,6 +36,17 @@ test('should set session cookie', t => {
     });
 });
 
+test('register should fail if no secret is specified', t => {
+    t.plan(1);
+    const fastify = Fastify();
+
+    const options = {}
+    fastify.register(fastifyCookie);
+    fastify.register(fastifySession, options, (err) => {
+        t.ok(err instanceof Error);
+    });
+});
+
 test('should set session non secure cookie', t => {
     t.plan(6);
     const fastify = Fastify();
