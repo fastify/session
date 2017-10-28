@@ -1,5 +1,7 @@
 # fastify-session
 
+[![Build Status](https://travis-ci.org/SerayaEryn/fastify-session.svg?branch=master)](https://travis-ci.org/SerayaEryn/fastify-session)
+
 A session plugin for [fastify](http://fastify.io/) using the `preHandler` hook.
 Requires the [fastify-cookie](https://github.com/fastify/fastify-cookie) plugin.
 
