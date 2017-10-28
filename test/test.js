@@ -380,6 +380,111 @@ test('should set session cookie using the specified cookie name', t => {
     });
 });
 
+test('should set new session cookie if expired', t => {
+    t.plan(7);
+    const fastify = Fastify();
+
+    const options = {
+        secret: 'geheim'
+    }
+    fastify.register(fastifyCookie);
+    fastify.register(fastifyPlugin((fastify, opts, next) => {
+        fastify.addHook('preHandler', (request, reply, done) => {
+            request.sessionStore.set('SMB5v0wS8tpP-GEP-_h0Libil682NPf0', {
+                expires: Date.now() - 900000
+            }, (err) => {
+                done(err)
+            })
+        });
+        next()
+    }, '>=0.30.2'));
+    fastify.register(fastifySession, options);
+    fastify.get('/', (request, reply) => {
+        reply.send(200);
+    })
+    fastify.listen(0, err => {
+        fastify.server.unref();
+        t.error(err);
+        request({
+            method: 'GET',
+            uri: 'http://localhost:' + fastify.server.address().port,
+            headers: {
+                'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+            }
+        }, (err, response, body) => {
+            t.error(err);
+            t.strictEqual(response.statusCode, 200);
+            const splitCookieHeader = response.headers['set-cookie'][0].split('; ');
+            t.notEqual(splitCookieHeader[0], 'sessionId=OAUmT62-fZV1ygZ_P3Z-iebJo5B9ka7a.m3GJovYzBT5DdXyLmJE7%2BlNDwRYAHIDU1MLUrFkkE8I');
+            t.strictEqual(splitCookieHeader[1], 'Path=/');
+            t.strictEqual(splitCookieHeader[2], 'HttpOnly');
+            t.strictEqual(splitCookieHeader[3], 'Secure');
+        })
+    });
+});
+
+test('should return new session cookie if does not exist in store', t => {
+    t.plan(7);
+    const fastify = Fastify();
+
+    const options = {
+        secret: 'geheim'
+    }
+    fastify.register(fastifyCookie);
+    fastify.register(fastifySession, options);
+    fastify.get('/', (request, reply) => {
+        reply.send(200);
+    })
+    fastify.listen(0, err => {
+        fastify.server.unref();
+        t.error(err);
+        request({
+            method: 'GET',
+            uri: 'http://localhost:' + fastify.server.address().port,
+            headers: {
+                'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+            }
+        }, (err, response, body) => {
+            t.error(err);
+            t.strictEqual(response.statusCode, 200);
+            const splitCookieHeader = response.headers['set-cookie'][0].split('; ');
+            t.notEqual(splitCookieHeader[0], 'sessionId=OAUmT62-fZV1ygZ_P3Z-iebJo5B9ka7a.m3GJovYzBT5DdXyLmJE7%2BlNDwRYAHIDU1MLUrFkkE8I');
+            t.strictEqual(splitCookieHeader[1], 'Path=/');
+            t.strictEqual(splitCookieHeader[2], 'HttpOnly');
+            t.strictEqual(splitCookieHeader[3], 'Secure');
+        })
+    });
+});
+
+test('should not set session cookie on invalid path', t => {
+    t.plan(4);
+    const fastify = Fastify();
+
+    const options = {
+        secret: 'geheim',
+        cookie: {
+            path: '/path/'
+        }
+    }
+    fastify.register(fastifyCookie);
+    fastify.register(fastifySession, options);
+    fastify.get('/', (request, reply) => {
+        reply.send(200);
+    })
+    fastify.listen(0, err => {
+        fastify.server.unref();
+        t.error(err);
+        request({
+            method: 'GET',
+            uri: 'http://localhost:' + fastify.server.address().port,
+        }, (err, response, body) => {
+            t.error(err);
+            t.strictEqual(response.statusCode, 200);
+            t.ok(response.headers['set-cookie'] === undefined);
+        })
+    });
+});
+
 test('should create new session if cookie contains invalid session', t => {
     t.plan(7);
     const fastify = Fastify();

@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "tap test/*",
-    "lint": "./node_modules/eslint/bin/eslint.js index.js"
+    "lint": "./node_modules/eslint/bin/eslint.js index.js",
+    "coverage": "npm run test --  --cov",
+    "coverage-report": "npm run coverage && tap --coverage-report=lcov"
   },
   "keywords": [
     "session",

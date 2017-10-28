@@ -42,7 +42,7 @@ function session(fastify, opts, next) {
                         return;
                     }
                     if (session && session.expires && session.expires <= Date.now()) {
-                        this.destroy(sessionId, getDestroyCallback(secret, request, reply, done));
+                        store.destroy(sessionId, getDestroyCallback(secret, request, reply, done));
                         return;
                     }
                     session.expires = Date.now() + 900000;
