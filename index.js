@@ -3,6 +3,7 @@
 const fastifyPlugin = require('fastify-plugin');
 const uid = require('uid-safe').sync;
 const cookieSignature = require('cookie-signature');
+const Store = require('./lib/store');
 
 function session(fastify, opts, next) {
     fastify.addHook('preHandler', handleSession);
@@ -95,27 +96,6 @@ function session(fastify, opts, next) {
     }
 
     next();
-}
-
-class Store {
-    constructor() {
-        this.store = {}
-    }
-
-    set(sessionId, session, callback) {
-        this.store[sessionId] = session;
-        callback();
-    }
-
-    get(sessionId, callback) {
-        const session = this.store[sessionId];
-        callback(null, session);
-    }
-
-    destroy(sessionId, callback) {
-        this.store[sessionId] = undefined;
-        callback()
-    }
 }
 
 class Session {
