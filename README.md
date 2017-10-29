@@ -26,6 +26,7 @@ app.register(fastifySession, {secret: 'a secret'});
 ```
 ## API
 ### session(fastify, options, next)
+The session plugin accepts the following options. It decrotates the request with the sessionStore and adds a session object to the request.
 #### options
 ##### secret (required) 
 The secret used to sign the cookie.
