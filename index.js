@@ -47,7 +47,7 @@ function session(fastify, opts, next) {
                         return;
                     }
                     session.expires = Date.now() + 900000;
-                    saveSession(decryptedSessionId, session, request, reply, done);
+                    saveSession(session, sessionId, request, reply, done);
                 });
             }
         }
@@ -66,19 +66,19 @@ function session(fastify, opts, next) {
     function newSession(secret, request, reply, done) {
         const sessionId = uid(24);
         const encryptedSessionId = cookieSignature.sign(sessionId, secret);
-        const session = new Session(encryptedSessionId, {}, Date.now() + 900000);
-        saveSession(sessionId, session, request, reply, done);
+        const session = new Session(sessionId, encryptedSessionId, {}, Date.now() + 900000);
+        saveSession(session, encryptedSessionId, request, reply, done);
     }
 
-    function saveSession(sessionId, session, request, reply, done) {
-        store.set(sessionId, session, (err) => {
+    function saveSession(session, encryptedSessionId, request, reply, done) {
+        store.set(session.sessionId, session, (err) => {
             if (err) {
                 done(err);
                 return;
             }
             request.session = session;
             const cookieOptions = getCookieOptions();
-            reply.setCookie(cookieName, session.encryptedSessionId, cookieOptions);
+            reply.setCookie(cookieName, encryptedSessionId, cookieOptions);
             done();
         });
     }
@@ -99,7 +99,8 @@ function session(fastify, opts, next) {
 }
 
 class Session {
-    constructor(encryptedSessionId, sessionData, expires) {
+    constructor(sessionId, encryptedSessionId, sessionData, expires) {
+        this.sessionId = sessionId;
         this.encryptedSessionId = encryptedSessionId;
         this.sessionData = sessionData;
         this.expires = expires;
