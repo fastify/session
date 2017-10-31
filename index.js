@@ -46,7 +46,9 @@ function session(fastify, opts, next) {
                         store.destroy(sessionId, getDestroyCallback(secret, request, reply, done));
                         return;
                     }
-                    session.expires = Date.now() + 900000;
+                    if (cookieOpts.maxAge) {
+                        session.expires = Date.now() + cookieOpts.maxAge;
+                    }
                     saveSession(session, sessionId, request, reply, done);
                 });
             }
@@ -66,7 +68,11 @@ function session(fastify, opts, next) {
     function newSession(secret, request, reply, done) {
         const sessionId = uid(24);
         const encryptedSessionId = cookieSignature.sign(sessionId, secret);
-        const session = new Session(sessionId, encryptedSessionId, {}, Date.now() + 900000);
+        let expires = null;
+        if (cookieOpts.maxAge) {
+            expires = Date.now() + cookieOpts.maxAge;
+        }
+        const session = new Session(sessionId, encryptedSessionId, {}, expires);
         saveSession(session, encryptedSessionId, request, reply, done);
     }
 
