@@ -341,7 +341,7 @@ test('should set session cookie with expires', t => {
     });
 });
 
-test('should set session cookie with maxAge', t => {
+test('should set session cookie with expires if maxAge', t => {
     t.plan(7);
     const fastify = Fastify();
 
@@ -365,10 +365,11 @@ test('should set session cookie with maxAge', t => {
         }, (err, response, body) => {
             t.error(err);
             t.strictEqual(response.statusCode, 200);
-            t.ok(response.headers['set-cookie'][0].includes('Max-Age=42'));
-            t.ok(response.headers['set-cookie'][0].includes('Secure'));
-            t.ok(response.headers['set-cookie'][0].includes('sessionId'));
-            t.ok(response.headers['set-cookie'][0].includes('HttpOnly'));
+            const splitCookieHeader = response.headers['set-cookie'][0].split('; ');
+            t.ok(splitCookieHeader[0].includes('sessionId'));
+            t.ok(splitCookieHeader[2].includes('Expires'));
+            t.strictEqual(splitCookieHeader[3], 'HttpOnly');
+            t.strictEqual(splitCookieHeader[4], 'Secure');
         })
     });
 });

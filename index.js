@@ -92,16 +92,25 @@ function session(fastify, opts, next) {
     function getCookieOptions() {
         return {
             path: cookieOpts.path || '/',
-            maxAge: cookieOpts.maxAge || null,
             httpOnly: cookieOpts.httpOnly !== undefined ? cookieOpts.httpOnly : true,
             secure: cookieOpts.secure !== undefined ? cookieOpts.secure : true,
-            expires: cookieOpts.expires || null,
+            expires: getExpires(cookieOpts),
             sameSite: cookieOpts.sameSite || null,
             domain: cookieOpts.domain || null
         };
     }
 
     next();
+}
+
+function getExpires(cookieOpts) {
+    let expires = null;
+    if (cookieOpts.expires) {
+        expires = cookieOpts.expires;
+    } else if(cookieOpts.maxAge) {
+        expires = new Date(Date.now() + cookieOpts.maxAge);
+    }
+    return expires;
 }
 
 class Session {
