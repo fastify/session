@@ -33,14 +33,14 @@ The secret used to sign the cookie.
 ##### cookieName (optional) 
 The name of the session cookie. Defaults to `sessionId`.
 ##### cookie
-The options object for the session cookie. May have the following properties:
-* `path` - defaults to `/`
-* `maxAge`
-* `httpOnly` - defaults to true
-* `secure` - defaults to true
-* `expires`
-* `sameSite`
-* `domain`
+The options object used to generate the `Set-Cookie` header of the session cookie. May have the following properties:
+* `path` - The `Path` attribute. Defaults to `/` (the root path). 
+* `maxAge` - A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date.  If both `expires` and `maxAge` are set, then `expires` is used.
+* `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
+* `secure` - The `boolean` value of the `Secure` attribute. Defaults to true.
+* `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `expires` is used.
+* `sameSite`- The `boolean` or `string` of the `SameSite` attribute. 
+* `domain` - The `Domain` attribute.
 ##### store
 A session store. Needs the following methods: 
 * set(sessionId, session, callback)
