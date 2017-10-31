@@ -1,6 +1,6 @@
 {
   "name": "fastify-session",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "a session plugin for fastify",
   "main": "index.js",
   "scripts": {
