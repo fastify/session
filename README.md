@@ -1,5 +1,7 @@
 # fastify-session
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/SerayaEryn/fastify-session.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/SerayaEryn/fastify-session.svg?branch=master)](https://travis-ci.org/SerayaEryn/fastify-session)
 [![Coverage Status](https://coveralls.io/repos/github/SerayaEryn/fastify-session/badge.svg?branch=master)](https://coveralls.io/github/SerayaEryn/fastify-session?branch=master)
 [![NPM version](https://img.shields.io/npm/v/fastify-session.svg?style=flat)](https://www.npmjs.com/package/fastify-session)
