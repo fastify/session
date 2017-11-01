@@ -7,6 +7,7 @@ const Store = require('./lib/store');
 
 function session(fastify, opts, next) {
     fastify.addHook('preHandler', handleSession);
+    fastify.addHook('onSend', saveSession);
 
     const store = opts.store || new Store();
     fastify.decorateRequest('sessionStore', store);
@@ -49,7 +50,8 @@ function session(fastify, opts, next) {
                     if (cookieOpts.maxAge) {
                         session.expires = Date.now() + cookieOpts.maxAge;
                     }
-                    saveSession(session, sessionId, request, reply, done);
+                    request.session = session;
+                    done();
                 });
             }
         }
@@ -73,18 +75,23 @@ function session(fastify, opts, next) {
             expires = Date.now() + cookieOpts.maxAge;
         }
         const session = new Session(sessionId, encryptedSessionId, {}, expires);
-        saveSession(session, encryptedSessionId, request, reply, done);
+        request.session = session;
+        done();
     }
 
-    function saveSession(session, encryptedSessionId, request, reply, done) {
+    function saveSession(request, reply, payload, done) {
+        const session = request.session;
+        if (!session) {
+            done();
+            return;
+        }
         store.set(session.sessionId, session, (err) => {
             if (err) {
                 done(err);
                 return;
             }
-            request.session = session;
             const cookieOptions = getCookieOptions();
-            reply.setCookie(cookieName, encryptedSessionId, cookieOptions);
+            reply.setCookie(cookieName, session.encryptedSessionId, cookieOptions);
             done();
         });
     }
@@ -122,4 +129,4 @@ class Session {
     }
 }
 
-exports = module.exports = fastifyPlugin(session, ">=0.30.2");
+exports = module.exports = fastifyPlugin(session, ">=0.31.0");

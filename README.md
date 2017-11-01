@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/SerayaEryn/fastify-session/badge.svg?branch=master)](https://coveralls.io/github/SerayaEryn/fastify-session?branch=master)
 [![NPM version](https://img.shields.io/npm/v/fastify-session.svg?style=flat)](https://www.npmjs.com/package/fastify-session)
 
-A session plugin for [fastify](http://fastify.io/) using the `preHandler` hook.
+A session plugin for [fastify](http://fastify.io/). 
 Requires the [fastify-cookie](https://github.com/fastify/fastify-cookie) plugin.
 
 ## Install
@@ -26,7 +26,7 @@ app.register(fastifySession, {secret: 'a secret'});
 ```
 ## API
 ### session(fastify, options, next)
-The session plugin accepts the following options. It decrotates the request with the sessionStore and adds a session object to the request.
+The session plugin accepts the following options. It decrotates the request with the `sessionStore` and adds a `session` object to the request.
 #### options
 ##### secret (required) 
 The secret used to sign the cookie.
