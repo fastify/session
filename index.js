@@ -80,6 +80,10 @@ function session(fastify, opts, next) {
     }
 
     function saveSession(request, reply, payload, done) {
+        if (!request) {
+            done();
+            return;
+        }
         const session = request.session;
         if (!session) {
             done();
