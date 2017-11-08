@@ -36,6 +36,34 @@ test('should set session cookie', t => {
     });
 });
 
+test('should set session cookie on post without params', t => {
+    t.plan(3);
+    const fastify = Fastify();
+
+    const options = {
+        secret: 'geheim'
+    }
+    fastify.register(fastifyCookie);
+    fastify.register(fastifySession, options);
+    fastify.post('/test', (request, reply) => {
+        reply.send(200);
+    })
+    fastify.listen(0, err => {
+        fastify.server.unref();
+        t.error(err);
+        request({
+            method: 'POST',
+            uri: 'http://localhost:' + fastify.server.address().port + '/test',
+            headers: {
+                'content-type': 'application/json'
+            }
+        }, (err, response, body) => {
+            t.error(err);
+            t.strictEqual(response.statusCode, 422);
+        })
+    });
+});
+
 test('should decorate request with sessionStore', t => {
     t.plan(4);
     const fastify = Fastify();
