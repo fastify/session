@@ -80,10 +80,6 @@ function session(fastify, opts, next) {
     }
 
     function saveSession(request, reply, payload, done) {
-        if (!request) {
-            done();
-            return;
-        }
         const session = request.session;
         if (!session) {
             done();
@@ -133,4 +129,4 @@ class Session {
     }
 }
 
-exports = module.exports = fastifyPlugin(session, ">=0.31.0");
+exports = module.exports = fastifyPlugin(session, ">=0.34.0");

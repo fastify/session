@@ -30,7 +30,7 @@
   "devDependencies": {
     "coveralls": "^3.0.0",
     "eslint": "^4.9.0",
-    "fastify": "^0.33.0",
+    "fastify": "^0.34.0",
     "fastify-cookie": "^1.0.3",
     "request": "^2.83.0",
     "tap": "^10.7.2"
