@@ -48,7 +48,10 @@ A session store. Needs the following methods:
 * get(sessionId, callback)
 * destroy(sessionId, callback)
 
-Defaults to a simple in memory store.
+Compatible to stores from [express-session](https://github.com/expressjs/session).
+
+Defaults to a simple in memory store.</br>
+**Note**: The default store should not be used in a production environment.
 
 ## License
 
