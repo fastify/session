@@ -4,9 +4,10 @@
   "description": "a session plugin for fastify",
   "main": "index.js",
   "scripts": {
-    "test": "tap test/*",
-    "lint": "./node_modules/eslint/bin/eslint.js index.js lib/*",
-    "coveralls": "npm run test --  --cov",
+    "unit": "tap test/*.test.js",
+    "test": "npm run lint && npm run unit",
+    "lint": "./node_modules/eslint/bin/eslint.js index.js lib/* test/*",
+    "coveralls": "npm run unit --  --cov",
     "coverage-report": "npm run coveralls && tap --coverage-report=lcov"
   },
   "keywords": [
