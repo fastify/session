@@ -796,6 +796,60 @@ test('should create new session if cookie contains invalid session', t => {
   });
 });
 
+class EnoentErrorStore {
+  constructor() {
+    this.store = {}
+  }
+
+  set(sessionId, session, callback) {
+    this.store[sessionId] = session;
+    callback();
+  }
+
+  get (sessionId, callback) {
+    const error = Object.assign(new Error(), {code: 'ENOENT'});
+    callback(error)
+  }
+
+  destroy(sessionId, callback) {
+    this.store[sessionId] = undefined;
+    callback()
+  }
+}
+
+test('should create new session if ENOENT error on store.get', t => {
+  t.plan(7);
+  const fastify = Fastify();
+
+  const options = {
+    secret: 'geheim',
+    store: new EnoentErrorStore()
+  };
+  fastify.register(fastifyCookie);
+  fastify.register(fastifySession, options);
+  fastify.get('/', (request, reply) => {
+    reply.send(200);
+  });
+  fastify.listen(0, err => {
+    fastify.server.unref();
+    t.error(err);
+    request({
+      method: 'GET',
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+      }
+    }, (err, response, body) => {
+      t.error(err);
+      t.strictEqual(response.statusCode, 200);
+      t.ok(!response.headers['set-cookie'][0].includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'));
+      t.ok(response.headers['set-cookie'][0].includes('Secure'));
+      t.ok(response.headers['set-cookie'][0].includes('sessionId'));
+      t.ok(response.headers['set-cookie'][0].includes('HttpOnly'));
+    })
+  });
+})
+
 test('should pass error to done if non-ENOENT error on store.get', t => {
   t.plan(2);
   const fastify = Fastify();
