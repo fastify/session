@@ -14,6 +14,7 @@ function session(fastify, opts, next) {
   const cookieName = opts.cookieName || 'sessionId';
   const secret = opts.secret;
   const cookieOpts = opts.cookie || {};
+  cookieOpts.secure = cookieOpts.secure !== undefined ? cookieOpts.secure : true;
 
   if (!secret) {
     next(new Error('the secret option is required!'));
@@ -85,7 +86,7 @@ function session(fastify, opts, next) {
 
   function saveSession(request, reply, payload, done) {
     const session = request.session;
-    if (!session) {
+    if (!session || !shouldSaveSession(request, cookieOpts)) {
       done();
       return;
     }
@@ -104,7 +105,7 @@ function session(fastify, opts, next) {
     return {
       path: cookieOpts.path || '/',
       httpOnly: cookieOpts.httpOnly !== undefined ? cookieOpts.httpOnly : true,
-      secure: cookieOpts.secure !== undefined ? cookieOpts.secure : true,
+      secure: cookieOpts.secure,
       expires: getExpires(cookieOpts),
       sameSite: cookieOpts.sameSite || null,
       domain: cookieOpts.domain || null
@@ -112,6 +113,18 @@ function session(fastify, opts, next) {
   }
 
   next();
+}
+
+function shouldSaveSession(request, cookieOpts) {
+  if (cookieOpts.secure !== true) {
+    return true;
+  }
+  const connection = request.req.connection;
+  if (connection && connection.encrypted === true) {
+    return true;
+  }
+  const forwardedProto = request.headers['x-forwarded-proto'];
+  return forwardedProto === 'https';
 }
 
 function getExpires(cookieOpts) {
