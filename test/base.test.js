@@ -796,7 +796,7 @@ test('should create new session if cookie contains invalid session', t => {
   });
 });
 
-test('should pass error to done if error on store.get', t => {
+test('should pass error to done if non-ENOENT error on store.get', t => {
   t.plan(2);
   const fastify = Fastify();
 
