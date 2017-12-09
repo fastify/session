@@ -8,34 +8,6 @@ const fastifyCookie = require('fastify-cookie');
 const fastifyPlugin = require('fastify-plugin');
 const fastifySession = require('..');
 
-test('should set session cookie', t => {
-  t.plan(6);
-  const fastify = Fastify();
-
-  const options = {
-    secret: 'geheim'
-  }
-  fastify.register(fastifyCookie);
-  fastify.register(fastifySession, options);
-  fastify.get('/', (request, reply) => {
-    reply.send(200);
-  })
-  fastify.listen(0, err => {
-    fastify.server.unref();
-    t.error(err);
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
-    }, (err, response, body) => {
-      t.error(err);
-      t.strictEqual(response.statusCode, 200);
-      t.ok(response.headers['set-cookie'][0].includes('Secure'));
-      t.ok(response.headers['set-cookie'][0].includes('sessionId'));
-      t.ok(response.headers['set-cookie'][0].includes('HttpOnly'));
-    })
-  });
-});
-
 test('should set session cookie on post without params', t => {
   t.plan(3);
   const fastify = Fastify();
@@ -255,7 +227,10 @@ test('should pass error on store.set to done', t => {
     t.error(err);
     request({
       method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.strictEqual(response.statusCode, 500);
     })
@@ -324,7 +299,10 @@ test('should set session non HttpOnly cookie', t => {
     t.error(err);
     request({
       method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.error(err);
       t.strictEqual(response.statusCode, 200);
@@ -356,7 +334,10 @@ test('should set session cookie with expires', t => {
     t.error(err);
     request({
       method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.error(err);
       t.strictEqual(response.statusCode, 200);
@@ -389,7 +370,10 @@ test('should set session cookie with expires if maxAge', t => {
     t.error(err);
     request({
       method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.error(err);
       t.strictEqual(response.statusCode, 200);
@@ -422,7 +406,10 @@ test('should set session cookie with maxAge', t => {
     t.error(err);
     request({
       method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.error(err);
       t.strictEqual(response.statusCode, 200);
@@ -454,7 +441,10 @@ test('should set session cookie with sameSite', t => {
     t.error(err);
     request({
       method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.error(err);
       t.strictEqual(response.statusCode, 200);
@@ -486,7 +476,10 @@ test('should set session another path in cookie', t => {
     t.error(err);
     request({
       method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port + '/a/test/path'
+      uri: 'http://localhost:' + fastify.server.address().port + '/a/test/path',
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.error(err);
       t.strictEqual(response.statusCode, 200);
@@ -515,7 +508,10 @@ test('should set session cookie', t => {
     t.error(err);
     request({
       method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.error(err);
       t.strictEqual(response.statusCode, 200);
@@ -525,7 +521,10 @@ test('should set session cookie', t => {
       fastify.server.unref();
       request({
         method: 'GET',
-        uri: 'http://localhost:' + fastify.server.address().port
+        uri: 'http://localhost:' + fastify.server.address().port,
+        headers: {
+          'x-forwarded-proto': 'https'
+        }
       }, (err, response, body) => {
         t.error(err);
         t.strictEqual(response.statusCode, 200);
@@ -555,7 +554,10 @@ test('should set session cookie using the specified cookie name', t => {
     t.error(err);
     request({
       method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.error(err);
       t.strictEqual(response.statusCode, 200);
@@ -595,7 +597,8 @@ test('should set session cookie using the specified cookie name', t => {
       method: 'GET',
       uri: 'http://localhost:' + fastify.server.address().port,
       headers: {
-        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure',
+        'x-forwarded-proto': 'https'
       }
     }, (err, response, body) => {
       t.error(err);
@@ -678,7 +681,8 @@ test('should set new session cookie if expired', t => {
       method: 'GET',
       uri: 'http://localhost:' + fastify.server.address().port,
       headers: {
-        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure',
+        'x-forwarded-proto': 'https'
       }
     }, (err, response, body) => {
       t.error(err);
@@ -711,7 +715,8 @@ test('should return new session cookie if does not exist in store', t => {
       method: 'GET',
       uri: 'http://localhost:' + fastify.server.address().port,
       headers: {
-        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure',
+        'x-forwarded-proto': 'https'
       }
     }, (err, response, body) => {
       t.error(err);
@@ -746,6 +751,9 @@ test('should not set session cookie on invalid path', t => {
     request({
       method: 'GET',
       uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
     }, (err, response, body) => {
       t.error(err);
       t.strictEqual(response.statusCode, 200);
@@ -783,7 +791,8 @@ test('should create new session if cookie contains invalid session', t => {
       method: 'GET',
       uri: 'http://localhost:' + fastify.server.address().port,
       headers: {
-        'cookie': 'sessionId=SMB5v0wS8tpP-GdP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+        'cookie': 'sessionId=SMB5v0wS8tpP-GdP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure',
+        'x-forwarded-proto': 'https'
       }
     }, (err, response, body) => {
       t.error(err);
@@ -837,7 +846,8 @@ test('should create new session if ENOENT error on store.get', t => {
       method: 'GET',
       uri: 'http://localhost:' + fastify.server.address().port,
       headers: {
-        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure',
+        'x-forwarded-proto': 'https'
       }
     }, (err, response, body) => {
       t.error(err);
