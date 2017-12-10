@@ -36,7 +36,11 @@ function session(fastify, opts, next) {
       } else {
         store.get(decryptedSessionId, (err, session) => {
           if (err) {
-            done(err);
+            if (err.code === 'ENOENT') {
+              newSession(secret, request, reply, done);
+            } else {
+              done(err);
+            }
             return;
           }
           if(!session) {
