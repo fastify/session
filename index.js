@@ -147,3 +147,4 @@ class Session {
 }
 
 exports = module.exports = fastifyPlugin(session, ">=0.34.0");
+module.exports.Store = Store;
