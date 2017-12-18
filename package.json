@@ -18,7 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "cookie-signature": "^1.0.6",
-    "fastify-plugin": "^0.1.1",
+    "fastify-plugin": "^0.2.1",
     "uid-safe": "^2.1.5"
   },
   "engines": {
