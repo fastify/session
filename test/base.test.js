@@ -110,9 +110,10 @@ test('register should fail if no secret is specified', t => {
 
   const options = {}
   fastify.register(fastifyCookie);
-  fastify.register(fastifySession, options, (err) => {
+  fastify.register(fastifySession, options);
+  fastify.ready((err) => {
     t.ok(err instanceof Error);
-  });
+  })
 });
 
 test('should set session non secure cookie', t => {
