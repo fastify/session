@@ -156,5 +156,13 @@ class Cookie {
   }
 }
 
-exports = module.exports = fastifyPlugin(session, ">=0.34.0");
+const metadata = {
+  fastify: '>=0.36.0',
+  name: 'fastify-session',
+  dependencies: [
+    'fastify-cookie'
+  ]
+};
+
+exports = module.exports = fastifyPlugin(session, metadata);
 module.exports.Store = Store;
