@@ -157,7 +157,7 @@ class Cookie {
 }
 
 const metadata = {
-  fastify: '>=0.36.0',
+  fastify: '>=0.40.0',
   name: 'fastify-session',
   dependencies: [
     'fastify-cookie'
