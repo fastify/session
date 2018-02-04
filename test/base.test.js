@@ -31,7 +31,7 @@ test('should set session cookie on post without params', t => {
       }
     }, (err, response, body) => {
       t.error(err);
-      t.strictEqual(response.statusCode, 422);
+      t.strictEqual(response.statusCode, 400);
     })
   });
 });
