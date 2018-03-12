@@ -33,7 +33,7 @@
     "eslint": "^4.18.0",
     "fastify": "^1.0.0-rc.2",
     "fastify-cookie": "^1.2.1",
-    "request": "^2.83.0",
+    "request": "^2.85.0",
     "tap": "^11.0.0"
   }
 }
