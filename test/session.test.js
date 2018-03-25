@@ -85,32 +85,6 @@ test('should add session.cookie object to request', t => {
   });
 });
 
-test('should add session.sessionData object to request', t => {
-  t.plan(4);
-  const fastify = Fastify();
-
-  const options = {
-    secret: 'geheim'
-  }
-  fastify.register(fastifyCookie);
-  fastify.register(fastifySession, options);
-  fastify.get('/', (request, reply) => {
-    t.ok(request.session.sessionData);
-    reply.send(200);
-  })
-  fastify.listen(0, err => {
-    fastify.server.unref();
-    t.error(err);
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port
-    }, (err, response, body) => {
-      t.error(err);
-      t.strictEqual(response.statusCode, 200);
-    })
-  });
-});
-
 test('should add session.expires object to request', t => {
   t.plan(4);
   const fastify = Fastify();
