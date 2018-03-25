@@ -23,11 +23,11 @@ const fastifyCookie = require('fastify-cookie');
 
 const app = fastify();
 app.register(fastifyCookie);
-app.register(fastifySession, {secret: 'a secret'});
+app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 ```
 Store data in the session by adding to the `session` property at the `request`:
 ```js
-app.register(fastifySession, {secret: 'a secret'});
+app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 app.addHook('preHandler', (request, reply, next) => {
   request.session.user = {name: 'max'};
   next();
@@ -35,7 +35,7 @@ app.addHook('preHandler', (request, reply, next) => {
 ```
 The `sessionStore` property of the `request` allows to get, save and delete sessions.
 ```js
-app.register(fastifySession, {secret: 'a secret'});
+app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 app.addHook('preHandler', (request, reply, next) => {
   const session = request.session;
   request.sessionStore.destroy(session.sessionId, next);
@@ -46,7 +46,7 @@ app.addHook('preHandler', (request, reply, next) => {
 The session plugin accepts the following options. It decorates the request with the `sessionStore` and adds a `session` object to the request.
 #### options
 ##### secret (required) 
-The secret used to sign the cookie.
+The secret used to sign the cookie. Must have length 32 or greater.
 ##### cookieName (optional) 
 The name of the session cookie. Defaults to `sessionId`.
 ##### cookie
