@@ -12,7 +12,7 @@ test('should add session object to request', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim'
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
   fastify.register(fastifyCookie);
   fastify.register(fastifySession, options);
@@ -38,7 +38,7 @@ test('should add session.encryptedSessionId object to request', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim'
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
   fastify.register(fastifyCookie);
   fastify.register(fastifySession, options);
@@ -64,7 +64,7 @@ test('should add session.cookie object to request', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim'
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
   fastify.register(fastifyCookie);
   fastify.register(fastifySession, options);
@@ -90,7 +90,7 @@ test('should add session.expires object to request', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim',
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     cookie: {
       maxAge: 42
     }
@@ -119,7 +119,7 @@ test('should add session.sessionId object to request', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim'
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
   fastify.register(fastifyCookie);
   fastify.register(fastifySession, options);

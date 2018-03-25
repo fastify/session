@@ -13,7 +13,7 @@ test('should decorate request with sessionStore', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim'
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
   fastify.register(fastifyCookie);
   fastify.register(fastifySession, options);
@@ -53,7 +53,7 @@ test('should pass error on store.set to done', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim',
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     store: new FailingStore()
   }
   fastify.register(fastifyCookie);
@@ -102,7 +102,7 @@ test('should create new session if ENOENT error on store.get', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim',
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     store: new EnoentErrorStore()
   };
   fastify.register(fastifyCookie);
@@ -117,7 +117,7 @@ test('should create new session if ENOENT error on store.get', t => {
       method: 'GET',
       uri: 'http://localhost:' + fastify.server.address().port,
       headers: {
-        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure',
+        'cookie': 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
         'x-forwarded-proto': 'https'
       }
     }, (err, response, body) => {
@@ -136,7 +136,7 @@ test('should pass error to done if non-ENOENT error on store.get', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim',
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     store: new FailingStore()
   }
   fastify.register(fastifyCookie);
@@ -151,7 +151,7 @@ test('should pass error to done if non-ENOENT error on store.get', t => {
       method: 'GET',
       uri: 'http://localhost:' + fastify.server.address().port,
       headers: {
-        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+        'cookie': 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure'
       }
     }, (err, response, body) => {
       t.strictEqual(response.statusCode, 500);
@@ -184,13 +184,13 @@ test('should set new session cookie if expired', t => {
   const fastify = Fastify();
 
   const options = {
-    secret: 'geheim',
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     store: new FailOnDestroyStore()
   }
   fastify.register(fastifyCookie);
   fastify.register(fastifyPlugin((fastify, opts, next) => {
     fastify.addHook('preHandler', (request, reply, done) => {
-      request.sessionStore.set('SMB5v0wS8tpP-GEP-_h0Libil682NPf0', {
+      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() - 900000
       }, (err) => {
         done(err)
@@ -209,7 +209,7 @@ test('should set new session cookie if expired', t => {
       method: 'GET',
       uri: 'http://localhost:' + fastify.server.address().port,
       headers: {
-        'cookie': 'sessionId=SMB5v0wS8tpP-GEP-_h0Libil682NPf0.AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg; Path=/; HttpOnly; Secure'
+        'cookie': 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure'
       }
     }, (err, response, body) => {
       t.error(err);

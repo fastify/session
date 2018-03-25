@@ -21,6 +21,10 @@ function session(fastify, opts, next) {
     return;
   }
 
+  if (secret.length < 32) {
+    next(new Error('the secret must have length 32 or greater'));
+  }
+
   function handleSession(request, reply, done) {
     const url = request.req.url;
     if (url.indexOf(cookieOpts.path || '/') !== 0) {
