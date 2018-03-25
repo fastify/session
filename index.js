@@ -79,7 +79,7 @@ function session(fastify, opts, next) {
     if (cookieOpts.maxAge) {
       expires = Date.now() + cookieOpts.maxAge;
     }
-    const session = new Session(sessionId, encryptedSessionId, {}, expires, cookieOpts);
+    const session = new Session(sessionId, encryptedSessionId, expires, cookieOpts);
     request.session = session;
     done();
   }
@@ -138,10 +138,9 @@ function getExpires(cookieOpts) {
 }
 
 class Session {
-  constructor(sessionId, encryptedSessionId, sessionData, expires, cookieOpts) {
+  constructor(sessionId, encryptedSessionId, expires, cookieOpts) {
     this.sessionId = sessionId;
     this.encryptedSessionId = encryptedSessionId;
-    this.sessionData = sessionData;
     this.expires = expires;
     this.cookie = new Cookie(cookieOpts);
   }
