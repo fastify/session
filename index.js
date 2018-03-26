@@ -4,6 +4,8 @@ const fastifyPlugin = require('fastify-plugin');
 const uid = require('uid-safe').sync;
 const cookieSignature = require('cookie-signature');
 const Store = require('./lib/store');
+const Session = require('./lib/session');
+const metadata = require('./lib/metadata');
 
 function session(fastify, opts, next) {
   fastify.addHook('preHandler', handleSession);
@@ -140,32 +142,6 @@ function getExpires(cookieOpts) {
   }
   return expires;
 }
-
-class Session {
-  constructor(sessionId, encryptedSessionId, expires, cookieOpts) {
-    this.sessionId = sessionId;
-    this.encryptedSessionId = encryptedSessionId;
-    this.expires = expires;
-    this.cookie = new Cookie(cookieOpts);
-  }
-}
-
-class Cookie {
-  constructor(cookieOpts) {
-    this.path = '/';
-    this.maxAge = null;
-    this.httpOnly = true;
-    Object.assign(this, cookieOpts);
-  }
-}
-
-const metadata = {
-  fastify: '>=0.40.0',
-  name: 'fastify-session',
-  dependencies: [
-    'fastify-cookie'
-  ]
-};
 
 exports = module.exports = fastifyPlugin(session, metadata);
 module.exports.Store = Store;
