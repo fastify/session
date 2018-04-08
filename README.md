@@ -25,7 +25,7 @@ const app = fastify();
 app.register(fastifyCookie);
 app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 ```
-Store data in the session by adding to the `session` property at the `request`:
+Store data in the session by adding it to the `session` property at the `request`:
 ```js
 app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 app.addHook('preHandler', (request, reply, next) => {
@@ -43,7 +43,7 @@ app.addHook('preHandler', (request, reply, next) => {
 ```
 ## API
 ### session(fastify, options, next)
-The session plugin accepts the following options. It decorates the request with the `sessionStore` and adds a `session` object to the request.
+The session plugin accepts the following options. It decorates the request with the `sessionStore` and adds a `session` object to the request. The session data is stored server side using the configured session store. 
 #### options
 ##### secret (required) 
 The secret used to sign the cookie. Must have length 32 or greater.
@@ -52,7 +52,7 @@ The name of the session cookie. Defaults to `sessionId`.
 ##### cookie
 The options object used to generate the `Set-Cookie` header of the session cookie. May have the following properties:
 * `path` - The `Path` attribute. Defaults to `/` (the root path). 
-* `maxAge` - A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date.  If both `expires` and `maxAge` are set, then `expires` is used.
+* `maxAge` - A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `expires` is used.
 * `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
 * `secure` - The `boolean` value of the `Secure` attribute. Defaults to true.
 * `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `expires` is used.
@@ -67,7 +67,7 @@ A session store. Needs the following methods:
 Compatible to stores from [express-session](https://github.com/expressjs/session).
 
 Defaults to a simple in memory store.</br>
-**Note**: The default store should not be used in a production environment.
+**Note**: The default store should not be used in a production environment because it will leak memory.
 
 ## License
 
