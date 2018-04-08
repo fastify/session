@@ -25,7 +25,7 @@ const app = fastify();
 app.register(fastifyCookie);
 app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 ```
-Store data in the session by adding it to the `session` property at the `request`:
+Store data in the session by adding it to the `session` decorator at the `request`:
 ```js
 app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 app.addHook('preHandler', (request, reply, next) => {
@@ -33,7 +33,7 @@ app.addHook('preHandler', (request, reply, next) => {
   next();
 })
 ```
-The `sessionStore` property of the `request` allows to get, save and delete sessions.
+The `sessionStore` decorator of the `request` allows to get, save and delete sessions.
 ```js
 app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 app.addHook('preHandler', (request, reply, next) => {

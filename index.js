@@ -13,6 +13,7 @@ function session(fastify, opts, next) {
 
   const store = opts.store || new Store();
   fastify.decorateRequest('sessionStore', store);
+  fastify.decorateRequest('session', {});
   const cookieName = opts.cookieName || 'sessionId';
   const secret = opts.secret;
   const cookieOpts = opts.cookie || {};
@@ -92,7 +93,7 @@ function session(fastify, opts, next) {
 
   function saveSession(request, reply, payload, done) {
     const session = request.session;
-    if (!session || !shouldSaveSession(request, cookieOpts)) {
+    if (!session || !session.sessionId || !shouldSaveSession(request, cookieOpts)) {
       done();
       return;
     }

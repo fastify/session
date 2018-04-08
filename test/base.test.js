@@ -367,7 +367,8 @@ test('should set session cookie using the specified cookie name', t => {
   fastify.register(fastifyPlugin((fastify, opts, next) => {
     fastify.addHook('preHandler', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() + 900000
+        expires: Date.now() + 900000,
+        sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN'
       }, (err) => {
         done(err)
       })
