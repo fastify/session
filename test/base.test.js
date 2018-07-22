@@ -593,3 +593,33 @@ test('should create new session if cookie contains invalid session', t => {
     })
   });
 });
+
+test('should not set session cookie if no data in session and saveUninitialized is false', t => {
+  t.plan(4);
+  const fastify = Fastify();
+
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    saveUninitialized: false
+  }
+  fastify.register(fastifyCookie);
+  fastify.register(fastifySession, options);
+  fastify.get('/', (request, reply) => {
+    reply.send(200);
+  })
+  fastify.listen(0, err => {
+    fastify.server.unref();
+    t.error(err);
+    request({
+      method: 'GET',
+      uri: 'http://localhost:' + fastify.server.address().port,
+      headers: {
+        'x-forwarded-proto': 'https'
+      }
+    }, (err, response, body) => {
+      t.error(err);
+      t.strictEqual(response.statusCode, 200);
+      t.ok(response.headers['set-cookie'] === undefined);
+    })
+  });
+});
