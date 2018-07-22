@@ -69,6 +69,10 @@ Compatible to stores from [express-session](https://github.com/expressjs/session
 Defaults to a simple in memory store.</br>
 **Note**: The default store should not be used in a production environment because it will leak memory.
 
+##### saveUninitialized (optional) 
+Save sessions to the store, even when they are new and not modified. Defaults to `true`.
+Setting this to true can be useful to save storage space or to comply with the EU cookie law.
+
 ## License
 
 [MIT](./LICENSE)
