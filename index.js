@@ -17,11 +17,8 @@ function session(fastify, opts, next) {
   const cookieName = opts.cookieName || 'sessionId';
   const secret = opts.secret;
   const cookieOpts = opts.cookie || {};
-  cookieOpts.secure = cookieOpts.secure !== undefined ? cookieOpts.secure : true;
-  var saveUninitialized = opts.saveUninitialized;
-  if (saveUninitialized === undefined) {
-    saveUninitialized = true;
-  }
+  cookieOpts.secure = option(cookieOpts, 'secure', true);
+  const saveUninitialized = option(opts, 'saveUninitialized', true);
 
   if (!secret) {
     next(new Error('the secret option is required!'));
@@ -153,6 +150,10 @@ function getExpires(cookieOpts) {
     expires = new Date(Date.now() + cookieOpts.maxAge);
   }
   return expires;
+}
+
+function option(options, key, def) {
+  return options[key] === undefined ? def : options[key];
 }
 
 exports = module.exports = fastifyPlugin(session, metadata);
