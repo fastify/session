@@ -6,7 +6,7 @@
   "scripts": {
     "unit": "tap test/*.test.js",
     "test": "npm run lint && npm run unit",
-    "lint": "./node_modules/eslint/bin/eslint.js index.js lib/* test/*",
+    "lint": "standard lib/* test/*",
     "coveralls": "npm run unit --  --cov",
     "coverage-report": "npm run coveralls && tap --coverage-report=lcov"
   },
@@ -30,10 +30,10 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
-    "eslint": "^5.0.0",
     "fastify": "^1.7.0",
     "fastify-cookie": "^2.0.1",
     "request": "^2.85.0",
+    "standard": "^12.0.1",
     "tap": "^12.0.0"
   }
 }
