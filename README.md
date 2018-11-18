@@ -44,7 +44,7 @@ app.addHook('preHandler', (request, reply, next) => {
 ```
 ## API
 ### session(fastify, options, next)
-The session plugin accepts the following options. It decorates the request with the `sessionStore` and adds a `session` object to the request. The session data is stored server side using the configured session store. 
+The session plugin accepts the following options. It decorates the request with the `sessionStore` and a `session` object. The session data is stored server side using the configured session store. 
 #### options
 ##### secret (required) 
 The secret used to sign the cookie. Must have length 32 or greater.
@@ -73,6 +73,14 @@ Defaults to a simple in memory store.</br>
 ##### saveUninitialized (optional) 
 Save sessions to the store, even when they are new and not modified. Defaults to `true`.
 Setting this to true can be useful to save storage space or to comply with the EU cookie law.
+
+#### request.session
+
+Allows to access or modify the session data.
+
+#### Session.touch()
+
+Updates the `expires` property of the session. 
 
 ## License
 

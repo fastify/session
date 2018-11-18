@@ -6,7 +6,7 @@ const Fastify = require('fastify')
 const request = require('request')
 const fastifyCookie = require('fastify-cookie')
 const fastifyPlugin = require('fastify-plugin')
-const fastifySession = require('..')
+const fastifySession = require('../lib/fastifySession')
 
 test('should decorate request with sessionStore', t => {
   t.plan(4)

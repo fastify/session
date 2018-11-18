@@ -5,7 +5,7 @@ const test = t.test
 const Fastify = require('fastify')
 const request = require('request')
 const fastifyCookie = require('fastify-cookie')
-const fastifySession = require('..')
+const fastifySession = require('../lib/fastifySession')
 
 test('should set session cookie', t => {
   t.plan(6)
