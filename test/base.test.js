@@ -6,7 +6,7 @@ const Fastify = require('fastify')
 const request = require('request')
 const fastifyCookie = require('fastify-cookie')
 const fastifyPlugin = require('fastify-plugin')
-const fastifySession = require('..')
+const fastifySession = require('../lib/fastifySession')
 
 test('should set session cookie on post without params', t => {
   t.plan(3)
@@ -376,7 +376,12 @@ test('should set session cookie using the specified cookie name', t => {
     fastify.addHook('preHandler', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() + 900000,
-        sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN'
+        sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
+        cookie: {
+          secure: true,
+          httpOnly: true,
+          path: '/'
+        }
       }, (err) => {
         done(err)
       })
