@@ -139,3 +139,46 @@ test('should add session.sessionId object to request', t => {
     })
   })
 })
+
+test('should keep user data in session throughout the time', t => {
+  t.plan(6)
+  const fastify = Fastify()
+
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    cookie: {
+      secure: false
+    }
+  }
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.get('/', (request, reply) => {
+    request.session.foo = 'bar'
+    reply.send(200)
+  })
+  fastify.get('/check', (request, reply) => {
+    t.ok(request.session.foo === 'bar')
+    reply.send(200)
+  })
+  fastify.listen(0, err => {
+    fastify.server.unref()
+    t.error(err)
+    request({
+      method: 'GET',
+      uri: 'http://localhost:' + fastify.server.address().port
+    }, (err, response, body) => {
+      t.error(err)
+      t.strictEqual(response.statusCode, 200)
+      request({
+        method: 'GET',
+        uri: 'http://localhost:' + fastify.server.address().port + '/check',
+        headers: {
+          Cookie: response.headers['set-cookie']
+        }
+      }, (err, response, body) => {
+        t.error(err)
+        t.strictEqual(response.statusCode, 200)
+      })
+    })
+  })
+})
