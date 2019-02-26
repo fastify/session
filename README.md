@@ -78,9 +78,13 @@ Setting this to true can be useful to save storage space or to comply with the E
 
 Allows to access or modify the session data.
 
-#### Session.touch()
+#### Session#touch()
 
 Updates the `expires` property of the session. 
+
+#### Session#regenerate()
+
+Regenerates the session by generating a new `sessionId`.
 
 ## License
 
