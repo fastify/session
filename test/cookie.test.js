@@ -14,8 +14,8 @@ test('should set session cookie', t => {
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
-  fastify.addHook('onRequest', (req, res, next) => {
-    req.connection.encrypted = true
+  fastify.addHook('onRequest', (request, reply, next) => {
+    request.raw.connection.encrypted = true
     next()
   })
   fastify.register(fastifyCookie)
@@ -47,8 +47,8 @@ test('should not set session cookie is request is not secure', t => {
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
-  fastify.addHook('onRequest', (req, res, next) => {
-    req.connection.encrypted = false
+  fastify.addHook('onRequest', (request, reply, next) => {
+    request.raw.connection.encrypted = false
     next()
   })
   fastify.register(fastifyCookie)
@@ -77,9 +77,8 @@ test('should not set session cookie is request is not secure and x-forwarded-pro
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
-  fastify.addHook('onRequest', (req, res, next) => {
-    req.connection.encrypted = false
-
+  fastify.addHook('onRequest', (request, reply, next) => {
+    request.raw.connection.encrypted = false
     next()
   })
   fastify.register(fastifyCookie)
@@ -111,9 +110,8 @@ test('should not set session cookie is request is not secure and x-forwarded-pro
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
-  fastify.addHook('onRequest', (req, res, next) => {
-    req.connection.encrypted = false
-
+  fastify.addHook('onRequest', (request, reply, next) => {
+    request.raw.connection.encrypted = false
     next()
   })
   fastify.register(fastifyCookie)
