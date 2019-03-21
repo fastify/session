@@ -72,7 +72,7 @@ Defaults to a simple in memory store.</br>
 
 ##### saveUninitialized (optional) 
 Save sessions to the store, even when they are new and not modified. Defaults to `true`.
-Setting this to true can be useful to save storage space or to comply with the EU cookie law.
+Setting this to `false` can be useful to save storage space and to comply with the EU cookie law.
 
 #### request.session
 
