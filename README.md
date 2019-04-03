@@ -34,6 +34,7 @@ app.addHook('preHandler', (request, reply, next) => {
   next();
 })
 ```
+**NOTE**: For all unencrypted (HTTP) connections, you need to set the `secure` cookie option to `false`. Look below for all cookie options and their details.  
 The `sessionStore` decorator of the `request` allows to get, save and delete sessions.
 ```js
 app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
@@ -55,7 +56,7 @@ The options object used to generate the `Set-Cookie` header of the session cooki
 * `path` - The `Path` attribute. Defaults to `/` (the root path). 
 * `maxAge` - A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `expires` is used.
 * `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
-* `secure` - The `boolean` value of the `Secure` attribute. Defaults to true.
+* `secure` - The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Defaults to true.
 * `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `expires` is used.
 * `sameSite`- The `boolean` or `string` of the `SameSite` attribute. 
 * `domain` - The `Domain` attribute.
