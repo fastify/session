@@ -34,7 +34,7 @@ test('should add session object to request', t => {
 })
 
 test('should destroy the session', t => {
-  t.plan(6)
+  t.plan(5)
   const fastify = Fastify()
 
   const options = {
@@ -45,8 +45,7 @@ test('should destroy the session', t => {
   fastify.get('/', (request, reply) => {
     request.destroySession((err) => {
       t.error(err)
-      t.strictEqual(JSON.stringify(request.session), '{}')
-      t.ok(request.session)
+      t.strictEqual(request.session, null)
       reply.send(200)
     })
   })
