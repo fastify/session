@@ -79,6 +79,10 @@ Setting this to `false` can be useful to save storage space and to comply with t
 
 Allows to access or modify the session data.
 
+#### request.destroySession(callback)
+
+Allows to destroy the session in the store
+
 #### Session#touch()
 
 Updates the `expires` property of the session. 
