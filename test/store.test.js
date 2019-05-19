@@ -193,7 +193,7 @@ test('should set new session cookie if expired', t => {
   }
   fastify.register(fastifyCookie)
   fastify.register(fastifyPlugin((fastify, opts, next) => {
-    fastify.addHook('preHandler', (request, reply, done) => {
+    fastify.addHook('preValidation', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() - 900000
       }, (err) => {
