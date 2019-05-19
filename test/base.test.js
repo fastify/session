@@ -123,7 +123,7 @@ test('should set session cookie using the specified cookie name', t => {
   }
   fastify.register(fastifyCookie)
   fastify.register(fastifyPlugin((fastify, opts, next) => {
-    fastify.addHook('preHandler', (request, reply, done) => {
+    fastify.addHook('preValidation', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() + 900000,
         sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
@@ -175,7 +175,7 @@ test('should set session.expires if maxAge', t => {
   }
   fastify.register(fastifyCookie)
   fastify.register(fastifyPlugin((fastify, opts, next) => {
-    fastify.addHook('preHandler', (request, reply, done) => {
+    fastify.addHook('preValidation', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() + 900000
       }, (err) => {
@@ -214,7 +214,7 @@ test('should set new session cookie if expired', t => {
   }
   fastify.register(fastifyCookie)
   fastify.register(fastifyPlugin((fastify, opts, next) => {
-    fastify.addHook('preHandler', (request, reply, done) => {
+    fastify.addHook('preValidation', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() - 900000
       }, (err) => {
@@ -326,7 +326,7 @@ test('should create new session if cookie contains invalid session', t => {
   }
   fastify.register(fastifyCookie)
   fastify.register(fastifyPlugin((fastify, opts, next) => {
-    fastify.addHook('preHandler', (request, reply, done) => {
+    fastify.addHook('preValidation', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() + 900000
       }, (err) => {
