@@ -43,6 +43,11 @@ app.addHook('preHandler', (request, reply, next) => {
   request.sessionStore.destroy(session.sessionId, next);
 })
 ```
+
+## Examples
+
+* [Authentication](https://github.com/fastify/example/tree/master/fastify-session-authentication)
+
 ## API
 ### session(fastify, options, next)
 The session plugin accepts the following options. It decorates the request with the `sessionStore` and a `session` object. The session data is stored server side using the configured session store. 
