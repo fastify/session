@@ -35,7 +35,7 @@
     "fastify": "^2.0.0",
     "fastify-cookie": "^3.0.0",
     "request": "^2.88.0",
-    "standard": "^13.0.1",
+    "standard": "^14.0.0",
     "tap": "^14.0.0",
     "typescript": "^3.4.5"
   },
