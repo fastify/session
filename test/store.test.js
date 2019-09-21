@@ -1,7 +1,6 @@
 'use strict'
 
-const t = require('tap')
-const test = t.test
+const test = require('ava')
 const fastifyPlugin = require('fastify-plugin')
 const { testServer, request, DEFAULT_OPTIONS, DEFAULT_COOKIE } = require('./util')
 const { Store } = require('..')
@@ -9,7 +8,7 @@ const { Store } = require('..')
 test('should decorate request with sessionStore', async (t) => {
   t.plan(2)
   const port = await testServer((request, reply) => {
-    t.ok(request.sessionStore)
+    t.truthy(request.sessionStore)
     reply.send(200)
   }, DEFAULT_OPTIONS)
 
@@ -17,7 +16,7 @@ test('should decorate request with sessionStore', async (t) => {
     uri: `http://localhost:${port}`
   })
 
-  t.strictEqual(response.statusCode, 200)
+  t.is(response.statusCode, 200)
 })
 
 test('should pass error on store.set to done', async (t) => {
@@ -36,7 +35,7 @@ test('should pass error on store.set to done', async (t) => {
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.strictEqual(statusCode, 500)
+  t.is(statusCode, 500)
 })
 
 test('should create new session if ENOENT error on store.get', async (t) => {
@@ -58,9 +57,9 @@ test('should create new session if ENOENT error on store.get', async (t) => {
     }
   })
 
-  t.strictEqual(statusCode, 200)
-  t.ok(!cookie.includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'))
-  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.is(statusCode, 200)
+  t.false(cookie.includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'))
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should pass error to done if non-ENOENT error on store.get', async (t) => {
@@ -76,7 +75,7 @@ test('should pass error to done if non-ENOENT error on store.get', async (t) => 
     headers: { cookie: DEFAULT_COOKIE }
   })
 
-  t.strictEqual(statusCode, 500)
+  t.is(statusCode, 500)
 })
 
 test('should set new session cookie if expired', async (t) => {
@@ -105,8 +104,8 @@ test('should set new session cookie if expired', async (t) => {
     headers: { cookie: DEFAULT_COOKIE }
   })
 
-  t.strictEqual(statusCode, 500)
-  t.ok(cookie === null)
+  t.is(statusCode, 500)
+  t.is(cookie, null)
 })
 
 test('store should be an event emitter', t => {
