@@ -1,7 +1,6 @@
 'use strict'
 
-const t = require('tap')
-const test = t.test
+const test = require('ava')
 const Fastify = require('fastify')
 const fastifyCookie = require('fastify-cookie')
 const fastifySession = require('../lib/fastifySession')
@@ -27,8 +26,8 @@ test('should set session cookie', async (t) => {
     uri: 'http://localhost:' + fastify.server.address().port
   })
 
-  t.strictEqual(statusCode, 200)
-  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should not set session cookie is request is not secure', async (t) => {
@@ -46,8 +45,8 @@ test('should not set session cookie is request is not secure', async (t) => {
 
   const { statusCode, cookie } = await request(`http://localhost:${port}`)
 
-  t.strictEqual(statusCode, 200)
-  t.notOk(cookie)
+  t.is(statusCode, 200)
+  t.falsy(cookie)
 })
 
 test('should not set session cookie is request is not secure and x-forwarded-proto != https', async (t) => {
@@ -67,8 +66,8 @@ test('should not set session cookie is request is not secure and x-forwarded-pro
     headers: { 'x-forwarded-proto': 'http' }
   })
 
-  t.strictEqual(statusCode, 200)
-  t.notOk(cookie)
+  t.is(statusCode, 200)
+  t.falsy(cookie)
 })
 
 test('should set session cookie is request is not secure and x-forwarded-proto = https', async (t) => {
@@ -91,8 +90,8 @@ test('should set session cookie is request is not secure and x-forwarded-proto =
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.strictEqual(statusCode, 200)
-  t.ok(cookie)
+  t.is(statusCode, 200)
+  t.truthy(cookie)
 })
 
 test('session.cookie should have maxage', async (t) => {
@@ -102,14 +101,14 @@ test('session.cookie should have maxage', async (t) => {
     cookie: { maxAge: 100000000, secure: false }
   }
   const port = await testServer((request, reply) => {
-    t.equals(request.session.cookie.maxAge, 100000000)
+    t.is(request.session.cookie.maxAge, 100000000)
     reply.send(200)
   }, options)
 
   const { statusCode, cookie } = await request(`http://localhost:${port}`)
 
-  t.strictEqual(statusCode, 200)
-  t.ok(cookie)
+  t.is(statusCode, 200)
+  t.truthy(cookie)
 })
 
 test('should set session cookie with expires if maxAge', async (t) => {
@@ -128,8 +127,8 @@ test('should set session cookie with expires if maxAge', async (t) => {
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.strictEqual(statusCode, 200)
-  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=[\w, :]{29}; HttpOnly; Secure/)
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=[\w, :]{29}; HttpOnly; Secure/)
 })
 
 test('should set session cookie with maxAge', async (t) => {
@@ -148,8 +147,8 @@ test('should set session cookie with maxAge', async (t) => {
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.strictEqual(statusCode, 200)
-  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Domain=localhost; Path=\/; HttpOnly; Secure/)
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Domain=localhost; Path=\/; HttpOnly; Secure/)
 })
 
 test('should set session cookie with sameSite', async (t) => {
@@ -168,8 +167,8 @@ test('should set session cookie with sameSite', async (t) => {
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.strictEqual(statusCode, 200)
-  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure; SameSite=Strict/)
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure; SameSite=Strict/)
 })
 
 test('should set session another path in cookie', async (t) => {
@@ -194,8 +193,8 @@ test('should set session another path in cookie', async (t) => {
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.strictEqual(statusCode, 200)
-  t.match(cookie, /sessionId=[\w-]{32}.[[\w-%]{43,55}; Path=\/a\/test\/path; HttpOnly; Secure/)
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[[\w-%]{43,55}; Path=\/a\/test\/path; HttpOnly; Secure/)
 })
 
 test('should set session cookie with expires', async (t) => {
@@ -216,8 +215,8 @@ test('should set session cookie with expires', async (t) => {
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.strictEqual(statusCode, 200)
-  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=Mon, 01 Feb 1971 00:01:01 GMT; HttpOnly; Secure/)
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=Mon, 01 Feb 1971 00:01:01 GMT; HttpOnly; Secure/)
 })
 
 test('should set session non HttpOnly cookie', async (t) => {
@@ -236,8 +235,8 @@ test('should set session non HttpOnly cookie', async (t) => {
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.strictEqual(statusCode, 200)
-  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Secure/)
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Secure/)
 })
 
 test('should set session non secure cookie', async (t) => {
@@ -253,6 +252,6 @@ test('should set session non secure cookie', async (t) => {
 
   const { statusCode, cookie } = await request(`http://localhost:${port}`)
 
-  t.strictEqual(statusCode, 200)
-  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly/)
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly/)
 })
