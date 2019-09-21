@@ -1,392 +1,238 @@
 'use strict'
 
-const t = require('tap')
-const test = t.test
-const Fastify = require('fastify')
-const request = require('request')
-const fastifyCookie = require('fastify-cookie')
+const { test } = require('tap')
 const fastifyPlugin = require('fastify-plugin')
-const fastifySession = require('../lib/fastifySession')
+const { testServer, request, DEFAULT_OPTIONS, DEFAULT_COOKIE } = require('./util')
 
-test('should set session cookie on post without params', t => {
-  t.plan(3)
-  const fastify = Fastify()
+test('should set session cookie on post without params', async (t) => {
+  t.plan(1)
+  const port = await testServer((request, reply) => reply.send(200), DEFAULT_OPTIONS)
 
-  const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
-  }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
-  fastify.post('/test', (request, reply) => {
-    reply.send(200)
+  const { statusCode } = await request({
+    method: 'POST',
+    uri: `http://localhost:${port}/test`,
+    headers: { 'content-type': 'application/json' }
   })
-  fastify.listen(0, err => {
-    fastify.server.unref()
-    t.error(err)
-    request({
-      method: 'POST',
-      uri: 'http://localhost:' + fastify.server.address().port + '/test',
-      headers: {
-        'content-type': 'application/json'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 400)
-    })
-  })
+  t.strictEqual(statusCode, 400)
 })
 
-test('should set session cookie', t => {
-  t.plan(11)
-  const fastify = Fastify()
-
-  const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
-  }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
-  fastify.get('/', (request, reply) => {
+test('should set session cookie', async (t) => {
+  t.plan(4)
+  const port = await testServer((request, reply) => {
     request.session.test = {}
     reply.send(200)
+  }, DEFAULT_OPTIONS)
+
+  const { statusCode: statusCode1, cookie: cookie1 } = await request({
+    uri: `http://localhost:${port}`,
+    headers: { 'x-forwarded-proto': 'https' }
   })
-  fastify.listen(0, err => {
-    t.error(err)
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port,
-      headers: {
-        'x-forwarded-proto': 'https'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 200)
-      t.ok(response.headers['set-cookie'][0].includes('Secure'))
-      t.ok(response.headers['set-cookie'][0].includes('sessionId'))
-      t.ok(response.headers['set-cookie'][0].includes('HttpOnly'))
-      fastify.server.unref()
-      request({
-        method: 'GET',
-        uri: 'http://localhost:' + fastify.server.address().port,
-        headers: {
-          'x-forwarded-proto': 'https'
-        }
-      }, (err, response, body) => {
-        t.error(err)
-        t.strictEqual(response.statusCode, 200)
-        t.ok(response.headers['set-cookie'][0].includes('Secure'))
-        t.ok(response.headers['set-cookie'][0].includes('sessionId'))
-        t.ok(response.headers['set-cookie'][0].includes('HttpOnly'))
-      })
-    })
+
+  t.strictEqual(statusCode1, 200)
+  t.match(cookie1, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+
+  const { statusCode: statusCode2, cookie: cookie2 } = await request({
+    uri: `http://localhost:${port}`,
+    headers: { 'x-forwarded-proto': 'https' }
   })
+
+  t.strictEqual(statusCode2, 200)
+  t.match(cookie2, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
 })
 
-test('should set session cookie using the specified cookie name', t => {
-  t.plan(6)
-  const fastify = Fastify()
-
+test('should set session cookie using the specified cookie name', async (t) => {
+  t.plan(2)
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     cookieName: 'anothername'
   }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
-  fastify.get('/', (request, reply) => {
+  const port = await testServer((request, reply) => {
     request.session.test = {}
     reply.send(200)
+  }, options)
+
+  const { statusCode, cookie } = await request({
+    uri: `http://localhost:${port}`,
+    headers: { 'x-forwarded-proto': 'https' }
   })
-  fastify.listen(0, err => {
-    fastify.server.unref()
-    t.error(err)
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port,
-      headers: {
-        'x-forwarded-proto': 'https'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 200)
-      t.ok(response.headers['set-cookie'][0].includes('Secure'))
-      t.ok(response.headers['set-cookie'][0].includes('anothername'))
-      t.ok(response.headers['set-cookie'][0].includes('HttpOnly'))
-    })
-  })
+
+  t.strictEqual(statusCode, 200)
+  t.match(cookie, /anothername=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
 })
 
-test('should set session cookie using the specified cookie name', t => {
-  t.plan(6)
-  const fastify = Fastify()
-
-  const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
-  }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifyPlugin((fastify, opts, next) => {
+test('should set session cookie using the default cookie name', async (t) => {
+  t.plan(2)
+  const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('preValidation', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() + 900000,
+        isExpired () {
+          return false
+        },
         sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
-        cookie: {
-          secure: true,
-          httpOnly: true,
-          path: '/'
-        }
-      }, (err) => {
-        done(err)
-      })
+        cookie: { secure: true, httpOnly: true, path: '/' }
+      }, done)
     })
-    next()
-  }, '>=0.30.2'))
-  fastify.register(fastifySession, options)
-  fastify.get('/', (request, reply) => {
+  })
+  function handler (request, reply) {
     request.session.test = {}
     reply.send(200)
+  }
+  const port = await testServer(handler, DEFAULT_OPTIONS, plugin)
+
+  const { statusCode, cookie } = await request({
+    uri: `http://localhost:${port}`,
+    headers: {
+      cookie: DEFAULT_COOKIE,
+      'x-forwarded-proto': 'https'
+    }
   })
-  fastify.listen(0, err => {
-    fastify.server.unref()
-    t.error(err)
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port,
-      headers: {
-        'cookie': 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
-        'x-forwarded-proto': 'https'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 200)
-      t.ok(response.headers['set-cookie'][0].includes('Secure'))
-      t.ok(response.headers['set-cookie'][0].includes('sessionId'))
-      t.ok(response.headers['set-cookie'][0].includes('HttpOnly'))
-    })
-  })
+
+  t.strictEqual(statusCode, 200)
+  t.match(cookie, /sessionId=undefined; Path=\/; HttpOnly; Secure/)
 })
 
-test('should set session.expires if maxAge', t => {
-  t.plan(4)
-  const fastify = Fastify()
-
+test('should set session.expires if maxAge', async (t) => {
+  t.plan(2)
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
-    cookie: {
-      maxAge: 42
-    }
+    cookie: { maxAge: 42 }
   }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifyPlugin((fastify, opts, next) => {
+  const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('preValidation', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() + 900000
-      }, (err) => {
-        done(err)
-      })
+        isExpired () {
+          return false
+        }
+      }, done)
     })
-    next()
-  }, '>=0.30.2'))
-  fastify.register(fastifySession, options)
-  fastify.get('/', (request, reply) => {
+  })
+  function handler (request, reply) {
     t.ok(request.session.expires)
     reply.send(200)
+  }
+  const port = await testServer(handler, options, plugin)
+
+  const { statusCode } = await request({
+    uri: `http://localhost:${port}`,
+    headers: { cookie: DEFAULT_COOKIE }
   })
-  fastify.listen(0, err => {
-    fastify.server.unref()
-    t.error(err)
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port,
-      headers: {
-        'cookie': 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 200)
-    })
-  })
+
+  t.strictEqual(statusCode, 200)
 })
 
-test('should set new session cookie if expired', t => {
-  t.plan(7)
-  const fastify = Fastify()
+test('should set new session cookie if expired', async (t) => {
+  t.plan(3)
 
-  const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
-  }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifyPlugin((fastify, opts, next) => {
+  const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('preValidation', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() - 900000
-      }, (err) => {
-        done(err)
-      })
+        isExpired () {
+          return true
+        }
+      }, done)
     })
-    next()
-  }, '>=0.30.2'))
-  fastify.register(fastifySession, options)
-  fastify.get('/', (request, reply) => {
+  })
+  function handler (request, reply) {
     request.session.test = {}
     reply.send(200)
-  })
-  fastify.listen(0, err => {
-    fastify.server.unref()
-    t.error(err)
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port,
-      headers: {
-        'cookie': 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
-        'x-forwarded-proto': 'https'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 200)
-      const splitCookieHeader = response.headers['set-cookie'][0].split('; ')
-      t.notEqual(splitCookieHeader[0], 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE')
-      t.strictEqual(splitCookieHeader[1], 'Path=/')
-      t.strictEqual(splitCookieHeader[2], 'HttpOnly')
-      t.strictEqual(splitCookieHeader[3], 'Secure')
-    })
-  })
-})
-
-test('should return new session cookie if does not exist in store', t => {
-  t.plan(7)
-  const fastify = Fastify()
-
-  const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
   }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
-  fastify.get('/', (request, reply) => {
-    request.session.test = {}
-    reply.send(200)
+  const port = await testServer(handler, DEFAULT_OPTIONS, plugin)
+
+  const { statusCode, cookie } = await request({
+    uri: `http://localhost:${port}`,
+    headers: {
+      cookie: DEFAULT_COOKIE,
+      'x-forwarded-proto': 'https'
+    }
   })
-  fastify.listen(0, err => {
-    fastify.server.unref()
-    t.error(err)
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port,
-      headers: {
-        'cookie': 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
-        'x-forwarded-proto': 'https'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 200)
-      const splitCookieHeader = response.headers['set-cookie'][0].split('; ')
-      t.notEqual(splitCookieHeader[0], 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE')
-      t.strictEqual(splitCookieHeader[1], 'Path=/')
-      t.strictEqual(splitCookieHeader[2], 'HttpOnly')
-      t.strictEqual(splitCookieHeader[3], 'Secure')
-    })
-  })
+
+  t.strictEqual(statusCode, 200)
+  t.notOk(cookie.includes('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'))
+  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
 })
 
-test('should not set session cookie on invalid path', t => {
-  t.plan(4)
-  const fastify = Fastify()
+test('should return new session cookie if does not exist in store', async (t) => {
+  t.plan(3)
+  const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
+  const port = await testServer((request, reply) => {
+    request.session.test = {}
+    reply.send(200)
+  }, options)
 
+  const { statusCode, cookie } = await request({
+    uri: `http://localhost:${port}`,
+    headers: {
+      cookie: DEFAULT_COOKIE,
+      'x-forwarded-proto': 'https'
+    }
+  })
+
+  t.strictEqual(statusCode, 200)
+  t.notOk(cookie.includes('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'))
+  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+})
+
+test('should not set session cookie on invalid path', async (t) => {
+  t.plan(2)
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
-    cookie: {
-      path: '/path/'
-    }
+    cookie: { path: '/path/' }
   }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
-  fastify.get('/', (request, reply) => {
-    reply.send(200)
+  const port = await testServer((request, reply) => reply.send(200), options)
+
+  const { response } = await request({
+    uri: `http://localhost:${port}`,
+    headers: { 'x-forwarded-proto': 'https' }
   })
-  fastify.listen(0, err => {
-    fastify.server.unref()
-    t.error(err)
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port,
-      headers: {
-        'x-forwarded-proto': 'https'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 200)
-      t.ok(response.headers['set-cookie'] === undefined)
-    })
-  })
+
+  t.strictEqual(response.statusCode, 200)
+  t.ok(response.headers['set-cookie'] === undefined)
 })
 
-test('should create new session if cookie contains invalid session', t => {
-  t.plan(7)
-  const fastify = Fastify()
-
-  const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
-  }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifyPlugin((fastify, opts, next) => {
-    fastify.addHook('preValidation', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() + 900000
-      }, (err) => {
-        done(err)
-      })
-    })
-    next()
-  }, '>=0.30.2'))
-  fastify.register(fastifySession, options)
-  fastify.get('/', (request, reply) => {
+test('should create new session if cookie contains invalid session', async (t) => {
+  t.plan(3)
+  const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
+  function handler (request, reply) {
     request.session.test = {}
     reply.send(200)
-  })
-  fastify.listen(0, err => {
-    fastify.server.unref()
-    t.error(err)
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port,
-      headers: {
-        'cookie': 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
-        'x-forwarded-proto': 'https'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 200)
-      t.ok(!response.headers['set-cookie'][0].includes('B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'))
-      t.ok(response.headers['set-cookie'][0].includes('Secure'))
-      t.ok(response.headers['set-cookie'][0].includes('sessionId'))
-      t.ok(response.headers['set-cookie'][0].includes('HttpOnly'))
+  }
+  const plugin = fastifyPlugin(async (fastify, opts) => {
+    fastify.addHook('preValidation', (request, reply, done) => {
+      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+        isExpired () {
+          return false
+        }
+      }, done)
     })
   })
+  const port = await testServer(handler, options, plugin)
+
+  const { statusCode, cookie } = await request({
+    uri: `http://localhost:${port}`,
+    headers: {
+      cookie: 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
+      'x-forwarded-proto': 'https'
+    }
+  })
+
+  t.strictEqual(statusCode, 200)
+  t.ok(!cookie.includes('B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'))
+  t.match(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
 })
 
-test('should not set session cookie if no data in session and saveUninitialized is false', t => {
-  t.plan(4)
-  const fastify = Fastify()
-
+test('should not set session cookie if no data in session and saveUninitialized is false', async (t) => {
+  t.plan(2)
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     saveUninitialized: false
   }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
-  fastify.get('/', (request, reply) => {
-    reply.send(200)
+  const port = await testServer((request, reply) => reply.send(200), options)
+
+  const { response } = await request({
+    uri: `http://localhost:${port}`,
+    headers: { 'x-forwarded-proto': 'https' }
   })
-  fastify.listen(0, err => {
-    fastify.server.unref()
-    t.error(err)
-    request({
-      method: 'GET',
-      uri: 'http://localhost:' + fastify.server.address().port,
-      headers: {
-        'x-forwarded-proto': 'https'
-      }
-    }, (err, response, body) => {
-      t.error(err)
-      t.strictEqual(response.statusCode, 200)
-      t.ok(response.headers['set-cookie'] === undefined)
-    })
-  })
+
+  t.strictEqual(response.statusCode, 200)
+  t.ok(response.headers['set-cookie'] === undefined)
 })

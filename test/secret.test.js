@@ -22,9 +22,7 @@ test('register should succeed if valid secret is specified', t => {
   t.plan(1)
   const fastify = Fastify()
 
-  const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
-  }
+  const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
   fastify.ready((err) => {
@@ -36,9 +34,7 @@ test('register should fail if the secret is too short', t => {
   t.plan(1)
   const fastify = Fastify()
 
-  const options = {
-    secret: 'geheim'
-  }
+  const options = { secret: 'geheim' }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
   fastify.ready((err) => {
