@@ -39,5 +39,9 @@
     "tap": "^14.0.0",
     "typescript": "^3.4.5"
   },
-  "types": "types/types.d.ts"
+  "types": "types/types.d.ts",
+  "files": [
+    "lib",
+    "types/types.d.ts"
+  ]
 }
