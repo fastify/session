@@ -8,7 +8,7 @@
     "tsc-check": "tsc --project ./types/tsconfig.json --noEmit",
     "test": "npm run lint && npm run unit && npm run tsc-check",
     "lint": "standard lib/* test/*",
-    "coveralls": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
+    "coveralls": "nyc npm test",
     "coverage": "nyc npm test && nyc report --reporter=html"
   },
   "keywords": [
