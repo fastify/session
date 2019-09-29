@@ -32,7 +32,6 @@
   "devDependencies": {
     "@types/node": "^12.7.8",
     "ava": "^2.4.0",
-    "coveralls": "^3.0.3",
     "fastify": "^2.0.0",
     "fastify-cookie": "^3.0.0",
     "nyc": "^14.1.1",
