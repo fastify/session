@@ -43,3 +43,16 @@ test.cb('register should fail if the secret is too short', t => {
     t.end()
   })
 })
+
+test.cb('register should succeed if secret is short, but in an array', t => {
+  t.plan(1)
+  const fastify = Fastify()
+
+  const options = { secret: ['geheim'] }
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.ready((err) => {
+    t.falsy(err)
+    t.end()
+  })
+})
