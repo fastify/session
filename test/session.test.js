@@ -5,7 +5,6 @@ const Fastify = require('fastify')
 const fastifyCookie = require('fastify-cookie')
 const fastifySession = require('..')
 const { request, testServer, DEFAULT_OPTIONS } = require('./util')
-const Session = require('../lib/session')
 
 test('should add session object to request', async (t) => {
   t.plan(2)
@@ -156,18 +155,4 @@ test('should generate new sessionId', async (t) => {
   })
 
   t.is(response2.statusCode, 200)
-})
-
-test('session should be expired if expires is set', (t) => {
-  t.plan(1)
-  const session = new Session({ expires: 1 }, 'test')
-
-  t.false(session.isExpired())
-})
-
-test('session should be expired if maxAge is set', (t) => {
-  t.plan(1)
-  const session = new Session({ maxAge: 42 }, 'test')
-
-  t.false(session.isExpired())
 })
