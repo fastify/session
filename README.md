@@ -68,6 +68,7 @@ The options object used to generate the `Set-Cookie` header of the session cooki
 * `maxAge` - A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `expires` is used.
 * `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
 * `secure` - The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Defaults to true.
+* `secureAuto` - Set the `Secure` attribute regarding the protocol used for the request. In case of HTTP the `Secure` attribute will be set to false in case of HTTPS it will be set to true. Defaults to false.
 * `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `expires` is used.
 * `sameSite`- The `boolean` or `string` of the `SameSite` attribute. 
 * `domain` - The `Domain` attribute.
