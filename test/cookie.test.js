@@ -260,7 +260,7 @@ test('should set session non secure cookie secureAuto', async (t) => {
   t.plan(2)
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
-    cookie: { secureAuto: true }
+    cookie: { secure: 'auto' }
   }
   const port = await testServer((request, reply) => {
     request.session.test = {}
@@ -277,7 +277,7 @@ test('should set session secure cookie secureAuto', async (t) => {
   t.plan(2)
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
-    cookie: { secureAuto: true }
+    cookie: { secure: 'auto' }
   }
   const port = await testServer((request, reply) => {
     request.session.test = {}
