@@ -79,8 +79,8 @@ declare namespace FastifySessionPlugin {
     maxAge?: number;
     /**  The `boolean` value of the `HttpOnly` attribute. Defaults to true. */
     httpOnly?: boolean;
-    /**  The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Defaults to true. */
-    secure?: boolean;
+    /**  The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Value can be set to `auto`; in this case the `Secure` attribute will be set to false for HTTP request, in case of HTTPS it will be set to true.  Defaults to true. */
+    secure?: boolean | string;
     /**  The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `expires` is used. */
     expires?: Date | number;
     /** The `boolean` or `string` of the `SameSite` attribute.  */
