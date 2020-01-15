@@ -296,7 +296,59 @@ test('should set session cookie secureAuto', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; SameSite=Lax/)
+})
+
+test('should set session cookie secureAuto change SameSite', async (t) => {
+  t.plan(2)
+  const fastify = Fastify()
+  fastify.addHook('onRequest', async (request, reply) => {
+    request.raw.connection.encrypted = false
+  })
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    cookie: { secure: 'auto', sameSite: 'none' }
+  })
+  fastify.get('/', (request, reply) => {
+    request.session.test = {}
+    reply.send(200)
+  })
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { statusCode, cookie } = await request({
+    uri: 'http://localhost:' + fastify.server.address().port
+  })
+
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; SameSite=Lax/)
+})
+
+test('should set session cookie secureAuto keep SameSite when secured', async (t) => {
+  t.plan(2)
+  const fastify = Fastify()
+  fastify.addHook('onRequest', async (request, reply) => {
+    request.raw.connection.encrypted = true
+  })
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    cookie: { secure: 'auto', sameSite: 'none' }
+  })
+  fastify.get('/', (request, reply) => {
+    request.session.test = {}
+    reply.send(200)
+  })
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { statusCode, cookie } = await request({
+    uri: 'http://localhost:' + fastify.server.address().port
+  })
+
+  t.is(statusCode, 200)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure; SameSite=None/)
 })
 
 test('should set session secure cookie secureAuto http encrypted', async (t) => {

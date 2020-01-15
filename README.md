@@ -69,7 +69,7 @@ The options object used to generate the `Set-Cookie` header of the session cooki
 * `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
 * `secure` - The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Value can be set to `auto`; in this case the `Secure` attribute will be set to false for HTTP request, in case of HTTPS it will be set to true.  Defaults to true.
 * `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `expires` is used.
-* `sameSite`- The `boolean` or `string` of the `SameSite` attribute. 
+* `sameSite`- The `boolean` or `string` of the `SameSite` attribute. Using `Secure` mode with `auto` attribute will change the behaviour of the `SameSite` attribute in `http` mode. The `SameSite` attribute will automatically be set to `Lax` with a `http` request. See this [link](https://www.chromium.org/updates/same-site).
 * `domain` - The `Domain` attribute.
 ##### store
 A session store. Needs the following methods: 
