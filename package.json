@@ -23,7 +23,7 @@
     "uid-safe": "^2.1.5"
   },
   "engines": {
-    "node": ">= 8.0.0"
+    "node": ">= 10.13.0"
   },
   "repository": {
     "type": "git",
@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^12.12.7",
-    "ava": "^2.4.0",
+    "ava": "^3.0.0",
     "fastify": "^2.0.0",
     "fastify-cookie": "^3.0.0",
     "nyc": "^15.0.0",
