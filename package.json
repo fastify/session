@@ -23,7 +23,7 @@
     "uid-safe": "^2.1.5"
   },
   "engines": {
-    "node": ">= 8.0.0"
+    "node": ">= 10.13.0"
   },
   "repository": {
     "type": "git",
