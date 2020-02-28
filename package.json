@@ -30,7 +30,7 @@
     "url": "git+https://github.com/SerayaEryn/fastify-session.git"
   },
   "devDependencies": {
-    "@types/node": "^13.1.0",
+    "@types/node": "^13.7.6",
     "ava": "^3.0.0",
     "fastify": "^2.0.0",
     "fastify-cookie": "^3.0.0",
