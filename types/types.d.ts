@@ -1,13 +1,9 @@
-import * as fastify from 'fastify';
+/// <reference types="node" />
 
-declare module 'fastify' {
-  interface FastifyRequest<
-    HttpRequest,
-    Query = fastify.DefaultQuery,
-    Params = fastify.DefaultParams,
-    Headers = fastify.DefaultHeaders,
-    Body = any
-  > {
+import { FastifyPlugin } from "fastify";
+
+declare module "fastify" {
+  interface FastifyRequest {
     /** Allows to access or modify the session data. */
     session: Session;
     /** A session store. */
@@ -26,15 +22,13 @@ declare module 'fastify' {
   }
 }
 
-declare interface FastifySessionPlugin<HttpServer, HttpRequest, HttpResponse>
-  extends fastify.Plugin<HttpServer, HttpRequest, HttpResponse, FastifySessionPlugin.Options> {
-  Store: { new (options?: any): FastifySessionPlugin.SessionStore };
-}
-
 declare namespace FastifySessionPlugin {
   interface SessionStore {
     set(sessionId: string, session: any, callback: (err?: Error) => void): void;
-    get(sessionId: string, callback: (err?: Error, session?: any) => void): void;
+    get(
+      sessionId: string,
+      callback: (err?: Error, session?: any) => void
+    ): void;
     destroy(sessionId: string, callback: (err?: Error) => void): void;
   }
 
@@ -90,6 +84,6 @@ declare namespace FastifySessionPlugin {
   }
 }
 
-declare var FastifySessionPlugin: FastifySessionPlugin<any, any, any>;
+declare const FastifySessionPlugin: FastifyPlugin<FastifySessionPlugin.Options>;
 
-export = FastifySessionPlugin;
+export default FastifySessionPlugin;
