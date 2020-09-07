@@ -10,7 +10,7 @@ test('should set session cookie on post without params', async (t) => {
 
   const { statusCode } = await request({
     method: 'POST',
-    uri: `http://localhost:${port}/test`,
+    url: `http://localhost:${port}/test`,
     headers: { 'content-type': 'application/json' }
   })
   t.is(statusCode, 400)
@@ -24,7 +24,7 @@ test('should set session cookie', async (t) => {
   }, DEFAULT_OPTIONS)
 
   const { statusCode: statusCode1, cookie: cookie1 } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -32,7 +32,7 @@ test('should set session cookie', async (t) => {
   t.regex(cookie1, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
 
   const { statusCode: statusCode2, cookie: cookie2 } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -60,7 +60,7 @@ test('should support multiple secrets', async (t) => {
   const port = await testServer(handler, options, plugin)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: {
       'x-forwarded-proto': 'https',
       cookie: 'sessionId=aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.eiVu2YbrcqbTUYTYaANks%2Fjn%2Bjta7QgpsxLO%2BOLN%2F4U; Path=/; HttpOnly; Secure'
@@ -83,7 +83,7 @@ test('should set session cookie using the specified cookie name', async (t) => {
   }, options)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -109,7 +109,7 @@ test('should set session cookie using the default cookie name', async (t) => {
   const port = await testServer(handler, DEFAULT_OPTIONS, plugin)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: {
       cookie: DEFAULT_COOKIE,
       'x-forwarded-proto': 'https'
@@ -141,7 +141,7 @@ test('should create new session on expired session', async (t) => {
   const port = await testServer(handler, options, plugin)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: {
       cookie: DEFAULT_COOKIE,
       'x-forwarded-proto': 'https'
@@ -172,7 +172,7 @@ test('should set session.expires if maxAge', async (t) => {
   const port = await testServer(handler, options, plugin)
 
   const { statusCode } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { cookie: DEFAULT_COOKIE }
   })
 
@@ -196,7 +196,7 @@ test('should set new session cookie if expired', async (t) => {
   const port = await testServer(handler, DEFAULT_OPTIONS, plugin)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: {
       cookie: DEFAULT_COOKIE,
       'x-forwarded-proto': 'https'
@@ -217,7 +217,7 @@ test('should return new session cookie if does not exist in store', async (t) =>
   }, options)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: {
       cookie: DEFAULT_COOKIE,
       'x-forwarded-proto': 'https'
@@ -238,7 +238,7 @@ test('should not set session cookie on invalid path', async (t) => {
   const port = await testServer((request, reply) => reply.send(200), options)
 
   const { response } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -263,7 +263,7 @@ test('should create new session if cookie contains invalid session', async (t) =
   const port = await testServer(handler, options, plugin)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: {
       cookie: 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
       'x-forwarded-proto': 'https'
@@ -284,7 +284,7 @@ test('should not set session cookie if no data in session and saveUninitialized 
   const port = await testServer((request, reply) => reply.send(200), options)
 
   const { response } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
