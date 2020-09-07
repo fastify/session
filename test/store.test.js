@@ -13,7 +13,7 @@ test('should decorate request with sessionStore', async (t) => {
   }, DEFAULT_OPTIONS)
 
   const { response } = await request({
-    uri: `http://localhost:${port}`
+    url: `http://localhost:${port}`
   })
 
   t.is(response.statusCode, 200)
@@ -31,7 +31,7 @@ test('should pass error on store.set to done', async (t) => {
   }, options)
 
   const { statusCode } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -50,7 +50,7 @@ test('should create new session if ENOENT error on store.get', async (t) => {
   }, options)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: {
       cookie: DEFAULT_COOKIE,
       'x-forwarded-proto': 'https'
@@ -71,7 +71,7 @@ test('should pass error to done if non-ENOENT error on store.get', async (t) => 
   const port = await testServer((request, reply) => reply.send(200), options)
 
   const { statusCode } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { cookie: DEFAULT_COOKIE }
   })
 
@@ -98,7 +98,7 @@ test('should set new session cookie if expired', async (t) => {
   const port = await testServer(handler, options, plugin)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { cookie: DEFAULT_COOKIE }
   })
 
