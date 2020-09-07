@@ -34,8 +34,8 @@
     "ava": "^3.6.0",
     "fastify": "^3.0.0",
     "fastify-cookie": "^4.0.0",
+    "got": "^11.6.0",
     "nyc": "^15.0.0",
-    "request": "^2.88.0",
     "standard": "^14.0.0",
     "typescript": "^4.0.2"
   },
