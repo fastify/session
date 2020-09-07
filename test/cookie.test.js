@@ -23,7 +23,7 @@ test('should set session cookie', async (t) => {
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port
+    url: 'http://localhost:' + fastify.server.address().port
   })
 
   t.is(statusCode, 200)
@@ -62,7 +62,7 @@ test('should not set session cookie is request is not secure and x-forwarded-pro
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port,
+    url: 'http://localhost:' + fastify.server.address().port,
     headers: { 'x-forwarded-proto': 'http' }
   })
 
@@ -86,7 +86,7 @@ test('should set session cookie is request is not secure and x-forwarded-proto =
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port,
+    url: 'http://localhost:' + fastify.server.address().port,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -123,7 +123,7 @@ test('should set session cookie with expires if maxAge', async (t) => {
   }, options)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -143,7 +143,7 @@ test('should set session cookie with maxAge', async (t) => {
   }, options)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -163,7 +163,7 @@ test('should set session cookie with sameSite', async (t) => {
   }, options)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -189,7 +189,7 @@ test('should set session another path in cookie', async (t) => {
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port + '/a/test/path',
+    url: 'http://localhost:' + fastify.server.address().port + '/a/test/path',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -211,7 +211,7 @@ test('should set session cookie with expires', async (t) => {
   }, options)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -231,7 +231,7 @@ test('should set session non HttpOnly cookie', async (t) => {
   }, options)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 
@@ -292,7 +292,7 @@ test('should set session cookie secureAuto', async (t) => {
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port
+    url: 'http://localhost:' + fastify.server.address().port
   })
 
   t.is(statusCode, 200)
@@ -318,7 +318,7 @@ test('should set session cookie secureAuto change SameSite', async (t) => {
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port
+    url: 'http://localhost:' + fastify.server.address().port
   })
 
   t.is(statusCode, 200)
@@ -344,7 +344,7 @@ test('should set session cookie secureAuto keep SameSite when secured', async (t
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port
+    url: 'http://localhost:' + fastify.server.address().port
   })
 
   t.is(statusCode, 200)
@@ -370,7 +370,7 @@ test('should set session secure cookie secureAuto http encrypted', async (t) => 
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port
+    url: 'http://localhost:' + fastify.server.address().port
   })
 
   t.is(statusCode, 200)
@@ -389,7 +389,7 @@ test('should set session secure cookie secureAuto x-forwarded-proto header', asy
   }, options)
 
   const { statusCode, cookie } = await request({
-    uri: `http://localhost:${port}`,
+    url: `http://localhost:${port}`,
     headers: { 'x-forwarded-proto': 'https' }
   })
 

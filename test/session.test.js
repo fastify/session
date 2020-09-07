@@ -107,13 +107,13 @@ test('should keep user data in session throughout the time', async (t) => {
   fastify.server.unref()
 
   const { response: response1 } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port
+    url: 'http://localhost:' + fastify.server.address().port
   })
 
   t.is(response1.statusCode, 200)
 
   const { response: response2 } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port + '/check',
+    url: 'http://localhost:' + fastify.server.address().port + '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
 
@@ -144,13 +144,13 @@ test('should generate new sessionId', async (t) => {
   fastify.server.unref()
 
   const { response: response1 } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port
+    url: 'http://localhost:' + fastify.server.address().port
   })
 
   t.is(response1.statusCode, 200)
 
   const { response: response2 } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port + '/check',
+    url: 'http://localhost:' + fastify.server.address().port + '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
 
