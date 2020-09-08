@@ -101,6 +101,17 @@ Updates the `expires` property of the session.
 
 Regenerates the session by generating a new `sessionId`.
 
+### fastify.decryptSession(sessionId, request, next)
+This plugin also decorates the fastify instance with `decryptSession` in case you want to decrypt the session manually. 
+
+```js
+const { sessionId } = cookies;
+const request = {}
+fastify.decryptSession(sessionId, request, () => {
+  // request.session should be available here
+})
+```
+
 ## License
 
 [MIT](./LICENSE)
