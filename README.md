@@ -105,7 +105,7 @@ Regenerates the session by generating a new `sessionId`.
 This plugin also decorates the fastify instance with `decryptSession` in case you want to decrypt the session manually. 
 
 ```js
-const { sessionId } = cookies;
+const { sessionId } = fastify.parseCookie(cookieHeader);
 const request = {}
 fastify.decryptSession(sessionId, request, () => {
   // request.session should be available here
