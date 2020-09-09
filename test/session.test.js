@@ -201,9 +201,9 @@ test('should decryptSession with custom request object', async (t) => {
   })
   t.is(statusCode, 200)
 
-  const encryptedSessionId = DEFAULT_COOKIE.match(/sessionId=(.*?);/)[1]
+  const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
   const requestObj = {}
-  fastify.decryptSession(encryptedSessionId, requestObj, () => {
+  fastify.decryptSession(sessionId, requestObj, () => {
     t.is(requestObj.session.sessionId, 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN')
     t.is(requestObj.session.testData, 'this is a test')
   })
