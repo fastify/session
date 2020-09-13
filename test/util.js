@@ -1,7 +1,7 @@
 'use strict'
 
 const Fastify = require('fastify')
-const requestAsync = require('request')
+const got = require('got')
 const fastifyCookie = require('fastify-cookie')
 const fastifySession = require('../lib/fastifySession')
 
@@ -21,19 +21,17 @@ async function testServer (handler, sessionOptions, plugin) {
   return fastify.server.address().port
 }
 
-function request (options) {
-  return new Promise((resolve, reject) => {
-    requestAsync(options, (error, response, body) => {
-      if (error) {
-        reject(error)
-      } else {
-        const { statusCode } = response
-        const cookieHeader = response.headers['set-cookie']
-        const cookie = cookieHeader ? cookieHeader[0] : null
-        resolve({ response, body, statusCode, cookie })
-      }
-    })
-  })
+async function request (options) {
+  let response
+  try {
+    response = await got(options)
+  } catch (err) {
+    response = err.response
+  }
+  const { statusCode, body } = response
+  const cookieHeader = response.headers['set-cookie']
+  const cookie = cookieHeader ? cookieHeader[0] : null
+  return { response, body, statusCode, cookie }
 }
 
 module.exports = {
