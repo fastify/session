@@ -85,7 +85,6 @@ test('should add session.sessionId object to request', async (t) => {
   t.is(response.statusCode, 200)
 })
 
-
 test('should use custom sessionId generator if available', async (t) => {
   t.plan(2)
   const port = await testServer((request, reply) => {
