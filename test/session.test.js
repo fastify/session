@@ -88,7 +88,7 @@ test('should add session.sessionId object to request', async (t) => {
 test('should use custom sessionId generator if available', async (t) => {
   t.plan(2)
   const port = await testServer((request, reply) => {
-    t.truthy(request.session.sessionId)
+    t.truthy(request.session.sessionId.startsWith('custom-'))
     reply.send(200)
   }, {
     idGenerator: () => {
