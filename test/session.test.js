@@ -4,7 +4,7 @@ const test = require('ava')
 const Fastify = require('fastify')
 const fastifyCookie = require('fastify-cookie')
 const fastifySession = require('..')
-const { request, testServer, DEFAULT_OPTIONS } = require('./util')
+const { request, testServer, DEFAULT_OPTIONS, DEFAULT_COOKIE } = require('./util')
 
 test('should add session object to request', async (t) => {
   t.plan(2)
@@ -128,13 +128,13 @@ test('should keep user data in session throughout the time', async (t) => {
   fastify.server.unref()
 
   const { response: response1 } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port
+    url: 'http://localhost:' + fastify.server.address().port
   })
 
   t.is(response1.statusCode, 200)
 
   const { response: response2 } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port + '/check',
+    url: 'http://localhost:' + fastify.server.address().port + '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
 
@@ -165,15 +165,67 @@ test('should generate new sessionId', async (t) => {
   fastify.server.unref()
 
   const { response: response1 } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port
+    url: 'http://localhost:' + fastify.server.address().port
   })
 
   t.is(response1.statusCode, 200)
 
   const { response: response2 } = await request({
-    uri: 'http://localhost:' + fastify.server.address().port + '/check',
+    url: 'http://localhost:' + fastify.server.address().port + '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
 
   t.is(response2.statusCode, 200)
+})
+
+test.cb('should decorate the server with decryptSession', t => {
+  t.plan(2)
+  const fastify = Fastify()
+
+  const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.ready((err) => {
+    t.falsy(err)
+    t.truthy(fastify.decryptSession)
+    t.end()
+  })
+})
+
+test('should decryptSession with custom request object', async (t) => {
+  t.plan(3)
+  const fastify = Fastify()
+
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
+  }
+
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.addHook('preValidation', (request, reply, done) => {
+    request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      testData: 'this is a test',
+      expires: Date.now() + 1000,
+      sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
+      cookie: { secure: true, httpOnly: true, path: '/' }
+    }, done)
+  })
+
+  fastify.get('/', (request, reply) => {
+    reply.send(200)
+  })
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { statusCode } = await request({
+    url: 'http://localhost:' + fastify.server.address().port
+  })
+  t.is(statusCode, 200)
+
+  const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
+  const requestObj = {}
+  fastify.decryptSession(sessionId, requestObj, () => {
+    t.is(requestObj.session.sessionId, 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN')
+    t.is(requestObj.session.testData, 'this is a test')
+  })
 })
