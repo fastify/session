@@ -70,6 +70,7 @@ The options object used to generate the `Set-Cookie` header of the session cooki
 * `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `expires` is used.
 * `sameSite`- The `boolean` or `string` of the `SameSite` attribute. Using `Secure` mode with `auto` attribute will change the behaviour of the `SameSite` attribute in `http` mode. The `SameSite` attribute will automatically be set to `Lax` with a `http` request. See this [link](https://www.chromium.org/updates/same-site).
 * `domain` - The `Domain` attribute.
+
 ##### store
 A session store. Needs the following methods: 
 * set(sessionId, session, callback)
@@ -84,6 +85,10 @@ Defaults to a simple in memory store.</br>
 ##### saveUninitialized (optional) 
 Save sessions to the store, even when they are new and not modified. Defaults to `true`.
 Setting this to `false` can be useful to save storage space and to comply with the EU cookie law.
+
+##### idGenerator (optional) 
+
+Function used to generate new session IDs. Defaults to [`uid(24)`](https://github.com/crypto-utils/uid-safe).
 
 #### request.session
 
