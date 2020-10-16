@@ -11,7 +11,7 @@ test('should set session cookie', async (t) => {
   const fastify = Fastify()
 
   fastify.addHook('onRequest', async (request, reply) => {
-    request.raw.connection.encrypted = true
+    request.raw.socket.encrypted = true
   })
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, DEFAULT_OPTIONS)
@@ -34,7 +34,7 @@ test('should not set session cookie is request is not secure', async (t) => {
   t.plan(2)
   const fastify = Fastify()
   fastify.addHook('onRequest', async (request, reply) => {
-    request.raw.connection.encrypted = false
+    request.raw.socket.encrypted = false
   })
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, DEFAULT_OPTIONS)
@@ -53,7 +53,7 @@ test('should not set session cookie is request is not secure and x-forwarded-pro
   t.plan(2)
   const fastify = Fastify()
   fastify.addHook('onRequest', async (request, reply) => {
-    request.raw.connection.encrypted = false
+    request.raw.socket.encrypted = false
   })
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, DEFAULT_OPTIONS)
@@ -74,7 +74,7 @@ test('should set session cookie is request is not secure and x-forwarded-proto =
   t.plan(2)
   const fastify = Fastify()
   fastify.addHook('onRequest', async (request, reply) => {
-    request.raw.connection.encrypted = false
+    request.raw.socket.encrypted = false
   })
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, DEFAULT_OPTIONS)
@@ -277,7 +277,7 @@ test('should set session cookie secureAuto', async (t) => {
   t.plan(2)
   const fastify = Fastify()
   fastify.addHook('onRequest', async (request, reply) => {
-    request.raw.connection.encrypted = false
+    request.raw.socket.encrypted = false
   })
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, {
@@ -303,7 +303,7 @@ test('should set session cookie secureAuto change SameSite', async (t) => {
   t.plan(2)
   const fastify = Fastify()
   fastify.addHook('onRequest', async (request, reply) => {
-    request.raw.connection.encrypted = false
+    request.raw.socket.encrypted = false
   })
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, {
@@ -329,7 +329,7 @@ test('should set session cookie secureAuto keep SameSite when secured', async (t
   t.plan(2)
   const fastify = Fastify()
   fastify.addHook('onRequest', async (request, reply) => {
-    request.raw.connection.encrypted = true
+    request.raw.socket.encrypted = true
   })
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, {
@@ -355,7 +355,7 @@ test('should set session secure cookie secureAuto http encrypted', async (t) => 
   t.plan(2)
   const fastify = Fastify()
   fastify.addHook('onRequest', async (request, reply) => {
-    request.raw.connection.encrypted = true
+    request.raw.socket.encrypted = true
   })
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, {
