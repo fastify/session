@@ -84,6 +84,15 @@ declare namespace FastifySessionPlugin {
   }
 }
 
+export class MemoryStore implements FastifySessionPlugin.SessionStore {
+  set(sessionId: string, session: any, callback: (err?: Error) => void): void;
+  get(
+    sessionId: string,
+    callback: (err?: Error, session?: any) => void
+  ): void;
+  destroy(sessionId: string, callback: (err?: Error) => void): void;
+}
+
 declare const FastifySessionPlugin: FastifyPlugin<FastifySessionPlugin.Options>;
 
 export default FastifySessionPlugin;
