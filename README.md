@@ -1,7 +1,7 @@
-# fastify-session
+# @fastify/session
 
-![Build Status](https://github.com/SerayaEryn/fastify-session/workflows/ci/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/SerayaEryn/fastify-session/badge.svg?branch=master)](https://coveralls.io/github/SerayaEryn/fastify-session?branch=master)
+![Build Status](https://github.com/fastify/session/workflows/ci/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/fastify/session/badge.svg?branch=master)](https://coveralls.io/github/fastify/session?branch=master)
 [![NPM version](https://img.shields.io/npm/v/fastify-session.svg?style=flat)](https://www.npmjs.com/package/fastify-session)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
@@ -11,14 +11,14 @@ Requires the [fastify-cookie](https://github.com/fastify/fastify-cookie) plugin.
 ## Install
 
 ```
-npm install fastify-session
+npm install @fastify/session
 ```
 
 ## Usage
 
 ```js
 const fastify = require('fastify');
-const fastifySession = require('fastify-session');
+const fastifySession = require('@fastify/session');
 const fastifyCookie = require('fastify-cookie');
 
 const app = fastify();
