@@ -8,6 +8,8 @@
 A session plugin for [fastify](http://fastify.io/). 
 Requires the [fastify-cookie](https://github.com/fastify/fastify-cookie) plugin.
 
+**NOTE:** This is the continuation of [fastify-session](https://github.com/SerayaEryn/fastify-session) which is unmaintained by now.
+
 ## Install
 
 ```
