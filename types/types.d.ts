@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { FastifyPlugin } from "fastify";
+import { FastifyPluginCallback } from "fastify";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -93,6 +93,6 @@ export class MemoryStore implements FastifySessionPlugin.SessionStore {
   destroy(sessionId: string, callback: (err?: Error) => void): void;
 }
 
-declare const FastifySessionPlugin: FastifyPlugin<FastifySessionPlugin.Options>;
+declare const FastifySessionPlugin: FastifyPluginCallback<FastifySessionPlugin.Options>;
 
 export default FastifySessionPlugin;
