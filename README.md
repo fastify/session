@@ -120,7 +120,7 @@ fastify.decryptSession(sessionId, request, () => {
 ```
 
 ### Typescript support:
-This plugin support typescript, and you can extend fastify module to add your custom session type.
+This plugin supports typescript, and you can extend fastify module to add your custom session type.
 
 ```ts
 
