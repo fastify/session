@@ -18,6 +18,11 @@ app.register(session, {
   store: new EmptyStore(),
 });
 
+app.get('/', async (req, reply) => {
+  // @ts-expect-error
+  request.sessionStore = null
+});
+
 app.listen(4000, '0.0.0.0', (_err, address) => {
   console.log(address);
 });
