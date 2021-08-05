@@ -7,7 +7,7 @@ declare module "fastify" {
     /** Allows to access or modify the session data. */
     session: Session;
     /** A session store. */
-    sessionStore: readonly FastifySessionPlugin.SessionStore;
+    sessionStore: Readonly<FastifySessionPlugin.SessionStore>;
     /** Allows to destroy the session in the store. */
     destroySession(callback: (err?: Error) => void): void;
   }
