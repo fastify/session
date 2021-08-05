@@ -1,11 +1,12 @@
 # @fastify/session
 
-![Build Status](https://github.com/fastify/session/workflows/ci/badge.svg)
+![CI](https://github.com/fastify/session/workflows/CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/fastify/session/badge.svg?branch=master)](https://coveralls.io/github/fastify/session?branch=master)
 [![NPM version](https://img.shields.io/npm/v/@fastify/session.svg?style=flat)](https://www.npmjs.com/package/@fastify/session)
-[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![Known Vulnerabilities](https://snyk.io/test/github/fastify/create-fastify/badge.svg)](https://snyk.io/test/github/fastify/create-fastify)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
-A session plugin for [fastify](http://fastify.io/). 
+A session plugin for [fastify](http://fastify.io/).
 Requires the [fastify-cookie](https://github.com/fastify/fastify-cookie) plugin.
 
 **NOTE:** This is the continuation of [fastify-session](https://github.com/SerayaEryn/fastify-session) which is unmaintained by now. All work credit till [`e201f7`](https://github.com/fastify/session/commit/e201f78fc9d7bd33c6f2e84988be7c8af4b5a8a3) commit goes to [SerayaEryn](https://github.com/SerayaEryn) and contributors.
