@@ -1,7 +1,6 @@
 # @fastify/session
 
 ![CI](https://github.com/fastify/session/workflows/CI/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/fastify/session/badge.svg?branch=master)](https://coveralls.io/github/fastify/session?branch=master)
 [![NPM version](https://img.shields.io/npm/v/@fastify/session.svg?style=flat)](https://www.npmjs.com/package/@fastify/session)
 [![Known Vulnerabilities](https://snyk.io/test/github/fastify/session/badge.svg)](https://snyk.io/test/github/fastify/session)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
