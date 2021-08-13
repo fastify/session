@@ -85,6 +85,7 @@ declare namespace FastifySessionPlugin {
 }
 
 export class MemoryStore implements FastifySessionPlugin.SessionStore {
+  constructor(map?: Map<string, any>);
   set(sessionId: string, session: any, callback: (err?: Error) => void): void;
   get(
     sessionId: string,
@@ -92,6 +93,8 @@ export class MemoryStore implements FastifySessionPlugin.SessionStore {
   ): void;
   destroy(sessionId: string, callback: (err?: Error) => void): void;
 }
+
+export const Store: MemoryStore;
 
 declare const FastifySessionPlugin: FastifyPluginCallback<FastifySessionPlugin.Options>;
 
