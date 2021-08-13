@@ -47,7 +47,7 @@ test('should support multiple secrets', async (t) => {
   }
 
   const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('preValidation', (request, reply, done) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e', {
         expires: Date.now() + 1000
       }, done)
@@ -94,7 +94,7 @@ test('should set session cookie using the specified cookie name', async (t) => {
 test('should set session cookie using the default cookie name', async (t) => {
   t.plan(2)
   const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('preValidation', (request, reply, done) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() + 1000,
         sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
@@ -123,7 +123,7 @@ test('should set session cookie using the default cookie name', async (t) => {
 test('should create new session on expired session', async (t) => {
   t.plan(2)
   const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('preValidation', (request, reply, done) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() - 1000,
         sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
@@ -159,7 +159,7 @@ test('should set session.expires if maxAge', async (t) => {
     cookie: { maxAge: 42 }
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('preValidation', (request, reply, done) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() + 1000
       }, done)
@@ -183,7 +183,7 @@ test('should set new session cookie if expired', async (t) => {
   t.plan(3)
 
   const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('preValidation', (request, reply, done) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() + 1000
       }, done)
@@ -254,7 +254,7 @@ test('should create new session if cookie contains invalid session', async (t) =
     reply.send(200)
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('preValidation', (request, reply, done) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() + 1000
       }, done)

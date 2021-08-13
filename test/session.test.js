@@ -202,7 +202,7 @@ test('should decryptSession with custom request object', async (t) => {
 
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  fastify.addHook('preValidation', (request, reply, done) => {
+  fastify.addHook('onRequest', (request, reply, done) => {
     request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
       testData: 'this is a test',
       expires: Date.now() + 1000,
