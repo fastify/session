@@ -4,6 +4,12 @@ import session from '../../';
 
 const app = fastify();
 
+declare module 'fastify' {
+  interface Session {
+    id?: number;
+  }
+}
+
 app.register(cookie);
 app.register(session, {
   secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
