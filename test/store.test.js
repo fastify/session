@@ -85,7 +85,7 @@ test('should set new session cookie if expired', async (t) => {
     store: new FailOnDestroyStore()
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('preValidation', (request, reply, done) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() - 1000
       }, done)
