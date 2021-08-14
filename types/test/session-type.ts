@@ -52,6 +52,10 @@ app.route({
   },
   async handler(req, _rep) {
     const user = req.session.user!;
+
+    // @ts-expect-error
+    req.session.doesNotExist();
+
     return { id: user.id };
   },
 });

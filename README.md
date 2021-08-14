@@ -126,8 +126,9 @@ This plugin supports typescript, and you can extend fastify module to add your c
 
 declare module "fastify" {
     interface Session {
-        user_id: string;
+        user_id: string
         other_key: your_prefer_type
+        id?: number
     }
 }
 
