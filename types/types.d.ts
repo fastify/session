@@ -12,7 +12,7 @@ declare module "fastify" {
     destroySession(callback: (err?: Error) => void): void;
   }
 
-  interface Session extends Record<string, any> {
+  interface Session {
     sessionId: string;
     encryptedSessionId: string;
     /** Updates the `expires` property of the session. */
