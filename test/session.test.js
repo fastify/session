@@ -231,7 +231,7 @@ test('should decryptSession with custom request object', async (t) => {
 })
 test('should not reset session cookie expiration if rolling is false', async (t) => {
   t.plan(3)
-  
+
   const fastify = Fastify()
 
   const options = {
@@ -251,12 +251,12 @@ test('should not reset session cookie expiration if rolling is false', async (t)
   await fastify.listen(0)
   fastify.server.unref()
 
-  const { response: response1, body:sessionExpires1 } = await request({
+  const { response: response1, body: sessionExpires1 } = await request({
     url: 'http://localhost:' + fastify.server.address().port
   })
   t.is(response1.statusCode, 200)
 
-  const { response: response2, body:sessionExpires2 } = await request({
+  const { response: response2, body: sessionExpires2 } = await request({
     url: 'http://localhost:' + fastify.server.address().port + '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
