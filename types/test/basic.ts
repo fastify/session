@@ -17,6 +17,10 @@ app.register(session, {
     secure: false,
   },
 });
+app.register(session, {
+  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  rolling: false,
+});
 
 app.route({
   method: 'GET',
