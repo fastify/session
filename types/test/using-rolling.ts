@@ -13,6 +13,7 @@ declare module 'fastify' {
 app.register(cookie);
 app.register(session, {
   secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  rolling: false,
   cookie: {
     secure: false,
   },
