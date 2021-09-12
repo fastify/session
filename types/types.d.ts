@@ -64,6 +64,11 @@ declare namespace FastifySessionPlugin {
      * Defaults to true. Setting this to false can be useful to save storage space and to comply with the EU cookie law.
      */
     saveUninitialized?: boolean;
+    /**
+     * Force the session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown.
+     * Defaults to true. This is typically used in conjuction with short, non-session-length maxAge values to provide a quick timeout of the session data with reduced potential of it occurring during on going server interactions.
+     */
+     rolling?: boolean;
   }
 
   interface CookieOptions {

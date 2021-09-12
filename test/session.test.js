@@ -229,3 +229,75 @@ test('should decryptSession with custom request object', async (t) => {
     t.is(requestObj.session.testData, 'this is a test')
   })
 })
+test('should not reset session cookie expiration if rolling is false', async (t) => {
+  t.plan(3)
+
+  const fastify = Fastify()
+
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    rolling: false,
+    cookie: { secure: false, maxAge: 10000 }
+  }
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.addHook('onRequest', (request, reply, done) => {
+    reply.send(request.session.expires)
+    done()
+  })
+
+  fastify.get('/', (request, reply) => reply.send(200))
+  fastify.get('/check', (request, reply) => reply.send(200))
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { response: response1, body: sessionExpires1 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port
+  })
+  t.is(response1.statusCode, 200)
+
+  const { response: response2, body: sessionExpires2 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port + '/check',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.is(response2.statusCode, 200)
+
+  t.is(sessionExpires1, sessionExpires2)
+})
+
+test('should update the expires property of the session using Session#touch() even if rolling is false', async (t) => {
+  t.plan(3)
+
+  const fastify = Fastify()
+
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    rolling: false,
+    cookie: { secure: false, maxAge: 10000 }
+  }
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.addHook('onRequest', (request, reply, done) => {
+    request.session.touch()
+    reply.send(request.session.expires)
+    done()
+  })
+
+  fastify.get('/', (request, reply) => reply.send(200))
+  fastify.get('/check', (request, reply) => reply.send(200))
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { response: response1, body: sessionExpires1 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port
+  })
+  t.is(response1.statusCode, 200)
+
+  const { response: response2, body: sessionExpires2 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port + '/check',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.is(response2.statusCode, 200)
+
+  t.true(sessionExpires1 !== sessionExpires2)
+})
