@@ -2,6 +2,15 @@
 
 import { FastifyPluginCallback } from "fastify";
 
+export interface Session {
+  sessionId: string;
+  encryptedSessionId: string;
+  /** Updates the `expires` property of the session. */
+  touch(): void;
+  /** Regenerates the session by generating a new `sessionId`. */
+  regenerate(): void;
+}
+
 declare module "fastify" {
   interface FastifyRequest {
     /** Allows to access or modify the session data. */
@@ -10,15 +19,6 @@ declare module "fastify" {
     sessionStore: Readonly<FastifySessionPlugin.SessionStore>;
     /** Allows to destroy the session in the store. */
     destroySession(callback: (err?: Error) => void): void;
-  }
-
-  interface Session {
-    sessionId: string;
-    encryptedSessionId: string;
-    /** Updates the `expires` property of the session. */
-    touch(): void;
-    /** Regenerates the session by generating a new `sessionId`. */
-    regenerate(): void;
   }
 }
 
@@ -68,7 +68,7 @@ declare namespace FastifySessionPlugin {
      * Force the session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown.
      * Defaults to true. This is typically used in conjuction with short, non-session-length maxAge values to provide a quick timeout of the session data with reduced potential of it occurring during on going server interactions.
      */
-     rolling?: boolean;
+    rolling?: boolean;
   }
 
   interface CookieOptions {
@@ -92,10 +92,7 @@ declare namespace FastifySessionPlugin {
 export class MemoryStore implements FastifySessionPlugin.SessionStore {
   constructor(map?: Map<string, any>);
   set(sessionId: string, session: any, callback: (err?: Error) => void): void;
-  get(
-    sessionId: string,
-    callback: (err?: Error, session?: any) => void
-  ): void;
+  get(sessionId: string, callback: (err?: Error, session?: any) => void): void;
   destroy(sessionId: string, callback: (err?: Error) => void): void;
 }
 
