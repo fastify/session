@@ -1,6 +1,6 @@
 import { expectType, expectError } from "tsd";
 
-import session, { MemoryStore, Session } from "./types";
+import session from "./types";
 import fastify, {
   FastifyRequest,
   FastifyInstance,
@@ -13,6 +13,18 @@ class EmptyStore {
   get(_sessionId: string, _callback: Function) {}
 
   destroy(_sessionId: string, _callback: Function) {}
+}
+
+declare module "fastify" {
+  interface Session {
+    sessionId: string;
+    encryptedSessionId: string;
+    touch(): void;
+    regenerate(): void;
+    user?: {
+      id: number;
+    };
+  }
 }
 
 const app: FastifyInstance = fastify();
@@ -38,11 +50,18 @@ app.register(session, {
 });
 expectError(app.register(session, {}));
 
-app.get("/", async (request, reply) => {
-  expectType<FastifyRequest>(request);
-  expectType<FastifyReply>(reply);
-  expectType<Session>(request.session);
-  expectType<Readonly<session.SessionStore>>(request.sessionStore);
-  expectError((request.sessionStore = null));
-  expectError(request.session.doesNotExist());
+app.route({
+  method: "GET",
+  url: "/",
+  preHandler(req, _rep, next) {
+    req.destroySession(next);
+  },
+  async handler(request, reply) {
+    expectType<FastifyRequest>(request);
+    expectType<FastifyReply>(reply);
+    expectType<Readonly<session.SessionStore>>(request.sessionStore);
+    expectError((request.sessionStore = null));
+    expectError(request.session.doesNotExist());
+    expectType<{ id: number } | undefined>(request.session.user);
+  },
 });

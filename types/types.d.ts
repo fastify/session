@@ -2,15 +2,6 @@
 
 import { FastifyPluginCallback } from "fastify";
 
-export interface Session {
-  sessionId: string;
-  encryptedSessionId: string;
-  /** Updates the `expires` property of the session. */
-  touch(): void;
-  /** Regenerates the session by generating a new `sessionId`. */
-  regenerate(): void;
-}
-
 declare module "fastify" {
   interface FastifyRequest {
     /** Allows to access or modify the session data. */
@@ -19,6 +10,14 @@ declare module "fastify" {
     sessionStore: Readonly<FastifySessionPlugin.SessionStore>;
     /** Allows to destroy the session in the store. */
     destroySession(callback: (err?: Error) => void): void;
+  }
+  interface Session {
+    sessionId: string;
+    encryptedSessionId: string;
+    /** Updates the `expires` property of the session. */
+    touch(): void;
+    /** Regenerates the session by generating a new `sessionId`. */
+    regenerate(): void;
   }
 }
 
