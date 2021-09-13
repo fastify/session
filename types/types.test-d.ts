@@ -17,10 +17,6 @@ class EmptyStore {
 
 declare module "fastify" {
   interface Session {
-    sessionId: string;
-    encryptedSessionId: string;
-    touch(): void;
-    regenerate(): void;
     user?: {
       id: number;
     };
