@@ -44,6 +44,10 @@ app.register(session, {
   secret: "ABCDEFGHIJKLNMOPQRSTUVWXYZ012345",
   store: new EmptyStore(),
 });
+app.register(session, {
+  secret: "ABCDEFGHIJKLNMOPQRSTUVWXYZ012345",
+  idGenerator: () => Date.now()+"",
+});
 expectError(app.register(session, {}));
 
 app.route({

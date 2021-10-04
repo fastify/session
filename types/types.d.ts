@@ -68,6 +68,8 @@ declare namespace FastifySessionPlugin {
      * Defaults to true. This is typically used in conjuction with short, non-session-length maxAge values to provide a quick timeout of the session data with reduced potential of it occurring during on going server interactions.
      */
     rolling?: boolean;
+    /** Function used to generate new session IDs. Defaults to uid(24). */
+    idGenerator?: () => string;
   }
 
   interface CookieOptions {
