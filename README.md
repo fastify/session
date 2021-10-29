@@ -98,7 +98,8 @@ Allows to access or modify the session data.
 
 #### request.destroySession(callback)
 
-Allows to destroy the session in the store
+Allows to destroy the session in the store.  
+If callback is not passed, request.destroySession returns a promise that will reject if an error has occured.
 
 #### Session#touch()
 

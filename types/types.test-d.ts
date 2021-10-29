@@ -56,6 +56,7 @@ app.route({
   url: "/",
   preHandler(req, _rep, next) {
     req.destroySession(next);
+    req.destroySession().then(() => {})
   },
   async handler(request, reply) {
     expectType<FastifyRequest>(request);

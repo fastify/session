@@ -10,6 +10,7 @@ declare module "fastify" {
     /** A session store. */
     sessionStore: Readonly<FastifySessionPlugin.SessionStore>;
     /** Allows to destroy the session in the store. */
+    destroySession(): Promise<void>;
     destroySession(callback: (err?: Error) => void): void;
   }
   interface Session {
