@@ -396,3 +396,29 @@ test('should set session secure cookie secureAuto x-forwarded-proto header', asy
   t.is(statusCode, 200)
   t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
 })
+
+test('should use maxAge instead of expires in session if both are set in options.cookie', async (t) => {
+  t.plan(3)
+  const expires = new Date()
+  expires.setTime(34214461000) // 1971-02-01T00:01:01.000Z
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    cookie: { maxAge: 1000, expires }
+  }
+  const port = await testServer((request, reply) => {
+    request.session.test = {}
+    reply.code(200).send(Date.now().toString())
+  }, options)
+
+  const { statusCode, cookie, body } = await request({
+    url: `http://localhost:${port}`,
+    headers: { 'x-forwarded-proto': 'https' }
+  })
+
+  const dateFromBody = new Date(Number(body))
+  t.is(statusCode, 200)
+  // Expires attribute should be determined by options.maxAge -> Date.now() + 1000 and should have the same year from response.body,
+  // and not determined by options.expires and should not have the year of 1971
+  t.notRegex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=\w+, \d+ \w+ 1971 \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure/)
+  t.regex(cookie, new RegExp(String.raw`sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=\w+, \d+ \w+ ${dateFromBody.getFullYear()} \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure`))
+})
