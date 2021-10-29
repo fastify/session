@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { FastifyPluginCallback } from "fastify";
+import { FastifyPluginCallback, Session } from "fastify";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -23,10 +23,10 @@ declare module "fastify" {
 
 declare namespace FastifySessionPlugin {
   interface SessionStore {
-    set(sessionId: string, session: any, callback: (err?: Error) => void): void;
+    set(sessionId: string, session: Session, callback: (err?: Error) => void): void;
     get(
       sessionId: string,
-      callback: (err?: Error, session?: any) => void
+      callback: (err?: Error, session?: Session) => void
     ): void;
     destroy(sessionId: string, callback: (err?: Error) => void): void;
   }
@@ -91,9 +91,9 @@ declare namespace FastifySessionPlugin {
 }
 
 export class MemoryStore implements FastifySessionPlugin.SessionStore {
-  constructor(map?: Map<string, any>);
-  set(sessionId: string, session: any, callback: (err?: Error) => void): void;
-  get(sessionId: string, callback: (err?: Error, session?: any) => void): void;
+  constructor(map?: Map<string, Session>);
+  set(sessionId: string, session: Session, callback: (err?: Error) => void): void;
+  get(sessionId: string, callback: (err?: Error, session?: Session) => void): void;
   destroy(sessionId: string, callback: (err?: Error) => void): void;
 }
 

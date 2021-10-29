@@ -63,5 +63,9 @@ app.route({
     expectError((request.sessionStore = null));
     expectError(request.session.doesNotExist());
     expectType<{ id: number } | undefined>(request.session.user);
+    request.sessionStore.get('', (err, session) => {
+      expectType<Error | undefined>(err)
+      expectType<{ id: number } | undefined>(session?.user)
+    })
   },
 });
