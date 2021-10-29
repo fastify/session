@@ -91,7 +91,7 @@ declare namespace FastifySessionPlugin {
 }
 
 export class MemoryStore implements FastifySessionPlugin.SessionStore {
-  constructor(map?: Map<string, any>);
+  constructor(map?: Map<string, Session>);
   set(sessionId: string, session: Session, callback: (err?: Error) => void): void;
   get(sessionId: string, callback: (err?: Error, session?: Session) => void): void;
   destroy(sessionId: string, callback: (err?: Error) => void): void;
