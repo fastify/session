@@ -66,10 +66,10 @@ The name of the session cookie. Defaults to `sessionId`.
 ##### cookie
 The options object is used to generate the `Set-Cookie` header of the session cookie. May have the following properties:
 * `path` - The `Path` attribute. Defaults to `/` (the root path). 
-* `maxAge` - A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `expires` is used.
+* `maxAge` - A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `maxAge` is used.
 * `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
 * `secure` - The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Value can be set to `auto`; in this case, the `Secure` attribute will be set to false for an HTTP request. In the case of HTTPS, it will be set to true.  Defaults to true.
-* `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `expires` is used.
+* `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `maxAge` is used.
 * `sameSite`- The `boolean` or `string` of the `SameSite` attribute. Using `Secure` mode with `auto` attribute will change the behavior of the `SameSite` attribute in `http` mode. The `SameSite` attribute will automatically be set to `Lax` with an `http` request. See this [link](https://www.chromium.org/updates/same-site).
 * `domain` - The `Domain` attribute.
 
