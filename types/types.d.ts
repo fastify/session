@@ -8,7 +8,7 @@ declare module "fastify" {
     /** Allows to access or modify the session data. */
     session: Fastify.Session;
     /** A session store. */
-    sessionStore: Readonly<FastifySessionPlugin.SessionStore>;
+    sessionStore: Readonly<FastifySessionPlugin.ProxySessionStore>;
     /** Allows to destroy the session in the store. */
     destroySession(): Promise<void>;
     destroySession(callback: (err?: Error) => void): void;
@@ -26,10 +26,16 @@ declare module "fastify" {
 declare namespace FastifySessionPlugin {
   interface SessionStore {
     set(sessionId: string, session: Fastify.Session, callback: (err?: Error) => void): void;
-    get(
-      sessionId: string,
-      callback: (err?: Error, session?: Fastify.Session) => void
-    ): void;
+    get(sessionId: string, callback: (err?: Error, session?: Fastify.Session) => void): void;
+    destroy(sessionId: string, callback: (err?: Error) => void): void;
+  }
+
+  interface ProxySessionStore {
+    set(sessionId: string, session: Fastify.Session): Promise<void>;
+    set(sessionId: string, session: Fastify.Session, callback: (err?: Error) => void): void;
+    get(sessionId: string): Promise<Fastify.Session>;
+    get(sessionId: string, callback: (err?: Error, session?: Fastify.Session) => void): void;
+    destroy(sessionId: string): Promise<void>;
     destroy(sessionId: string, callback: (err?: Error) => void): void;
   }
 
