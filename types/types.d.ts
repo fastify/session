@@ -1,11 +1,12 @@
 /// <reference types="node" />
 
-import { FastifyPluginCallback, Session } from "fastify";
+import { FastifyPluginCallback } from "fastify";
+import type * as Fastify from "fastify";
 
 declare module "fastify" {
   interface FastifyRequest {
     /** Allows to access or modify the session data. */
-    session: Session;
+    session: Fastify.Session;
     /** A session store. */
     sessionStore: Readonly<FastifySessionPlugin.SessionStore>;
     /** Allows to destroy the session in the store. */
@@ -23,10 +24,10 @@ declare module "fastify" {
 
 declare namespace FastifySessionPlugin {
   interface SessionStore {
-    set(sessionId: string, session: Session, callback: (err?: Error) => void): void;
+    set(sessionId: string, session: Fastify.Session, callback: (err?: Error) => void): void;
     get(
       sessionId: string,
-      callback: (err?: Error, session?: Session) => void
+      callback: (err?: Error, session?: Fastify.Session) => void
     ): void;
     destroy(sessionId: string, callback: (err?: Error) => void): void;
   }
@@ -91,9 +92,9 @@ declare namespace FastifySessionPlugin {
 }
 
 export class MemoryStore implements FastifySessionPlugin.SessionStore {
-  constructor(map?: Map<string, Session>);
-  set(sessionId: string, session: Session, callback: (err?: Error) => void): void;
-  get(sessionId: string, callback: (err?: Error, session?: Session) => void): void;
+  constructor(map?: Map<string, Fastify.Session>);
+  set(sessionId: string, session: Fastify.Session, callback: (err?: Error) => void): void;
+  get(sessionId: string, callback: (err?: Error, session?: Fastify.Session) => void): void;
   destroy(sessionId: string, callback: (err?: Error) => void): void;
 }
 
