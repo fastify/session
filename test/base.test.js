@@ -4,16 +4,18 @@ const test = require('ava')
 const fastifyPlugin = require('fastify-plugin')
 const { testServer, request, DEFAULT_OPTIONS, DEFAULT_COOKIE } = require('./util')
 
-test('should set session cookie on post without params', async (t) => {
-  t.plan(1)
+test('should not set session cookie on post without params', async (t) => {
+  t.plan(3)
   const port = await testServer((request, reply) => reply.send(200), DEFAULT_OPTIONS)
 
-  const { statusCode } = await request({
+  const { statusCode, body, cookie } = await request({
     method: 'POST',
     url: `http://localhost:${port}/test`,
     headers: { 'content-type': 'application/json' }
   })
   t.is(statusCode, 400)
+  t.true(body.includes('FST_ERR_CTP_EMPTY_JSON_BODY'))
+  t.falsy(cookie)
 })
 
 test('should set session cookie', async (t) => {
