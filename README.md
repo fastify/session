@@ -123,7 +123,6 @@ fastify.decryptSession(sessionId, request, () => {
 This plugin supports typescript, and you can extend fastify module to add your custom session type.
 
 ```ts
-
 declare module "fastify" {
     interface Session {
         user_id: string
@@ -131,7 +130,27 @@ declare module "fastify" {
         id?: number
     }
 }
+```
 
+While this plugin can be used with express-session compatible stores, the type definitions of some stores might be tied to express-session, which means that casting to `any` might be required. For example:
+
+```ts
+import fastifySession from '@fastify/session'
+import fastify from 'fastify'
+import Redis from 'ioredis'
+import connectRedis from 'connect-redis'
+
+const RedisStore = connectRedis(fastifySession as any)
+const redisClient = new Redis(redisConfig)
+
+const server = fastify()
+server.register(fastifySession, {
+  store: new RedisStore({
+    client: redisClient,
+    // ... other options
+  }) as any,
+  // ... other options
+})
 ```
 
 ## License
