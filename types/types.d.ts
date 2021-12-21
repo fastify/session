@@ -19,6 +19,10 @@ declare module "fastify" {
     touch(): void;
     /** Regenerates the session by generating a new `sessionId`. */
     regenerate(): void;
+    /** sets values in the session. */
+    set(key: string, value: any): void;
+    /** gets values from the session. */
+    get(key: string): any;
   }
 }
 

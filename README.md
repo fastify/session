@@ -108,6 +108,14 @@ Updates the `expires` property of the session.
 
 Regenerates the session by generating a new `sessionId`.
 
+#### Session#get(key)
+
+Gets a value from the session
+
+#### Session#set(key, value)
+
+Sets a value in the session
+
 ### fastify.decryptSession(sessionId, request, next)
 This plugin also decorates the fastify instance with `decryptSession` in case you want to decrypt the session manually. 
 
