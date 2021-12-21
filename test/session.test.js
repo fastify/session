@@ -85,6 +85,19 @@ test('should add session.sessionId object to request', async (t) => {
   t.is(response.statusCode, 200)
 })
 
+test('should allow get/set methods for fetching/updating session values', async (t) => {
+  t.plan(2)
+  const port = await testServer((request, reply) => {
+    request.session.set('foo', 'bar')
+    t.is(request.session.get('foo'), 'bar')
+    reply.send(200)
+  }, DEFAULT_OPTIONS)
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  t.is(response.statusCode, 200)
+})
+
 test('should use custom sessionId generator if available', async (t) => {
   t.plan(2)
   const port = await testServer((request, reply) => {
