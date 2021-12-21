@@ -20,9 +20,9 @@ declare module "fastify" {
     /** Regenerates the session by generating a new `sessionId`. */
     regenerate(): void;
     /** sets values in the session. */
-    set(key: string, value: any): void;
+    set(key: string, value: unknown): void;
     /** gets values from the session. */
-    get(key: string): any;
+    get<T>(key: string): T;
   }
 }
 

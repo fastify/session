@@ -18,6 +18,8 @@ class EmptyStore {
 
 declare module "fastify" {
   interface Session {
+    get<T>(key: string): T;
+    set(key: string, value: unknown): void;
     user?: {
       id: number;
     };
@@ -69,5 +71,7 @@ app.route({
       expectType<Session | undefined>(session)
       expectType<{ id: number } | undefined>(session?.user)
     })
+    expectType<void>(request.session.set('foo', 'bar'))
+    expectType<string>(request.session.get('foo'))
   },
 });
