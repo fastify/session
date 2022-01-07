@@ -206,7 +206,7 @@ test.cb('should decorate the server with decryptSession', t => {
 })
 
 test('should decryptSession with custom request object', async (t) => {
-  t.plan(3)
+  t.plan(4)
   const fastify = Fastify()
 
   const options = {
@@ -238,10 +238,41 @@ test('should decryptSession with custom request object', async (t) => {
   const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
   const requestObj = {}
   fastify.decryptSession(sessionId, requestObj, () => {
+    t.is(requestObj.session.cookie.maxAge, null)
     t.is(requestObj.session.sessionId, 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN')
     t.is(requestObj.session.testData, 'this is a test')
   })
 })
+
+test('should decryptSession with custom cookie options', async (t) => {
+  t.plan(2)
+  const fastify = Fastify()
+
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
+  }
+
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+
+  fastify.get('/', (request, reply) => {
+    reply.send(200)
+  })
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { statusCode } = await request({
+    url: 'http://localhost:' + fastify.server.address().port
+  })
+  t.is(statusCode, 200)
+
+  const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
+  const requestObj = {}
+  fastify.decryptSession(sessionId, requestObj, { maxAge: 86400 }, () => {
+    t.is(requestObj.session.cookie.maxAge, 86400)
+  })
+})
+
 test('should not reset session cookie expiration if rolling is false', async (t) => {
   t.plan(3)
 
