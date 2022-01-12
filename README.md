@@ -35,7 +35,7 @@ app.addHook('preHandler', (request, reply, next) => {
   next();
 })
 ```
-**NOTE**: For all unencrypted (HTTP) connections, you need to set the `secure` cookie option to `false`. See below for all cookie options and their details.  
+**NOTE**: For all unencrypted (HTTP) connections, you need to set the `secure` cookie option to `false`. See below for all cookie options and their details.
 The `sessionStore` decorator of the `request` allows to get, save and delete sessions.
 ```js
 app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
@@ -51,9 +51,9 @@ app.addHook('preHandler', (request, reply, next) => {
 
 ## API
 ### session(fastify, options, next)
-The session plugin accepts the following options. It decorates the request with the `sessionStore` and a `session` object. The session data is stored server-side using the configured session store. 
+The session plugin accepts the following options. It decorates the request with the `sessionStore` and a `session` object. The session data is stored server-side using the configured session store.
 #### options
-##### secret (required) 
+##### secret (required)
 The secret used to sign the cookie. Must be an array of strings or a string with a length of 32 or greater.
 
 If an array, the first secret is used to sign new cookies and is the first to be checked for incoming cookies.
@@ -61,11 +61,11 @@ Further secrets in the array are used to check incoming cookies in the order spe
 
 Note that the rest of the application may manipulate the array during its life cycle. This can be done by storing the array in a separate variable that is later used with mutating methods like unshift(), pop(), splice(), etc.
 This can be used to rotate the signing secret at regular intervals. A secret should remain somewhere in the array as long as there are active sessions with cookies signed by it. Secrets management is left up to the rest of the application.
-##### cookieName (optional) 
+##### cookieName (optional)
 The name of the session cookie. Defaults to `sessionId`.
 ##### cookie
 The options object is used to generate the `Set-Cookie` header of the session cookie. May have the following properties:
-* `path` - The `Path` attribute. Defaults to `/` (the root path). 
+* `path` - The `Path` attribute. Defaults to `/` (the root path).
 * `maxAge` - A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `maxAge` is used.
 * `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
 * `secure` - The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Value can be set to `auto`; in this case, the `Secure` attribute will be set to false for an HTTP request. In the case of HTTPS, it will be set to true.  Defaults to true.
@@ -74,7 +74,7 @@ The options object is used to generate the `Set-Cookie` header of the session co
 * `domain` - The `Domain` attribute.
 
 ##### store
-A session store. Needs the following methods: 
+A session store. Needs the following methods:
 * set(sessionId, session, callback)
 * get(sessionId, callback)
 * destroy(sessionId, callback)
@@ -84,11 +84,11 @@ Compatible to stores from [express-session](https://github.com/expressjs/session
 Defaults to a simple in-memory store.</br>
 **Note**: The default store should not be used in a production environment because it will leak memory.
 
-##### saveUninitialized (optional) 
+##### saveUninitialized (optional)
 Save sessions to the store, even when they are new and not modified— defaults to `true`.
 Setting this to `false` can save storage space and comply with the EU cookie law.
 
-##### idGenerator (optional) 
+##### idGenerator (optional)
 
 Function used to generate new session IDs. Defaults to [`uid(24)`](https://github.com/crypto-utils/uid-safe).
 
@@ -102,7 +102,7 @@ Allows to destroy the session in the store
 
 #### Session#touch()
 
-Updates the `expires` property of the session. 
+Updates the `expires` property of the session.
 
 #### Session#regenerate()
 
@@ -116,14 +116,19 @@ Gets a value from the session
 
 Sets a value in the session
 
-### fastify.decryptSession(sessionId, request, next)
-This plugin also decorates the fastify instance with `decryptSession` in case you want to decrypt the session manually. 
+### fastify.decryptSession(sessionId, request, cookieOptions, next)
+This plugin also decorates the fastify instance with `decryptSession` in case you want to decrypt the session manually.
 
 ```js
 const { sessionId } = fastify.parseCookie(cookieHeader);
 const request = {}
 fastify.decryptSession(sessionId, request, () => {
   // request.session should be available here
+})
+
+// or decrypt with custom cookie options:
+fastify.decryptSession(sessionId, request, { maxAge: 86400 }, () => {
+  // ...
 })
 ```
 
