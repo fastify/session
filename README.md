@@ -96,9 +96,40 @@ Function used to generate new session IDs. Defaults to [`uid(24)`](https://githu
 
 Allows to access or modify the session data.
 
+#### request.sessionStore
+
+Access the store instance from `options.store`. It proxies the `get`, `set`, `destroy` method on the store instance, such that it returns a promise when the callback argument is not passed. Other methods and properties on the store instance can be accessed transparently.
+
+```ts
+// Using callbacks
+request.sessionStore.get(sessionId, (err, session) => {})
+request.sessionStore.set(sessionId, session, (err) => {})
+request.sessionStore.destroy(sessionId, (err) => {})
+// Using promises
+request.sessionStore.get(sessionId).then((session) => {}).catch((err) => {})
+request.sessionStore.set(sessionId, session).catch((err) => {})
+request.sessionStore.destroy(sessionId).catch((err) => {})
+// Using async/await
+const session = await request.sessionStore.get(sessionId)
+await request.sessionStore.set(sessionId, session)
+await request.sessionStore.destroy(sessionId)
+// Some store implementations has extra methods, they can be used normally
+request.sessionStore.touch(sessionId, session, (err) => {})
+```
+
 #### request.destroySession(callback)
 
-Allows to destroy the session in the store
+Allows to destroy the session in the store.  
+If callback is not passed, request.destroySession returns a promise that will reject if an error has occured.
+
+```ts
+// Using callbacks
+request.destroySession((err) => {})
+// Using promises
+request.destroySession.catch((err) => {})
+// Using async/await
+await request.destroySession()
+```
 
 #### Session#touch()
 

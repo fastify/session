@@ -58,11 +58,12 @@ app.route({
   url: "/",
   preHandler(req, _rep, next) {
     req.destroySession(next);
+    req.destroySession().then(() => {})
   },
   async handler(request, reply) {
     expectType<FastifyRequest>(request);
     expectType<FastifyReply>(reply);
-    expectType<Readonly<session.SessionStore>>(request.sessionStore);
+    expectType<Readonly<session.ProxySessionStore>>(request.sessionStore);
     expectError((request.sessionStore = null));
     expectError(request.session.doesNotExist());
     expectType<{ id: number } | undefined>(request.session.user);

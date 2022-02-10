@@ -18,21 +18,6 @@ test('should add session object to request', async (t) => {
   t.is(statusCode, 200)
 })
 
-test('should destroy the session', async (t) => {
-  t.plan(3)
-  const port = await testServer((request, reply) => {
-    request.destroySession((err) => {
-      t.falsy(err)
-      t.is(request.session, null)
-      reply.send(200)
-    })
-  }, DEFAULT_OPTIONS)
-
-  const { response } = await request(`http://localhost:${port}`)
-
-  t.is(response.statusCode, 200)
-})
-
 test('should add session.encryptedSessionId object to request', async (t) => {
   t.plan(2)
   const port = await testServer((request, reply) => {
