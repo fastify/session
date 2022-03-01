@@ -1,12 +1,11 @@
-import { expectType, expectError } from "tsd";
-
-import session from "./types";
 import fastify, {
-  FastifyRequest,
   FastifyInstance,
   FastifyReply,
+  FastifyRequest,
   Session
-} from "fastify";
+} from 'fastify';
+import { expectError, expectType } from 'tsd';
+import plugin from '..';
 
 class EmptyStore {
   set(_sessionId: string, _session: any, _callback: Function) {}
@@ -16,7 +15,7 @@ class EmptyStore {
   destroy(_sessionId: string, _callback: Function) {}
 }
 
-declare module "fastify" {
+declare module 'fastify' {
   interface Session {
     get<T>(key: string): T;
     set(key: string, value: unknown): void;
@@ -27,51 +26,52 @@ declare module "fastify" {
 }
 
 const app: FastifyInstance = fastify();
-app.register(session);
-app.register(session, { secret: "DizIzSecret" });
-app.register(session, { secret: "DizIzSecret", rolling: true });
-app.register(session, {
-  secret: "ABCDEFGHIJKLNMOPQRSTUVWXYZ012345",
+app.register(plugin);
+app.register(plugin, { secret: 'DizIzSecret' });
+app.register(plugin, { secret: 'DizIzSecret', rolling: true });
+app.register(plugin, {
+  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
   rolling: false,
   cookie: {
-    secure: false,
-  },
+    secure: false
+  }
 });
-app.register(session, {
-  secret: "ABCDEFGHIJKLNMOPQRSTUVWXYZ012345",
+app.register(plugin, {
+  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
   cookie: {
-    secure: false,
-  },
+    secure: false
+  }
 });
-app.register(session, {
-  secret: "ABCDEFGHIJKLNMOPQRSTUVWXYZ012345",
-  store: new EmptyStore(),
+app.register(plugin, {
+  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  store: new EmptyStore()
 });
-app.register(session, {
-  secret: "ABCDEFGHIJKLNMOPQRSTUVWXYZ012345",
-  idGenerator: () => Date.now()+"",
+app.register(plugin, {
+  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  idGenerator: () => Date.now() + ''
 });
-expectError(app.register(session, {}));
+expectError(app.register(plugin, {}));
 
 app.route({
-  method: "GET",
-  url: "/",
+  method: 'GET',
+  url: '/',
   preHandler(req, _rep, next) {
     req.destroySession(next);
   },
   async handler(request, reply) {
     expectType<FastifyRequest>(request);
     expectType<FastifyReply>(reply);
-    expectType<Readonly<session.SessionStore>>(request.sessionStore);
+    expectType<Readonly<plugin.SessionStore>>(request.sessionStore);
     expectError((request.sessionStore = null));
     expectError(request.session.doesNotExist());
     expectType<{ id: number } | undefined>(request.session.user);
+    request.sessionStore.set('session-set-test', request.session, () => {})
     request.sessionStore.get('', (err, session) => {
-      expectType<Error | undefined>(err)
-      expectType<Session | undefined>(session)
-      expectType<{ id: number } | undefined>(session?.user)
-    })
-    expectType<void>(request.session.set('foo', 'bar'))
-    expectType<string>(request.session.get('foo'))
-  },
+      expectType<Error>(err);
+      expectType<Session>(session);
+      expectType<{ id: number } | undefined>(session?.user);
+    });
+    expectType<void>(request.session.set('foo', 'bar'));
+    expectType<string>(request.session.get('foo'));
+  }
 });
