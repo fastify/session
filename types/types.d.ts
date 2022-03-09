@@ -27,7 +27,7 @@ interface SessionData extends ExpressSessionData {
   touch(): void;
 
   /** Regenerates the session by generating a new `sessionId`. */
-  regenerate(): void;
+  regenerate(request: Fastify.FastifyRequest): void;
 
   /** sets values in the session. */
   set(key: string, value: unknown): void;
@@ -101,7 +101,7 @@ declare namespace FastifySessionPlugin {
     rolling?: boolean;
 
     /** Function used to generate new session IDs. Defaults to uid(24). */
-    idGenerator?: () => string;
+    idGenerator?: (request: Fastify.FastifyRequest) => string;
   }
 
   interface CookieOptions {
