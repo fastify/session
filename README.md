@@ -88,9 +88,16 @@ Defaults to a simple in-memory store.</br>
 Save sessions to the store, even when they are new and not modified— defaults to `true`.
 Setting this to `false` can save storage space and comply with the EU cookie law.
 
-##### idGenerator (optional)
+##### idGenerator(request) (optional)
 
 Function used to generate new session IDs. Defaults to [`uid(24)`](https://github.com/crypto-utils/uid-safe).
+Custom implementation example:
+```js
+idGenerator: (request) => {
+     if (request.session.returningVisitor) return `returningVisitor-${uid(24)}`
+     else return uid(24)
+}
+```
 
 #### request.session
 
@@ -104,9 +111,15 @@ Allows to destroy the session in the store
 
 Updates the `expires` property of the session.
 
-#### Session#regenerate()
+#### Session#regenerate(request)
 
-Regenerates the session by generating a new `sessionId`.
+Regenerates the session by generating a new `sessionId`. Don't forget to pass the fastify.request object if your id generator uses it.
+```js
+fastify.get('/regenerate', (request, reply) => {
+  request.session.regenerate(request);
+  reply.send(request.session.sessionId);
+});
+```
 
 #### Session#get(key)
 
