@@ -353,7 +353,7 @@ test('should use custom sessionId generator if available (with request)', async 
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     cookie: { secure: false, maxAge: 10000 },
     idGenerator: (request) => {
-      if (request?.session.returningVisitor) {
+      if (request.session != null && request.session.returningVisitor) {
         return `returningVisitor-${
           new Date().getTime()
         }-${
