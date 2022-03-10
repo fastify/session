@@ -104,7 +104,7 @@ declare namespace FastifySessionPlugin {
     rolling?: boolean;
 
     /** Function used to generate new session IDs. Defaults to uid(24). */
-    idGenerator?: (request: Fastify.FastifyRequest) => string;
+    idGenerator?(request?: Fastify.FastifyRequest): string;
   }
 
   interface CookieOptions {
