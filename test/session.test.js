@@ -167,7 +167,7 @@ test('should generate new sessionId', async (t) => {
   fastify.register(fastifySession, options)
   fastify.get('/', (request, reply) => {
     oldSessionId = request.session.sessionId
-    request.session.regenerate(request)
+    request.session.regenerate()
     reply.send(200)
   })
   fastify.get('/check', (request, reply) => {
@@ -351,6 +351,62 @@ test('should use custom sessionId generator if available (with request)', async 
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    cookie: { secure: false, maxAge: 10000 },
+    idGenerator: (request) => {
+      if (request.session != null && request.session.returningVisitor) {
+        return `returningVisitor-${
+          new Date().getTime()
+        }-${
+          Math.random().toString().slice(2)
+        }`
+      }
+      return `custom-${
+        new Date().getTime()
+      }-${
+        Math.random().toString().slice(2)
+      }`
+    }
+  })
+
+  fastify.get('/', (request, reply) => {
+    reply.status(200).send(request.session.sessionId)
+  })
+  fastify.get('/login', (request, reply) => {
+    request.session.returningVisitor = true
+    request.session.regenerate(request)
+    reply.status(200).send('OK ' + request.session.sessionId)
+  })
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { response: response1, body: sessionBody1 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port
+  })
+  t.is(response1.statusCode, 200)
+  t.true(response1.headers['set-cookie'] != null)
+  t.true(sessionBody1.startsWith('custom-'))
+
+  const { response: response2 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port + '/login',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.is(response2.statusCode, 200)
+  t.true(response2.headers['set-cookie'] != null)
+
+  const { response: response3, body: sessionBody3 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port,
+    headers: { Cookie: response2.headers['set-cookie'] }
+  })
+  t.is(response3.statusCode, 200)
+  t.true(sessionBody3.startsWith('returningVisitor-'))
+})
+
+test('should use custom sessionId generator if available (with request and rolling false)', async (t) => {
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    rolling: false,
     cookie: { secure: false, maxAge: 10000 },
     idGenerator: (request) => {
       if (request.session != null && request.session.returningVisitor) {
