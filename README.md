@@ -113,7 +113,7 @@ Updates the `expires` property of the session.
 
 #### Session#regenerate(request)
 
-Regenerates the session by generating a new `sessionId`. Don't forget to pass the fastify.request object if your id generator uses it.
+Regenerates the session by generating a new `sessionId`. Don't forget to pass the `request` object if the `idGenerator` function parameter uses it.
 ```js
 fastify.get('/regenerate', (request, reply) => {
   request.session.regenerate(request);
