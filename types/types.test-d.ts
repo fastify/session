@@ -50,6 +50,10 @@ app.register(plugin, {
   secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
   idGenerator: () => Date.now() + ''
 });
+app.register(plugin, {
+  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  idGenerator: (request) => request?.ip + '-' + Date.now()
+});
 expectError(app.register(plugin, {}));
 
 app.route({
@@ -65,6 +69,8 @@ app.route({
     expectError((request.sessionStore = null));
     expectError(request.session.doesNotExist());
     expectType<{ id: number } | undefined>(request.session.user);
+    if(request.session.regenerate) request.session.regenerate();
+    if(request.session.regenerate) request.session.regenerate(request);
     request.sessionStore.set('session-set-test', request.session, () => {})
     request.sessionStore.get('', (err, session) => {
       expectType<Error>(err);
