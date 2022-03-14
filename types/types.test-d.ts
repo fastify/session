@@ -52,7 +52,7 @@ app.register(plugin, {
 });
 app.register(plugin, {
   secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
-  idGenerator: (request) => request?.ip + '-' + Date.now()
+  idGenerator: (request) => `${request == undefined ? 'null' : request.ip}-${Date.now()}`
 });
 expectError(app.register(plugin, {}));
 
@@ -75,7 +75,7 @@ app.route({
     request.sessionStore.get('', (err, session) => {
       expectType<Error>(err);
       expectType<Session>(session);
-      expectType<{ id: number } | undefined>(session?.user);
+      expectType<{ id: number } | undefined>(session.user);
     });
     expectType<void>(request.session.set('foo', 'bar'));
     expectType<string>(request.session.get('foo'));
