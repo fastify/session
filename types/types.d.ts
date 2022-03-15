@@ -26,8 +26,11 @@ interface SessionData extends ExpressSessionData {
   /** Updates the `expires` property of the session. */
   touch(): void;
 
-  /** Regenerates the session by generating a new `sessionId`. */
-  regenerate(): void;
+  /**
+   * Regenerates the session by generating a new `sessionId`.
+   * @param request Optional, but REQUIRED if idGenerator uses it
+   */
+  regenerate(request?: Fastify.FastifyRequest): void;
 
   /** sets values in the session. */
   set(key: string, value: unknown): void;
@@ -101,7 +104,7 @@ declare namespace FastifySessionPlugin {
     rolling?: boolean;
 
     /** Function used to generate new session IDs. Defaults to uid(24). */
-    idGenerator?: () => string;
+    idGenerator?(request?: Fastify.FastifyRequest): string;
   }
 
   interface CookieOptions {
