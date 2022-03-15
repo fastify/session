@@ -98,7 +98,7 @@ test('should allow get/set methods for fetching/updating session values', async 
   t.is(response.statusCode, 200)
 })
 
-test('should use custom sessionId generator if available', async (t) => {
+test('should use custom sessionId generator if available (without request)', async (t) => {
   t.plan(2)
   const port = await testServer((request, reply) => {
     t.truthy(request.session.sessionId.startsWith('custom-'))
@@ -344,4 +344,105 @@ test('should update the expires property of the session using Session#touch() ev
   t.is(response2.statusCode, 200)
 
   t.true(sessionExpires1 !== sessionExpires2)
+})
+
+test('should use custom sessionId generator if available (with request)', async (t) => {
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    cookie: { secure: false, maxAge: 10000 },
+    idGenerator: (request) => {
+      if (request.session && request.session.returningVisitor) return `returningVisitor-${new Date().getTime()}`
+      else return `custom-${new Date().getTime()}`
+    }
+  })
+
+  fastify.get('/', (request, reply) => {
+    reply.status(200).send(request.session.sessionId)
+  })
+  fastify.get('/login', (request, reply) => {
+    request.session.returningVisitor = true
+    request.session.regenerate(request)
+    reply.status(200).send('OK ' + request.session.sessionId)
+  })
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { response: response1, body: sessionBody1 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port
+  })
+  t.is(response1.statusCode, 200)
+  t.true(response1.headers['set-cookie'] != null)
+  t.true(sessionBody1.startsWith('custom-'))
+
+  const { response: response2 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port + '/login',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.is(response2.statusCode, 200)
+  t.true(response2.headers['set-cookie'] != null)
+
+  const { response: response3, body: sessionBody3 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port,
+    headers: { Cookie: response2.headers['set-cookie'] }
+  })
+  t.is(response3.statusCode, 200)
+  t.true(sessionBody3.startsWith('returningVisitor-'))
+})
+
+test('should use custom sessionId generator if available (with request and rolling false)', async (t) => {
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    rolling: false,
+    cookie: { secure: false, maxAge: 10000 },
+    idGenerator: (request) => {
+      if (request.session && request.session.returningVisitor) {
+        return `returningVisitor-${
+          new Date().getTime()
+        }-${
+          Math.random().toString().slice(2)
+        }`
+      }
+      return `custom-${
+        new Date().getTime()
+      }-${
+        Math.random().toString().slice(2)
+      }`
+    }
+  })
+
+  fastify.get('/', (request, reply) => {
+    reply.status(200).send(request.session.sessionId)
+  })
+  fastify.get('/login', (request, reply) => {
+    request.session.returningVisitor = true
+    request.session.regenerate(request)
+    reply.status(200).send('OK ' + request.session.sessionId)
+  })
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { response: response1, body: sessionBody1 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port
+  })
+  t.is(response1.statusCode, 200)
+  t.true(response1.headers['set-cookie'] != null)
+  t.true(sessionBody1.startsWith('custom-'))
+
+  const { response: response2 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port + '/login',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.is(response2.statusCode, 200)
+  t.true(response2.headers['set-cookie'] != null)
+
+  const { response: response3, body: sessionBody3 } = await request({
+    url: 'http://localhost:' + fastify.server.address().port,
+    headers: { Cookie: response2.headers['set-cookie'] }
+  })
+  t.is(response3.statusCode, 200)
+  t.true(sessionBody3.startsWith('returningVisitor-'))
 })
