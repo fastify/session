@@ -371,7 +371,7 @@ test('should use custom sessionId generator if available (with request)', async 
     url: 'http://localhost:' + fastify.server.address().port
   })
   t.is(response1.statusCode, 200)
-  t.true(response1.headers['set-cookie'] != null)
+  t.true(response1.headers['set-cookie'] !== undefined)
   t.true(sessionBody1.startsWith('custom-'))
 
   const { response: response2 } = await request({
@@ -379,7 +379,7 @@ test('should use custom sessionId generator if available (with request)', async 
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.is(response2.statusCode, 200)
-  t.true(response2.headers['set-cookie'] != null)
+  t.true(response2.headers['set-cookie'] !== undefined)
 
   const { response: response3, body: sessionBody3 } = await request({
     url: 'http://localhost:' + fastify.server.address().port,
@@ -427,7 +427,7 @@ test('should use custom sessionId generator if available (with request and rolli
     url: 'http://localhost:' + fastify.server.address().port
   })
   t.is(response1.statusCode, 200)
-  t.true(response1.headers['set-cookie'] != null)
+  t.true(response1.headers['set-cookie'] !== undefined)
   t.true(sessionBody1.startsWith('custom-'))
 
   const { response: response2 } = await request({
@@ -435,7 +435,7 @@ test('should use custom sessionId generator if available (with request and rolli
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.is(response2.statusCode, 200)
-  t.true(response2.headers['set-cookie'] != null)
+  t.true(response2.headers['set-cookie'] !== undefined)
 
   const { response: response3, body: sessionBody3 } = await request({
     url: 'http://localhost:' + fastify.server.address().port,
