@@ -23,18 +23,20 @@ async function testServer (handler, sessionOptions, plugin) {
 
 async function request (options) {
   let response
+  let body
   try {
     if (typeof options === 'string') {
       response = await undici.request(options)
     } else {
       response = await undici.request(options.url, options)
     }
+    body = await response.body.text()
   } catch (err) {
     response = err.response
   }
-  const { statusCode, body } = response
+  const { statusCode } = response
   const cookie = response.headers['set-cookie']
-  return { response, body: await body.text(), statusCode, cookie }
+  return { response, body, statusCode, cookie }
 }
 
 module.exports = {
