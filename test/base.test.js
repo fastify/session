@@ -31,7 +31,7 @@ test('should set session cookie', async (t) => {
   })
 
   t.is(statusCode1, 200)
-  t.regex(cookie1, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie1, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 
   const { statusCode: statusCode2, cookie: cookie2 } = await request({
     url: `http://localhost:${port}`,
@@ -39,7 +39,7 @@ test('should set session cookie', async (t) => {
   })
 
   t.is(statusCode2, 200)
-  t.regex(cookie2, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie2, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should support multiple secrets', async (t) => {
@@ -90,7 +90,7 @@ test('should set session cookie using the specified cookie name', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /anothername=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /anothername=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should set session cookie using the default cookie name', async (t) => {
@@ -207,7 +207,7 @@ test('should set new session cookie if expired', async (t) => {
 
   t.is(statusCode, 200)
   t.falsy(cookie.includes('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'))
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should return new session cookie if does not exist in store', async (t) => {
@@ -228,7 +228,7 @@ test('should return new session cookie if does not exist in store', async (t) =>
 
   t.is(statusCode, 200)
   t.false(cookie.includes('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'))
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should not set session cookie on invalid path', async (t) => {
@@ -274,7 +274,7 @@ test('should create new session if cookie contains invalid session', async (t) =
 
   t.is(statusCode, 200)
   t.false(cookie.includes('B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'))
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should not set session cookie if no data in session and saveUninitialized is false', async (t) => {
