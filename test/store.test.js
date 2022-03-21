@@ -59,7 +59,7 @@ test('should create new session if ENOENT error on store.get', async (t) => {
 
   t.is(statusCode, 200)
   t.false(cookie.includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'))
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should pass error to done if non-ENOENT error on store.get', async (t) => {

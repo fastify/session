@@ -27,7 +27,7 @@ test('should set session cookie', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should not set session cookie is request is not secure', async (t) => {
@@ -128,7 +128,7 @@ test('should set session cookie with expires if maxAge', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=[\w, :]{29}; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=[\w, :]{29}; HttpOnly; Secure/)
 })
 
 test('should set session cookie with maxAge', async (t) => {
@@ -148,7 +148,7 @@ test('should set session cookie with maxAge', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Domain=localhost; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Domain=localhost; Path=\/; HttpOnly; Secure/)
 })
 
 test('should set session cookie with sameSite', async (t) => {
@@ -168,7 +168,7 @@ test('should set session cookie with sameSite', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure; SameSite=Strict/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; SameSite=Strict/)
 })
 
 test('should set session another path in cookie', async (t) => {
@@ -194,7 +194,7 @@ test('should set session another path in cookie', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[[\w-%]{43,55}; Path=\/a\/test\/path; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[[\w-%]{43,57}; Path=\/a\/test\/path; HttpOnly; Secure/)
 })
 
 test('should set session cookie with expires', async (t) => {
@@ -216,7 +216,7 @@ test('should set session cookie with expires', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=Mon, 01 Feb 1971 00:01:01 GMT; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=Mon, 01 Feb 1971 00:01:01 GMT; HttpOnly; Secure/)
 })
 
 test('should set session non HttpOnly cookie', async (t) => {
@@ -236,7 +236,7 @@ test('should set session non HttpOnly cookie', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Secure/)
 })
 
 test('should set session non secure cookie', async (t) => {
@@ -253,7 +253,7 @@ test('should set session non secure cookie', async (t) => {
   const { statusCode, cookie } = await request(`http://localhost:${port}`)
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly/)
 })
 
 test('should set session non secure cookie secureAuto', async (t) => {
@@ -270,7 +270,7 @@ test('should set session non secure cookie secureAuto', async (t) => {
   const { statusCode, cookie } = await request(`http://localhost:${port}`)
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly/)
 })
 
 test('should set session cookie secureAuto', async (t) => {
@@ -296,7 +296,7 @@ test('should set session cookie secureAuto', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; SameSite=Lax/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax/)
 })
 
 test('should set session cookie secureAuto change SameSite', async (t) => {
@@ -322,7 +322,7 @@ test('should set session cookie secureAuto change SameSite', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; SameSite=Lax/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax/)
 })
 
 test('should set session cookie secureAuto keep SameSite when secured', async (t) => {
@@ -348,7 +348,7 @@ test('should set session cookie secureAuto keep SameSite when secured', async (t
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure; SameSite=None/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; SameSite=None/)
 })
 
 test('should set session secure cookie secureAuto http encrypted', async (t) => {
@@ -374,7 +374,7 @@ test('should set session secure cookie secureAuto http encrypted', async (t) => 
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should set session secure cookie secureAuto x-forwarded-proto header', async (t) => {
@@ -394,7 +394,7 @@ test('should set session secure cookie secureAuto x-forwarded-proto header', asy
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should use maxAge instead of expires in session if both are set in options.cookie', async (t) => {
@@ -419,6 +419,6 @@ test('should use maxAge instead of expires in session if both are set in options
   t.is(statusCode, 200)
   // Expires attribute should be determined by options.maxAge -> Date.now() + 1000 and should have the same year from response.body,
   // and not determined by options.expires and should not have the year of 1971
-  t.notRegex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=\w+, \d+ \w+ 1971 \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure/)
-  t.regex(cookie, new RegExp(String.raw`sessionId=[\w-]{32}.[\w-%]{43,55}; Path=\/; Expires=\w+, \d+ \w+ ${dateFromBody.getFullYear()} \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure`))
+  t.notRegex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ 1971 \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure/)
+  t.regex(cookie, new RegExp(String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ ${dateFromBody.getFullYear()} \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure`))
 })
