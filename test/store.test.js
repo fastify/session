@@ -103,7 +103,7 @@ test('should set new session cookie if expired', async (t) => {
   })
 
   t.is(statusCode, 500)
-  t.is(cookie, null)
+  t.is(cookie, undefined)
 })
 
 test('store should be an event emitter', t => {
