@@ -33,10 +33,10 @@ test('should destroy the session', async (t) => {
   t.is(response.statusCode, 200)
 })
 
-test('should add session.encryptedSessionId object to request', async (t) => {
+test('should not add session.encryptedSessionId object to request', async (t) => {
   t.plan(2)
   const port = await testServer((request, reply) => {
-    t.truthy(request.session.encryptedSessionId)
+    t.falsy(request.session.encryptedSessionId)
     reply.send(200)
   }, DEFAULT_OPTIONS)
 

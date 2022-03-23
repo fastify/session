@@ -119,7 +119,7 @@ test('should set session cookie using the default cookie name', async (t) => {
   })
 
   t.is(statusCode, 200)
-  t.regex(cookie, /sessionId=undefined; Path=\/; HttpOnly; Secure/)
+  t.regex(cookie, /sessionId=.*\..*; Path=\/; HttpOnly; Secure/)
 })
 
 test('should create new session on expired session', async (t) => {

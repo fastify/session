@@ -21,8 +21,6 @@ declare module 'fastify' {
 interface SessionData extends ExpressSessionData {
   sessionId: string;
 
-  encryptedSessionId: string;
-
   /** Updates the `expires` property of the session. */
   touch(): void;
 
@@ -76,6 +74,7 @@ declare namespace FastifySessionPlugin {
 
     /** The name of the session cookie. Defaults to `sessionId`. */
     cookieName?: string;
+
     /**
      * The options object used to generate the `Set-Cookie` header of the session cookie.
      *
