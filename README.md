@@ -111,12 +111,12 @@ Allows to destroy the session in the store
 
 Updates the `expires` property of the session.
 
-#### Session#regenerate(request)
+#### Session#regenerate()
 
-Regenerates the session by generating a new `sessionId`. Don't forget to pass the `request` object if the `idGenerator` function parameter uses it.
+Regenerates the session by generating a new `sessionId`.
 ```js
 fastify.get('/regenerate', (request, reply) => {
-  request.session.regenerate(request);
+  request.session.regenerate();
   reply.send(request.session.sessionId);
 });
 ```
