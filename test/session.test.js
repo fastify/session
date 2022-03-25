@@ -191,16 +191,18 @@ test('should generate new sessionId', async (t) => {
   t.is(response2.statusCode, 200)
 })
 
-test('should decorate the server with decryptSession', async t => {
+test.cb('should decorate the server with decryptSession', t => {
   t.plan(2)
   const fastify = Fastify()
 
   const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-
-  t.truthy(await fastify.ready())
-  t.truthy(fastify.decryptSession)
+  fastify.ready((err) => {
+    t.falsy(err)
+    t.truthy(fastify.decryptSession)
+    t.end()
+  })
 })
 
 test('should decryptSession with custom request object', async (t) => {
