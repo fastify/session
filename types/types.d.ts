@@ -15,7 +15,7 @@ declare module 'fastify' {
     destroySession(callback: (err: Error) => void): void;
   }
 
-  interface Session extends Partial<SessionData> {}
+  interface Session extends SessionData {}
 }
 
 interface SessionData extends ExpressSessionData {
@@ -47,13 +47,13 @@ declare namespace FastifySessionPlugin {
     set(
       sessionId: string,
       session: Fastify.Session,
-      callback: (err: Error) => void
+      callback: (err?: Error) => void
     ): void;
     get(
       sessionId: string,
-      callback: (err: Error, session: Fastify.Session) => void
+      callback: (err: Error | null, session: Fastify.Session) => void
     ): void;
-    destroy(sessionId: string, callback: (err: Error) => void): void;
+    destroy(sessionId: string, callback: (err?: Error) => void): void;
   }
 
   interface Options {
@@ -135,13 +135,13 @@ export class MemoryStore implements FastifySessionPlugin.SessionStore {
   set(
     sessionId: string,
     session: Fastify.Session,
-    callback: (err: Error) => void
+    callback: (err?: Error) => void
   ): void;
   get(
     sessionId: string,
-    callback: (err: Error, session: Fastify.Session) => void
+    callback: (err: Error | null, session: Fastify.Session) => void
   ): void;
-  destroy(sessionId: string, callback: (err: Error) => void): void;
+  destroy(sessionId: string, callback: (err?: Error) => void): void;
 }
 
 export const Store: MemoryStore;
