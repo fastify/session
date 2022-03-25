@@ -191,16 +191,18 @@ test('should generate new sessionId', async (t) => {
   t.is(response2.statusCode, 200)
 })
 
-test('should decorate the server with decryptSession', async t => {
+test.cb('should decorate the server with decryptSession', t => {
   t.plan(2)
   const fastify = Fastify()
 
   const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-
-  t.truthy(await fastify.ready())
-  t.truthy(fastify.decryptSession)
+  fastify.ready((err) => {
+    t.falsy(err)
+    t.truthy(fastify.decryptSession)
+    t.end()
+  })
 })
 
 test('should decryptSession with custom request object', async (t) => {
@@ -371,7 +373,7 @@ test('should use custom sessionId generator if available (with request)', async 
     url: 'http://localhost:' + fastify.server.address().port
   })
   t.is(response1.statusCode, 200)
-  t.true(response1.headers['set-cookie'] !== undefined)
+  t.true(response1.headers['set-cookie'] != null)
   t.true(sessionBody1.startsWith('custom-'))
 
   const { response: response2 } = await request({
@@ -379,7 +381,7 @@ test('should use custom sessionId generator if available (with request)', async 
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.is(response2.statusCode, 200)
-  t.true(response2.headers['set-cookie'] !== undefined)
+  t.true(response2.headers['set-cookie'] != null)
 
   const { response: response3, body: sessionBody3 } = await request({
     url: 'http://localhost:' + fastify.server.address().port,
@@ -427,7 +429,7 @@ test('should use custom sessionId generator if available (with request and rolli
     url: 'http://localhost:' + fastify.server.address().port
   })
   t.is(response1.statusCode, 200)
-  t.true(response1.headers['set-cookie'] !== undefined)
+  t.true(response1.headers['set-cookie'] != null)
   t.true(sessionBody1.startsWith('custom-'))
 
   const { response: response2 } = await request({
@@ -435,7 +437,7 @@ test('should use custom sessionId generator if available (with request and rolli
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.is(response2.statusCode, 200)
-  t.true(response2.headers['set-cookie'] !== undefined)
+  t.true(response2.headers['set-cookie'] != null)
 
   const { response: response3, body: sessionBody3 } = await request({
     url: 'http://localhost:' + fastify.server.address().port,
