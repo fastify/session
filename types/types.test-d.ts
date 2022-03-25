@@ -70,7 +70,6 @@ app.route({
     expectError(request.session.doesNotExist());
     expectType<{ id: number } | undefined>(request.session.user);
     request.session.regenerate();
-    request.session.regenerate(request);
     request.sessionStore.set('session-set-test', request.session, () => {})
     request.sessionStore.get('', (err, session) => {
       expectType<Error | null>(err);
