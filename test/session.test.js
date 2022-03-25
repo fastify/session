@@ -21,7 +21,7 @@ test('should add session object to request', async (t) => {
 test('should destroy the session', async (t) => {
   t.plan(3)
   const port = await testServer((request, reply) => {
-    request.destroySession((err) => {
+    request.session.destroy((err) => {
       t.falsy(err)
       t.is(request.session, null)
       reply.send(200)
@@ -167,8 +167,13 @@ test('should generate new sessionId', async (t) => {
   fastify.register(fastifySession, options)
   fastify.get('/', (request, reply) => {
     oldSessionId = request.session.sessionId
-    request.session.regenerate()
-    reply.send(200)
+    request.session.regenerate(error => {
+      if (error) {
+        reply.status(500).send('Error ' + error)
+      } else {
+        reply.send(200)
+      }
+    })
   })
   fastify.get('/check', (request, reply) => {
     t.not(request.session.sessionId, oldSessionId)
@@ -361,8 +366,13 @@ test('should use custom sessionId generator if available (with request)', async 
   })
   fastify.get('/login', (request, reply) => {
     request.session.returningVisitor = true
-    request.session.regenerate()
-    reply.status(200).send('OK ' + request.session.sessionId)
+    request.session.regenerate(error => {
+      if (error) {
+        reply.status(500).send('Error ' + error)
+      } else {
+        reply.status(200).send('OK ' + request.session.sessionId)
+      }
+    })
   })
   await fastify.listen(0)
   fastify.server.unref()
@@ -417,8 +427,13 @@ test('should use custom sessionId generator if available (with request and rolli
   })
   fastify.get('/login', (request, reply) => {
     request.session.returningVisitor = true
-    request.session.regenerate()
-    reply.status(200).send('OK ' + request.session.sessionId)
+    request.session.regenerate(error => {
+      if (error) {
+        reply.status(500).send('Error ' + error)
+      } else {
+        reply.status(200).send('OK ' + request.session.sessionId)
+      }
+    })
   })
   await fastify.listen(0)
   fastify.server.unref()
