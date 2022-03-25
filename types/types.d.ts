@@ -28,9 +28,8 @@ interface SessionData extends ExpressSessionData {
 
   /**
    * Regenerates the session by generating a new `sessionId`.
-   * @param request Optional, but REQUIRED if idGenerator uses it
    */
-  regenerate(request?: Fastify.FastifyRequest): void;
+  regenerate(): void;
 
   /** sets values in the session. */
   set(key: string, value: unknown): void;

@@ -361,7 +361,7 @@ test('should use custom sessionId generator if available (with request)', async 
   })
   fastify.get('/login', (request, reply) => {
     request.session.returningVisitor = true
-    request.session.regenerate(request)
+    request.session.regenerate()
     reply.status(200).send('OK ' + request.session.sessionId)
   })
   await fastify.listen(0)
@@ -417,7 +417,7 @@ test('should use custom sessionId generator if available (with request and rolli
   })
   fastify.get('/login', (request, reply) => {
     request.session.returningVisitor = true
-    request.session.regenerate(request)
+    request.session.regenerate()
     reply.status(200).send('OK ' + request.session.sessionId)
   })
   await fastify.listen(0)
