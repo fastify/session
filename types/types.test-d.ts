@@ -73,11 +73,12 @@ app.route({
     if(request.session.regenerate) request.session.regenerate(request);
     request.sessionStore.set('session-set-test', request.session, () => {})
     request.sessionStore.get('', (err, session) => {
-      expectType<Error>(err);
+      expectType<Error | null>(err);
       expectType<Session>(session);
       expectType<{ id: number } | undefined>(session.user);
     });
     expectType<void>(request.session.set('foo', 'bar'));
     expectType<string>(request.session.get('foo'));
+    expectType<void>(request.session.touch());
   }
 });
