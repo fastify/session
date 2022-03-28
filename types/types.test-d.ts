@@ -60,7 +60,7 @@ app.route({
   method: 'GET',
   url: '/',
   preHandler(req, _rep, next) {
-    req.session.destroy(next);
+    expectType<void>(req.session.destroy(next));
   },
   async handler(request, reply) {
     expectType<FastifyRequest>(request);
