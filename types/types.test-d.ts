@@ -81,5 +81,6 @@ app.route({
     expectType<void>(request.session.reload(() => {}));
     expectType<void>(request.session.destroy(() => {}));
     expectType<void>(request.session.regenerate(() => {}));
+    expectType<void>(request.session.save(() => {}));
   }
 });
