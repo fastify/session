@@ -277,15 +277,13 @@ test('should decryptSession with custom cookie options', async (t) => {
 })
 
 test('should bubble up errors with destroy call if session expired', async (t) => {
-  t.plan(3)
+  t.plan(2)
   const fastify = Fastify()
-  const sessionStore = new Map()
   const store = {
-    set (id, data, cb) {
-      sessionStore.set(id, { ...data, expires: Date.now() - 1000 })
-      cb(null)
+    set (id, data, cb) { cb(null) },
+    get (id, cb) {
+      cb(null, { expires: Date.now() - 1000, cookie: { expires: Date.now() - 1000 } })
     },
-    get (id, cb) { cb(null, sessionStore.get(id)) },
     destroy (id, cb) { cb(new Error('No can do')) }
   }
 
@@ -304,16 +302,11 @@ test('should bubble up errors with destroy call if session expired', async (t) =
   await fastify.listen(0)
   fastify.server.unref()
 
-  const { statusCode: statusCode1, cookie: setCookie } = await request({
-    url: 'http://localhost:' + fastify.server.address().port
-  })
-  t.is(statusCode1, 200)
-  const { sessionId } = fastify.parseCookie(setCookie)
-  const { statusCode: statusCode2, body } = await request({
+  const { statusCode, body } = await request({
     url: 'http://localhost:' + fastify.server.address().port,
-    headers: { cookie: `sessionId=${sessionId};` }
+    headers: { cookie: 'sessionId=_TuQsCBgxtHB3bu6wsRpTXfjqR5sK-q_.3mu5mErW+QI7w+Q0V2fZtrztSvqIpYgsnnC8LQf6ERY;' }
   })
-  t.is(statusCode2, 500)
+  t.is(statusCode, 500)
   t.is(JSON.parse(body).message, 'No can do')
 })
 
