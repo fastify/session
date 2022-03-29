@@ -10,9 +10,6 @@ declare module 'fastify' {
 
     /** A session store. */
     sessionStore: Readonly<FastifySessionPlugin.SessionStore>;
-
-    /** Allows to destroy the session in the store. */
-    destroySession(callback: (err: Error) => void): void;
   }
 
   interface Session extends SessionData {}
@@ -29,7 +26,16 @@ interface SessionData extends ExpressSessionData {
   /**
    * Regenerates the session by generating a new `sessionId`.
    */
-  regenerate(): void;
+  regenerate(callback: (err?: Error) => void): void;
+
+  /** Allows to destroy the session in the store. */
+  destroy(callback: (err?: Error) => void): void;
+
+  /** Reloads the session data from the store and re-populates the request.session object. */
+  reload(callback: (err?: Error) => void): void;
+
+  /** Save the session back to the store, replacing the contents on the store with the contents in memory. */
+  save(callback: (err?: Error) => void): void;
 
   /** sets values in the session. */
   set(key: string, value: unknown): void;

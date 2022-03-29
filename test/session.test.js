@@ -21,7 +21,7 @@ test('should add session object to request', async (t) => {
 test('should destroy the session', async (t) => {
   t.plan(3)
   const port = await testServer((request, reply) => {
-    request.destroySession((err) => {
+    request.session.destroy((err) => {
       t.falsy(err)
       t.is(request.session, null)
       reply.send(200)
@@ -167,8 +167,13 @@ test('should generate new sessionId', async (t) => {
   fastify.register(fastifySession, options)
   fastify.get('/', (request, reply) => {
     oldSessionId = request.session.sessionId
-    request.session.regenerate()
-    reply.send(200)
+    request.session.regenerate(error => {
+      if (error) {
+        reply.status(500).send('Error ' + error)
+      } else {
+        reply.send(200)
+      }
+    })
   })
   fastify.get('/check', (request, reply) => {
     t.not(request.session.sessionId, oldSessionId)
@@ -271,6 +276,40 @@ test('should decryptSession with custom cookie options', async (t) => {
   })
 })
 
+test('should bubble up errors with destroy call if session expired', async (t) => {
+  t.plan(2)
+  const fastify = Fastify()
+  const store = {
+    set (id, data, cb) { cb(null) },
+    get (id, cb) {
+      cb(null, { expires: Date.now() - 1000, cookie: { expires: Date.now() - 1000 } })
+    },
+    destroy (id, cb) { cb(new Error('No can do')) }
+  }
+
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    store,
+    cookie: { secure: false }
+  }
+
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+
+  fastify.get('/', (request, reply) => {
+    reply.send(200)
+  })
+  await fastify.listen(0)
+  fastify.server.unref()
+
+  const { statusCode, body } = await request({
+    url: 'http://localhost:' + fastify.server.address().port,
+    headers: { cookie: 'sessionId=_TuQsCBgxtHB3bu6wsRpTXfjqR5sK-q_.3mu5mErW+QI7w+Q0V2fZtrztSvqIpYgsnnC8LQf6ERY;' }
+  })
+  t.is(statusCode, 500)
+  t.is(JSON.parse(body).message, 'No can do')
+})
+
 test('should not reset session cookie expiration if rolling is false', async (t) => {
   t.plan(3)
 
@@ -361,8 +400,13 @@ test('should use custom sessionId generator if available (with request)', async 
   })
   fastify.get('/login', (request, reply) => {
     request.session.returningVisitor = true
-    request.session.regenerate()
-    reply.status(200).send('OK ' + request.session.sessionId)
+    request.session.regenerate(error => {
+      if (error) {
+        reply.status(500).send('Error ' + error)
+      } else {
+        reply.status(200).send('OK ' + request.session.sessionId)
+      }
+    })
   })
   await fastify.listen(0)
   fastify.server.unref()
@@ -417,8 +461,13 @@ test('should use custom sessionId generator if available (with request and rolli
   })
   fastify.get('/login', (request, reply) => {
     request.session.returningVisitor = true
-    request.session.regenerate()
-    reply.status(200).send('OK ' + request.session.sessionId)
+    request.session.regenerate(error => {
+      if (error) {
+        reply.status(500).send('Error ' + error)
+      } else {
+        reply.status(200).send('OK ' + request.session.sessionId)
+      }
+    })
   })
   await fastify.listen(0)
   fastify.server.unref()
@@ -443,4 +492,51 @@ test('should use custom sessionId generator if available (with request and rolli
   })
   t.is(response3.statusCode, 200)
   t.true(sessionBody3.startsWith('returningVisitor-'))
+})
+
+test('should reload the session', async (t) => {
+  t.plan(4)
+  const port = await testServer((request, reply) => {
+    request.session.someData = 'some-data'
+    t.is(request.session.someData, 'some-data')
+
+    request.session.reload((err) => {
+      t.falsy(err)
+
+      t.is(request.session.someData, undefined)
+
+      reply.send(200)
+    })
+  }, DEFAULT_OPTIONS)
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  t.is(response.statusCode, 200)
+})
+
+test('should save the session', async (t) => {
+  t.plan(6)
+  const port = await testServer((request, reply) => {
+    request.session.someData = 'some-data'
+    t.is(request.session.someData, 'some-data')
+
+    request.session.save((err) => {
+      t.falsy(err)
+
+      t.is(request.session.someData, 'some-data')
+
+      // unlike previous test, here the session data remains after a save
+      request.session.reload((err) => {
+        t.falsy(err)
+
+        t.is(request.session.someData, 'some-data')
+
+        reply.send(200)
+      })
+    })
+  }, DEFAULT_OPTIONS)
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  t.is(response.statusCode, 200)
 })

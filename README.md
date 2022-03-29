@@ -36,12 +36,11 @@ app.addHook('preHandler', (request, reply, next) => {
 })
 ```
 **NOTE**: For all unencrypted (HTTP) connections, you need to set the `secure` cookie option to `false`. See below for all cookie options and their details.
-The `sessionStore` decorator of the `request` allows to get, save and delete sessions.
+The `session` object has methods that allow you to get, save, reload and delete sessions.
 ```js
 app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 app.addHook('preHandler', (request, reply, next) => {
-  const session = request.session;
-  request.sessionStore.destroy(session.sessionId, next);
+  request.session.destroy(next);
 })
 ```
 
@@ -103,7 +102,7 @@ idGenerator: (request) => {
 
 Allows to access or modify the session data.
 
-#### request.destroySession(callback)
+#### Session#destroy(callback)
 
 Allows to destroy the session in the store
 
@@ -111,15 +110,28 @@ Allows to destroy the session in the store
 
 Updates the `expires` property of the session.
 
-#### Session#regenerate()
+#### Session#regenerate(callback)
 
-Regenerates the session by generating a new `sessionId`.
+Regenerates the session by generating a new `sessionId` and persist it to the store.
 ```js
-fastify.get('/regenerate', (request, reply) => {
-  request.session.regenerate();
-  reply.send(request.session.sessionId);
+fastify.get('/regenerate', (request, reply, done) => {
+  request.session.regenerate(error => {
+    if (error) {
+      done(error);
+      return;
+    }
+    reply.send(request.session.sessionId);
+  });
 });
 ```
+
+#### Session#reload(callback)
+
+Reloads the session data from the store and re-populates the `request.session` object.
+
+#### Session#save(callback)
+
+Save the session back to the store, replacing the contents on the store with the contents in memory.
 
 #### Session#get(key)
 

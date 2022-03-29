@@ -60,7 +60,7 @@ app.route({
   method: 'GET',
   url: '/',
   preHandler(req, _rep, next) {
-    req.destroySession(next);
+    expectType<void>(req.session.destroy(next));
   },
   async handler(request, reply) {
     expectType<FastifyRequest>(request);
@@ -69,7 +69,6 @@ app.route({
     expectError((request.sessionStore = null));
     expectError(request.session.doesNotExist());
     expectType<{ id: number } | undefined>(request.session.user);
-    request.session.regenerate();
     request.sessionStore.set('session-set-test', request.session, () => {})
     request.sessionStore.get('', (err, session) => {
       expectType<Error | null>(err);
@@ -79,5 +78,9 @@ app.route({
     expectType<void>(request.session.set('foo', 'bar'));
     expectType<string>(request.session.get('foo'));
     expectType<void>(request.session.touch());
+    expectType<void>(request.session.reload(() => {}));
+    expectType<void>(request.session.destroy(() => {}));
+    expectType<void>(request.session.regenerate(() => {}));
+    expectType<void>(request.session.save(() => {}));
   }
 });
