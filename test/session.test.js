@@ -3,6 +3,7 @@
 const test = require('ava')
 const Fastify = require('fastify')
 const fastifyCookie = require('fastify-cookie')
+const sinon = require('sinon')
 const fastifySession = require('..')
 const { request, testServer, DEFAULT_OPTIONS, DEFAULT_COOKIE } = require('./util')
 
@@ -667,7 +668,7 @@ test('save supports rejecting promises', async t => {
     store: {
       set (id, data, cb) { cb(new Error('no can do')) },
       get (id, cb) { cb(null) },
-      save (id, cb) { cb(null) }
+      destroy (id, cb) { cb(null) }
     }
   })
 
@@ -675,4 +676,55 @@ test('save supports rejecting promises', async t => {
 
   // 200 since we assert inline and swallow the error
   t.is(response.statusCode, 200)
+})
+
+test('only save session when it changes', async t => {
+  t.plan(6)
+  const setStub = sinon.stub()
+  const store = new Map()
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    saveUninitialized: false,
+    cookie: { secure: false },
+    store: {
+      set (id, data, cb) {
+        setStub()
+        store.set(id, data)
+        cb(null)
+      },
+      get (id, cb) { cb(null, store.get(id)) },
+      destroy (id, cb) {
+        store.delete(id)
+        cb(null)
+      }
+    }
+  })
+
+  fastify.get('/', (request, reply) => {
+    request.session.userId = 42
+
+    reply.send(200)
+  })
+
+  const { statusCode: statusCode1, headers: headers1 } = await fastify.inject('/')
+  const setCookieHeader1 = headers1['set-cookie']
+
+  t.is(statusCode1, 200)
+  t.is(setStub.callCount, 1)
+  t.is(typeof setCookieHeader1, 'string')
+
+  const { sessionId } = fastify.parseCookie(setCookieHeader1)
+
+  const { statusCode: statusCode2, headers: headers2 } = await fastify.inject({ path: '/', headers: { cookie: `sessionId=${sessionId}` } })
+  const setCookieHeader2 = headers2['set-cookie']
+
+  t.is(statusCode2, 200)
+  // still only called once
+  t.is(setStub.callCount, 1)
+  // no set-cookie
+  t.is(setCookieHeader2, undefined)
 })
