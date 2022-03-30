@@ -104,7 +104,7 @@ Allows to access or modify the session data.
 
 #### Session#destroy(callback)
 
-Allows to destroy the session in the store
+Allows to destroy the session in the store. If you do not pass a callback, a Promise will be returned.
 
 #### Session#touch()
 
@@ -112,7 +112,7 @@ Updates the `expires` property of the session.
 
 #### Session#regenerate(callback)
 
-Regenerates the session by generating a new `sessionId` and persist it to the store.
+Regenerates the session by generating a new `sessionId` and persist it to the store. If you do not pass a callback, a Promise will be returned.
 ```js
 fastify.get('/regenerate', (request, reply, done) => {
   request.session.regenerate(error => {
@@ -127,11 +127,11 @@ fastify.get('/regenerate', (request, reply, done) => {
 
 #### Session#reload(callback)
 
-Reloads the session data from the store and re-populates the `request.session` object.
+Reloads the session data from the store and re-populates the `request.session` object. If you do not pass a callback, a Promise will be returned.
 
 #### Session#save(callback)
 
-Save the session back to the store, replacing the contents on the store with the contents in memory.
+Save the session back to the store, replacing the contents on the store with the contents in memory. If you do not pass a callback, a Promise will be returned.
 
 #### Session#get(key)
 
