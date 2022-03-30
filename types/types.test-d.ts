@@ -61,6 +61,7 @@ app.route({
   url: '/',
   preHandler(req, _rep, next) {
     expectType<void>(req.session.destroy(next));
+    expectType<Promise<void>>(req.session.destroy());
   },
   async handler(request, reply) {
     expectType<FastifyRequest>(request);
@@ -82,5 +83,9 @@ app.route({
     expectType<void>(request.session.destroy(() => {}));
     expectType<void>(request.session.regenerate(() => {}));
     expectType<void>(request.session.save(() => {}));
+    expectType<Promise<void>>(request.session.reload());
+    expectType<Promise<void>>(request.session.destroy());
+    expectType<Promise<void>>(request.session.regenerate());
+    expectType<Promise<void>>(request.session.save());
   }
 });

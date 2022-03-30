@@ -27,15 +27,19 @@ interface SessionData extends ExpressSessionData {
    * Regenerates the session by generating a new `sessionId`.
    */
   regenerate(callback: (err?: Error) => void): void;
+  regenerate(): Promise<void>;
 
   /** Allows to destroy the session in the store. */
   destroy(callback: (err?: Error) => void): void;
+  destroy(): Promise<void>;
 
   /** Reloads the session data from the store and re-populates the request.session object. */
   reload(callback: (err?: Error) => void): void;
+  reload(): Promise<void>;
 
   /** Save the session back to the store, replacing the contents on the store with the contents in memory. */
   save(callback: (err?: Error) => void): void;
+  save(): Promise<void>;
 
   /** sets values in the session. */
   set(key: string, value: unknown): void;

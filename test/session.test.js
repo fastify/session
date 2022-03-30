@@ -540,3 +540,139 @@ test('should save the session', async (t) => {
 
   t.is(response.statusCode, 200)
 })
+
+test('destroy supports promises', async t => {
+  t.plan(2)
+  const port = await testServer(async (request, reply) => {
+    await t.notThrowsAsync(request.session.destroy())
+
+    reply.send(200)
+  }, DEFAULT_OPTIONS)
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  t.is(response.statusCode, 200)
+})
+
+test('destroy supports rejecting promises', async t => {
+  t.plan(2)
+  const port = await testServer(async (request, reply) => {
+    await t.throwsAsync(request.session.destroy(), { message: 'no can do' })
+
+    reply.send(200)
+  }, {
+    ...DEFAULT_OPTIONS,
+    store: {
+      set (id, data, cb) { cb(null) },
+      get (id, cb) { cb(null) },
+      destroy (id, cb) { cb(new Error('no can do')) }
+    }
+  })
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  // 200 since we assert inline and swallow the error
+  t.is(response.statusCode, 200)
+})
+
+test('regenerate supports promises', async t => {
+  t.plan(2)
+  const port = await testServer(async (request, reply) => {
+    await t.notThrowsAsync(request.session.regenerate())
+
+    reply.send(200)
+  }, DEFAULT_OPTIONS)
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  t.is(response.statusCode, 200)
+})
+
+test('regenerate supports rejecting promises', async t => {
+  t.plan(2)
+  const port = await testServer(async (request, reply) => {
+    await t.throwsAsync(request.session.regenerate(), { message: 'no can do' })
+
+    reply.send(200)
+  }, {
+    ...DEFAULT_OPTIONS,
+    store: {
+      set (id, data, cb) { cb(new Error('no can do')) },
+      get (id, cb) { cb(null) },
+      destroy (id, cb) { cb(null) }
+    }
+  })
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  // 200 since we assert inline and swallow the error
+  t.is(response.statusCode, 200)
+})
+
+test('reload supports promises', async t => {
+  t.plan(2)
+  const port = await testServer(async (request, reply) => {
+    await t.notThrowsAsync(request.session.reload())
+
+    reply.send(200)
+  }, DEFAULT_OPTIONS)
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  t.is(response.statusCode, 200)
+})
+
+test('reload supports rejecting promises', async t => {
+  t.plan(2)
+  const port = await testServer(async (request, reply) => {
+    await t.throwsAsync(request.session.reload(), { message: 'no can do' })
+
+    reply.send(200)
+  }, {
+    ...DEFAULT_OPTIONS,
+    store: {
+      set (id, data, cb) { cb(null) },
+      get (id, cb) { cb(new Error('no can do')) },
+      destroy (id, cb) { cb(null) }
+    }
+  })
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  // 200 since we assert inline and swallow the error
+  t.is(response.statusCode, 200)
+})
+
+test('save supports promises', async t => {
+  t.plan(2)
+  const port = await testServer(async (request, reply) => {
+    await t.notThrowsAsync(request.session.save())
+
+    reply.send(200)
+  }, DEFAULT_OPTIONS)
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  t.is(response.statusCode, 200)
+})
+
+test('save supports rejecting promises', async t => {
+  t.plan(2)
+  const port = await testServer(async (request, reply) => {
+    await t.throwsAsync(request.session.save())
+
+    reply.send(200)
+  }, {
+    ...DEFAULT_OPTIONS,
+    store: {
+      set (id, data, cb) { cb(new Error('no can do')) },
+      get (id, cb) { cb(null) },
+      save (id, cb) { cb(null) }
+    }
+  })
+
+  const { response } = await request(`http://localhost:${port}`)
+
+  // 200 since we assert inline and swallow the error
+  t.is(response.statusCode, 200)
+})
