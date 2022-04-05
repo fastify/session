@@ -128,3 +128,6 @@ yarn.lock
 # editor files
 .vscode
 .idea
+
+# session files from benchmark
+sessions/
