@@ -68,7 +68,7 @@ const testFunction = (sessionPlugin, storeType) => {
     const { sessionId } = server.parseCookie(setCookieHeader)
 
     // make 25 "requests" with the new session
-    await Promise.all(new Array(10).fill(0).map(() =>
+    await Promise.all(new Array(25).fill(0).map(() =>
       server.inject({ path: '/', headers: { cookie: `sessionId=${sessionId}` } }))
     )
   }
