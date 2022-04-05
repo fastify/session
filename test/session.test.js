@@ -5,7 +5,7 @@ const Fastify = require('fastify')
 const fastifyCookie = require('fastify-cookie')
 const sinon = require('sinon')
 const fastifySession = require('..')
-const { request, testServer, DEFAULT_OPTIONS, DEFAULT_COOKIE } = require('./util')
+const { request, testServer, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_COOKIE_VALUE } = require('./util')
 
 test('should add session object to request', async (t) => {
   t.plan(2)
@@ -676,6 +676,36 @@ test('save supports rejecting promises', async t => {
 
   // 200 since we assert inline and swallow the error
   t.is(response.statusCode, 200)
+})
+
+test("clears cookie if not backed by a session, and there's nothing to save", async t => {
+  t.plan(2)
+  const port = await testServer((request, reply) => {
+    reply.send(200)
+  }, DEFAULT_OPTIONS)
+
+  const { response, cookie } = await request({
+    url: `http://localhost:${port}`,
+    headers: { cookie: DEFAULT_COOKIE_VALUE }
+  })
+
+  t.is(response.statusCode, 200)
+  t.is(cookie, 'sessionId=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT')
+})
+
+test('does not clear cookie if no session cookie in request', async t => {
+  t.plan(2)
+  const port = await testServer((request, reply) => {
+    reply.send(200)
+  }, DEFAULT_OPTIONS)
+
+  const { response, cookie } = await request({
+    url: `http://localhost:${port}`,
+    headers: { cookie: 'someOtherCookie=foobar' }
+  })
+
+  t.is(response.statusCode, 200)
+  t.is(cookie, undefined)
 })
 
 test('only save session when it changes', async t => {
