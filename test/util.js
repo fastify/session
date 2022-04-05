@@ -6,7 +6,8 @@ const fastifyCookie = require('fastify-cookie')
 const fastifySession = require('../lib/fastifySession')
 
 const DEFAULT_OPTIONS = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
-const DEFAULT_COOKIE = 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure'
+const DEFAULT_COOKIE_VALUE = 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'
+const DEFAULT_COOKIE = `${DEFAULT_COOKIE_VALUE}; Path=/; HttpOnly; Secure`
 
 async function testServer (handler, sessionOptions, plugin) {
   const fastify = Fastify()
@@ -42,6 +43,7 @@ async function request (options) {
 module.exports = {
   testServer,
   request,
+  DEFAULT_COOKIE_VALUE,
   DEFAULT_COOKIE,
   DEFAULT_OPTIONS
 }
