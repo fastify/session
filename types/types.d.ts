@@ -46,6 +46,9 @@ interface SessionData extends ExpressSessionData {
 
   /** gets values from the session. */
   get<T>(key: string): T;
+
+  /** checks if session has been modified since it was generated or loaded from the store. */
+  isModified(): boolean;
 }
 
 interface ExpressSessionData {
