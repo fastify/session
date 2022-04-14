@@ -5,7 +5,10 @@ const Fastify = require('fastify')
 const fastifyCookie = require('fastify-cookie')
 const sinon = require('sinon')
 const fastifySession = require('..')
+const cookieSignature = require('cookie-signature')
 const { request, testServer, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_COOKIE_VALUE } = require('./util')
+
+const defaultSecret = DEFAULT_OPTIONS.secret
 
 test('should add session object to request', async (t) => {
   t.plan(2)
@@ -757,4 +760,72 @@ test('only save session when it changes', async t => {
   t.is(setStub.callCount, 1)
   // no set-cookie
   t.is(setCookieHeader2, undefined)
+})
+
+test('when unsignSignedCookie is true sessions should still be managed correctly', async t => {
+  t.plan(12)
+
+  const store = new Map()
+  const options = {
+    ...DEFAULT_OPTIONS,
+    unsignSignedCookie: true,
+    cookie: { secure: false, signed: false },
+    store: {
+      set (id, data, cb) {
+        store.set(id, data)
+        cb(null)
+      },
+      get (id, cb) { cb(null, store.get(id)) },
+      destroy (id, cb) {
+        store.delete(id)
+        cb(null)
+      }
+    }
+  }
+
+  const runTestScenario = async (cookieSigned) => {
+    options.cookie.signed = cookieSigned
+
+    let encryptedSessionId = null
+
+    const fastify = Fastify()
+    fastify.register(fastifyCookie)
+    fastify.register(fastifySession, options)
+    fastify.get('/', (request, reply) => {
+      encryptedSessionId = request.session.encryptedSessionId
+      reply.send(200)
+    })
+
+    const {
+      statusCode: statusCode1,
+      headers: {
+        'set-cookie': cookie1
+      }
+    } = await fastify.inject('/')
+    t.truthy(cookie1)
+    t.is(statusCode1, 200)
+
+    const { sessionId: sessionId1 } = fastify.parseCookie(cookie1)
+    t.is(sessionId1, encryptedSessionId)
+
+    const {
+      statusCode: statusCode2,
+      headers: {
+        'set-cookie': cookie2
+      }
+    } = await fastify.inject({
+      path: '/',
+      headers: {
+        cookie: cookieSignature.sign(sessionId1, defaultSecret)
+      }
+    })
+    t.is(statusCode2, 200)
+    t.truthy(cookie2)
+
+    const { sessionId: sessionId2 } = fastify.parseCookie(cookie2)
+    t.is(sessionId2, encryptedSessionId)
+  }
+
+  await runTestScenario(false)
+  await runTestScenario(true)
 })

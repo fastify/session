@@ -91,7 +91,7 @@ declare namespace FastifySessionPlugin {
 
     /** You need to enable this, if your cookie plugin is already signing the cookie too. */
     unsignSignedCookie?: boolean;
-    
+
     /**
      * The options object used to generate the `Set-Cookie` header of the session cookie.
      *
