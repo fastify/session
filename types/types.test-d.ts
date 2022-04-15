@@ -54,9 +54,18 @@ app.register(plugin, {
 });
 app.register(plugin, {
   secret,
+  unsignSignedCookie: true
+});
+app.register(plugin, {
+  secret,
   idGenerator: (request) => `${request == undefined ? 'null' : request.ip}-${Date.now()}`
 });
+
 expectError(app.register(plugin, {}));
+expectError(app.register(plugin, {
+  secret,
+  unsignSignedCookie: 'not-a-boolean'
+}));
 
 app.route({
   method: 'GET',
