@@ -8,8 +8,6 @@ const fastifySession = require('..')
 const cookieSignature = require('cookie-signature')
 const { request, testServer, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_COOKIE_VALUE } = require('./util')
 
-const defaultSecret = DEFAULT_OPTIONS.secret
-
 test('should add session object to request', async (t) => {
   t.plan(2)
   const port = await testServer((request, reply) => {
@@ -764,6 +762,7 @@ test('only save session when it changes', async t => {
 
 test('when unsignSignedCookie is true sessions should still be managed correctly', async t => {
   const store = new Map()
+  const cookieSignKey = 'some-key'
   const options = {
     ...DEFAULT_OPTIONS,
     unsignSignedCookie: true,
@@ -787,10 +786,10 @@ test('when unsignSignedCookie is true sessions should still be managed correctly
     let encryptedSessionId = null
 
     const fastify = Fastify()
-    fastify.register(fastifyCookie)
+    fastify.register(fastifyCookie, { secret: cookieSignKey })
     fastify.register(fastifySession, options)
     fastify.get('/', (request, reply) => {
-      encryptedSessionId = request.session.encryptedSessionId
+      encryptedSessionId = encryptedSessionId ?? request.session.encryptedSessionId
       reply.send(200)
     })
 
@@ -806,6 +805,10 @@ test('when unsignSignedCookie is true sessions should still be managed correctly
     const { sessionId: sessionId1 } = fastify.parseCookie(cookie1)
     t.is(sessionId1, encryptedSessionId)
 
+    const sessionId = cookieSigned
+      ? cookieSignature.sign(sessionId1, cookieSignKey)
+      : sessionId1
+    const cookie = `sessionId=${sessionId};`
     const {
       statusCode: statusCode2,
       headers: {
@@ -813,9 +816,7 @@ test('when unsignSignedCookie is true sessions should still be managed correctly
       }
     } = await fastify.inject({
       path: '/',
-      headers: {
-        cookie: cookieSignature.sign(sessionId1, defaultSecret)
-      }
+      headers: { cookie }
     })
     t.is(statusCode2, 200)
     t.truthy(cookie2)
