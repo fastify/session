@@ -89,7 +89,8 @@ declare namespace FastifySessionPlugin {
     /** The name of the session cookie. Defaults to `sessionId`. */
     cookieName?: string;
 
-    /** You need to enable this, if your cookie plugin is already signing the cookie too. */
+    /** If the cookie plugin is already signing the cookie this must be enabled.
+     * Otherwise it has no effect on the request whatsoever */
     unsignSignedCookie?: boolean;
 
     /**
