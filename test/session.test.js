@@ -763,8 +763,6 @@ test('only save session when it changes', async t => {
 })
 
 test('when unsignSignedCookie is true sessions should still be managed correctly', async t => {
-  t.plan(12)
-
   const store = new Map()
   const options = {
     ...DEFAULT_OPTIONS,
