@@ -789,7 +789,7 @@ test('when unsignSignedCookie is true sessions should still be managed correctly
     fastify.register(fastifyCookie, { secret: cookieSignKey })
     fastify.register(fastifySession, options)
     fastify.get('/', (request, reply) => {
-      encryptedSessionId = encryptedSessionId ?? request.session.encryptedSessionId
+      encryptedSessionId = encryptedSessionId || request.session.encryptedSessionId
       reply.send(200)
     })
 
