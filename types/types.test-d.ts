@@ -25,36 +25,47 @@ declare module 'fastify' {
   }
 }
 
+const secret = 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345';
+
 const app: FastifyInstance = fastify();
 app.register(plugin);
 app.register(plugin, { secret: 'DizIzSecret' });
 app.register(plugin, { secret: 'DizIzSecret', rolling: true });
 app.register(plugin, {
-  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  secret,
   rolling: false,
   cookie: {
     secure: false
   }
 });
 app.register(plugin, {
-  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  secret,
   cookie: {
     secure: false
   }
 });
 app.register(plugin, {
-  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  secret,
   store: new EmptyStore()
 });
 app.register(plugin, {
-  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  secret,
   idGenerator: () => Date.now() + ''
 });
 app.register(plugin, {
-  secret: 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345',
+  secret,
+  unsignSignedCookie: true
+});
+app.register(plugin, {
+  secret,
   idGenerator: (request) => `${request == undefined ? 'null' : request.ip}-${Date.now()}`
 });
+
 expectError(app.register(plugin, {}));
+expectError(app.register(plugin, {
+  secret,
+  unsignSignedCookie: 'not-a-boolean'
+}));
 
 app.route({
   method: 'GET',
