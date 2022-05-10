@@ -1,6 +1,6 @@
 {
   "name": "@fastify/session",
-  "version": "8.2.0",
+  "version": "9.0.0",
   "description": "a session plugin for fastify",
   "main": "lib/fastifySession.js",
   "scripts": {
@@ -23,9 +23,6 @@
     "fastify-plugin": "^3.0.0",
     "safe-stable-stringify": "^2.3.1",
     "uid-safe": "^2.1.5"
-  },
-  "engines": {
-    "node": ">= 10.13.0"
   },
   "repository": {
     "type": "git",
