@@ -2,7 +2,7 @@
 
 const test = require('ava')
 const Fastify = require('fastify')
-const fastifyCookie = require('fastify-cookie')
+const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('../lib/fastifySession')
 const { request, testServer, DEFAULT_OPTIONS } = require('./util')
 
@@ -19,7 +19,7 @@ test('should set session cookie', async (t) => {
     request.session.test = {}
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
@@ -39,7 +39,7 @@ test('should not set session cookie is request is not secure', async (t) => {
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, DEFAULT_OPTIONS)
   fastify.get('/', (request, reply) => reply.send(200))
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
   const port = fastify.server.address().port
 
@@ -58,7 +58,7 @@ test('should not set session cookie is request is not secure and x-forwarded-pro
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, DEFAULT_OPTIONS)
   fastify.get('/', (request, reply) => reply.send(200))
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
@@ -82,7 +82,7 @@ test('should set session cookie is request is not secure and x-forwarded-proto =
     request.session.test = {}
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
@@ -185,7 +185,7 @@ test('should set session another path in cookie', async (t) => {
     request.session.test = {}
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
@@ -288,7 +288,7 @@ test('should set session cookie secureAuto', async (t) => {
     request.session.test = {}
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
@@ -314,7 +314,7 @@ test('should set session cookie secureAuto change SameSite', async (t) => {
     request.session.test = {}
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
@@ -340,7 +340,7 @@ test('should set session cookie secureAuto keep SameSite when secured', async (t
     request.session.test = {}
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({
@@ -366,7 +366,7 @@ test('should set session secure cookie secureAuto http encrypted', async (t) => 
     request.session.test = {}
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode, cookie } = await request({

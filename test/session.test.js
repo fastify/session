@@ -2,7 +2,7 @@
 
 const test = require('ava')
 const Fastify = require('fastify')
-const fastifyCookie = require('fastify-cookie')
+const fastifyCookie = require('@fastify/cookie')
 const sinon = require('sinon')
 const fastifySession = require('..')
 const cookieSignature = require('cookie-signature')
@@ -139,7 +139,7 @@ test('should keep user data in session throughout the time', async (t) => {
     t.true(request.session.foo === 'bar')
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { response: response1 } = await request({
@@ -181,7 +181,7 @@ test('should generate new sessionId', async (t) => {
     t.not(request.session.sessionId, oldSessionId)
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { response: response1 } = await request({
@@ -232,7 +232,7 @@ test('should decryptSession with custom request object', async (t) => {
   fastify.get('/', (request, reply) => {
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode } = await request({
@@ -263,7 +263,7 @@ test('should decryptSession with custom cookie options', async (t) => {
   fastify.get('/', (request, reply) => {
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode } = await request({
@@ -301,7 +301,7 @@ test('should bubble up errors with destroy call if session expired', async (t) =
   fastify.get('/', (request, reply) => {
     reply.send(200)
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { statusCode, body } = await request({
@@ -331,7 +331,7 @@ test('should not reset session cookie expiration if rolling is false', async (t)
 
   fastify.get('/', (request, reply) => reply.send(200))
   fastify.get('/check', (request, reply) => reply.send(200))
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { response: response1, body: sessionExpires1 } = await request({
@@ -368,7 +368,7 @@ test('should update the expires property of the session using Session#touch() ev
 
   fastify.get('/', (request, reply) => reply.send(200))
   fastify.get('/check', (request, reply) => reply.send(200))
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { response: response1, body: sessionExpires1 } = await request({
@@ -410,7 +410,7 @@ test('should use custom sessionId generator if available (with request)', async 
       }
     })
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { response: response1, body: sessionBody1 } = await request({
@@ -471,7 +471,7 @@ test('should use custom sessionId generator if available (with request and rolli
       }
     })
   })
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
 
   const { response: response1, body: sessionBody1 } = await request({
