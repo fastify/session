@@ -2,7 +2,7 @@
 
 const Fastify = require('fastify')
 const undici = require('undici')
-const fastifyCookie = require('fastify-cookie')
+const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('../lib/fastifySession')
 
 const DEFAULT_OPTIONS = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
@@ -11,13 +11,13 @@ const DEFAULT_COOKIE = `${DEFAULT_COOKIE_VALUE}; Path=/; HttpOnly; Secure`
 
 async function testServer (handler, sessionOptions, plugin) {
   const fastify = Fastify()
-  fastify.register(fastifyCookie)
+  await fastify.register(fastifyCookie)
   if (plugin) {
-    fastify.register(plugin)
+    await fastify.register(plugin)
   }
-  fastify.register(fastifySession, sessionOptions)
+  await fastify.register(fastifySession, sessionOptions)
   fastify.get('/', handler)
-  await fastify.listen(0)
+  await fastify.listen({ port: 0 })
   fastify.server.unref()
   return fastify.server.address().port
 }

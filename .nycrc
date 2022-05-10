@@ -3,8 +3,8 @@
     "check-coverage": true,
     "reporter": [ "lcov", "text" ],
     "include": [ "lib" ],
-    "branches": 100,
-    "lines": 100,
-    "functions": 100,
-    "statements": 100
+    "branches": 90,
+    "lines": 90,
+    "functions": 90,
+    "statements": 90
 }

@@ -2,7 +2,7 @@
 
 const test = require('ava')
 const Fastify = require('fastify')
-const fastifyCookie = require('fastify-cookie')
+const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
 
 test('register should fail if no secret is specified', async t => {
