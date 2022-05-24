@@ -2,7 +2,6 @@
 
 ![CI](https://github.com/fastify/session/workflows/CI/badge.svg)
 [![NPM version](https://img.shields.io/npm/v/@fastify/session.svg?style=flat)](https://www.npmjs.com/package/@fastify/session)
-[![Known Vulnerabilities](https://snyk.io/test/github/fastify/session/badge.svg)](https://snyk.io/test/github/fastify/session)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 A session plugin for [fastify](http://fastify.io/).
