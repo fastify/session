@@ -42,9 +42,11 @@ test('should destroy the session', async (t) => {
 })
 
 test('should add session.encryptedSessionId object to request', async (t) => {
-  t.plan(2)
+  t.plan(3)
   const fastify = await buildFastify((request, reply) => {
     t.ok(request.session.encryptedSessionId)
+    // serialize, then deserialize to make sure it's gone
+    t.falsy(JSON.parse(JSON.stringify(request.session)).encryptedSessionId)
     reply.send(200)
   }, DEFAULT_OPTIONS)
   t.teardown(() => fastify.close())
@@ -249,7 +251,6 @@ test('should decryptSession with custom request object', async (t) => {
     request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
       testData: 'this is a test',
       expires: Date.now() + 1000,
-      sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
       cookie: { secure: true, httpOnly: true, path: '/' }
     }, done)
   })
