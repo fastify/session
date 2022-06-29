@@ -105,6 +105,7 @@ test('should set session cookie using the default cookie name', async (t) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() + 1000,
+        sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
         cookie: { secure: true, httpOnly: true, path: '/' }
       }, done)
     })
@@ -134,6 +135,7 @@ test('should create new session on expired session', async (t) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: Date.now() - 1000,
+        sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
         cookie: { secure: true, httpOnly: true, path: '/' }
       }, done)
     })
