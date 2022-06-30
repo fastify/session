@@ -52,10 +52,8 @@ test('should support multiple secrets', async (t) => {
 
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      const expires = Date.now() - 1000
       request.sessionStore.set('aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e', {
-        cookie: { expires },
-        expires
+        cookie: { expires: Date.now() - 1000 }
       }, done)
     })
   })
@@ -104,9 +102,8 @@ test('should set session cookie using the default cookie name', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() + 1000,
         sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
-        cookie: { secure: true, httpOnly: true, path: '/' }
+        cookie: { expires: Date.now() + 1000, secure: true, httpOnly: true, path: '/' }
       }, done)
     })
   })
@@ -134,9 +131,8 @@ test('should create new session on expired session', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() - 1000,
         sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
-        cookie: { secure: true, httpOnly: true, path: '/' }
+        cookie: { expires: Date.now() - 1000, secure: true, httpOnly: true, path: '/' }
       }, done)
     })
   })
@@ -171,12 +167,12 @@ test('should set session.expires if maxAge', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() + 1000
+        cookie: { expires: Date.now() + 1000 }
       }, done)
     })
   })
   function handler (request, reply) {
-    t.ok(request.session.expires)
+    t.ok(request.session.cookie.expires)
     reply.send(200)
   }
   const fastify = await buildFastify(handler, options, plugin)
@@ -195,10 +191,8 @@ test('should set new session cookie if expired', async (t) => {
 
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      const expires = Date.now() - 1000
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        cookie: { expires },
-        expires
+        cookie: { expires: Date.now() - 1000 }
       }, done)
     })
   })
@@ -272,7 +266,7 @@ test('should create new session if cookie contains invalid session', async (t) =
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() + 1000
+        cookie: { expires: Date.now() + 1000 }
       }, done)
     })
   })

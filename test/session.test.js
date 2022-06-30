@@ -73,25 +73,6 @@ test('should add session.cookie object to request', async (t) => {
   t.equal(response.statusCode, 200)
 })
 
-test('should add session.expires object to request', async (t) => {
-  t.plan(2)
-  const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
-    cookie: { maxAge: 42 }
-  }
-  const fastify = await buildFastify((request, reply) => {
-    t.ok(request.session.expires)
-    reply.send(200)
-  }, options)
-  t.teardown(() => fastify.close())
-
-  const response = await fastify.inject({
-    url: '/'
-  })
-
-  t.equal(response.statusCode, 200)
-})
-
 test('should add session.sessionId object to request', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
@@ -250,9 +231,8 @@ test('should decryptSession with custom request object', async (t) => {
   fastify.addHook('onRequest', (request, reply, done) => {
     request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
       testData: 'this is a test',
-      expires: Date.now() + 1000,
       sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
-      cookie: { secure: true, httpOnly: true, path: '/' }
+      cookie: { expires: Date.now() + 1000, secure: true, httpOnly: true, path: '/' }
     }, done)
   })
 
@@ -311,7 +291,7 @@ test('should bubble up errors with destroy call if session expired', async (t) =
   const store = {
     set (id, data, cb) { cb(null) },
     get (id, cb) {
-      cb(null, { expires: Date.now() - 1000, cookie: { expires: Date.now() - 1000 } })
+      cb(null, { cookie: { expires: Date.now() - 1000 } })
     },
     destroy (id, cb) { cb(new Error('No can do')) }
   }
@@ -352,7 +332,7 @@ test('should not reset session cookie expiration if rolling is false', async (t)
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
   fastify.addHook('onRequest', (request, reply, done) => {
-    reply.send(request.session.expires)
+    reply.send(request.session.cookie.expires)
     done()
   })
 
@@ -389,7 +369,7 @@ test('should update the expires property of the session using Session#touch() ev
   fastify.register(fastifySession, options)
   fastify.addHook('onRequest', (request, reply, done) => {
     request.session.touch()
-    reply.send(request.session.expires)
+    reply.send(request.session.cookie.expires)
     done()
   })
 
