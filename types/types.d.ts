@@ -20,7 +20,7 @@ interface SessionData extends ExpressSessionData {
 
   encryptedSessionId: string;
 
-  /** Updates the `expires` property of the session. */
+  /** Updates the `expires` property of the session's cookie. */
   touch(): void;
 
   /**

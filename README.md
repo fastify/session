@@ -107,7 +107,7 @@ Allows to destroy the session in the store. If you do not pass a callback, a Pro
 
 #### Session#touch()
 
-Updates the `expires` property of the session.
+Updates the `expires` property of the session's cookie.
 
 #### Session#regenerate(callback)
 
