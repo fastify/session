@@ -392,7 +392,7 @@ test('should use custom sessionId generator if available (with request)', async 
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     cookie: { secure: false, maxAge: 10000 },
     idGenerator: (request) => {
-      if (request.session && request.session.returningVisitor) return `returningVisitor-${new Date().getTime()}`
+      if (request.session?.returningVisitor) return `returningVisitor-${new Date().getTime()}`
       else return `custom-${new Date().getTime()}`
     }
   })
@@ -443,7 +443,7 @@ test('should use custom sessionId generator if available (with request and rolli
     rolling: false,
     cookie: { secure: false, maxAge: 10000 },
     idGenerator: (request) => {
-      if (request.session && request.session.returningVisitor) {
+      if (request.session?.returningVisitor) {
         return `returningVisitor-${
           new Date().getTime()
         }-${
