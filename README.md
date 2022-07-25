@@ -12,7 +12,7 @@ Requires the [fastify-cookie](https://github.com/fastify/fastify-cookie) plugin.
 ## Install
 
 ```
-npm install @fastify/session
+npm i @fastify/session
 ```
 
 ## Usage
