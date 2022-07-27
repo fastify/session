@@ -4,9 +4,9 @@
   "description": "a session plugin for fastify",
   "main": "lib/fastifySession.js",
   "scripts": {
-    "unit": "ava test/*.test.js",
-    "tsc-check": "tsd",
-    "test": "npm run lint && npm run unit && npm run tsc-check",
+    "test": "npm run test:unit && npm run test:typescript",
+    "test:unit": "ava test/*.test.js",
+    "test:typescript": "tsd",
     "benchmark": "node bench.js",
     "lint": "standard lib/* test/* bench.js",
     "coveralls": "nyc npm test",
