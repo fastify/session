@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('ava')
+const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
@@ -13,7 +13,7 @@ test('register should fail if no secret is specified', async t => {
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
 
-  await t.throwsAsync(fastify.ready, { instanceOf: Error, message: 'the secret option is required!' })
+  await t.rejects(fastify.ready(), 'the secret option is required!')
 })
 
 test('register should succeed if valid secret is specified', async t => {
@@ -23,7 +23,7 @@ test('register should succeed if valid secret is specified', async t => {
   const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  t.truthy(await fastify.ready())
+  await t.resolves(fastify.ready())
 })
 
 test('register should fail if the secret is too short', async t => {
@@ -33,7 +33,7 @@ test('register should fail if the secret is too short', async t => {
   const options = { secret: 'geheim' }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  await t.throwsAsync(fastify.ready, { instanceOf: Error, message: 'the secret must have length 32 or greater' })
+  await t.rejects(fastify.ready(), 'the secret must have length 32 or greater')
 })
 
 test('register should succeed if secret is short, but in an array', async t => {
@@ -43,7 +43,7 @@ test('register should succeed if secret is short, but in an array', async t => {
   const options = { secret: ['geheim'] }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  t.truthy(await fastify.ready())
+  await t.resolves(fastify.ready())
 })
 
 test('register should succeed if multiple secrets are present', async t => {
@@ -53,7 +53,7 @@ test('register should succeed if multiple secrets are present', async t => {
   const options = { secret: ['geheim', 'test'] }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  t.truthy(await fastify.ready())
+  await t.resolves(fastify.ready())
 })
 
 test('register should fail if no secret is present in array', async t => {
@@ -63,5 +63,5 @@ test('register should fail if no secret is present in array', async t => {
   const options = { secret: [] }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  await t.throwsAsync(fastify.ready, { instanceOf: Error, message: 'at least one secret is required' })
+  await t.rejects(fastify.ready(), 'at least one secret is required')
 })
