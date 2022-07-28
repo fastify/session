@@ -1,22 +1,25 @@
 'use strict'
 
-const test = require('ava')
+const test = require('tap').test
 const fastifyPlugin = require('fastify-plugin')
-const { testServer, request, DEFAULT_OPTIONS, DEFAULT_COOKIE } = require('./util')
+const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE } = require('./util')
 const { Store } = require('..')
 
 test('should decorate request with sessionStore', async (t) => {
   t.plan(2)
-  const port = await testServer((request, reply) => {
-    t.truthy(request.sessionStore)
+
+  const fastify = await buildFastify((request, reply) => {
+    t.ok(request.sessionStore)
     reply.send(200)
   }, DEFAULT_OPTIONS)
+  t.teardown(() => fastify.close())
 
-  const { response } = await request({
-    url: `http://localhost:${port}`
+  const response = await fastify.inject({
+    method: 'GET',
+    url: '/'
   })
 
-  t.is(response.statusCode, 200)
+  t.equal(response.statusCode, 200)
 })
 
 test('should pass error on store.set to done', async (t) => {
@@ -25,41 +28,47 @@ test('should pass error on store.set to done', async (t) => {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     store: new FailingStore()
   }
-  const port = await testServer((request, reply) => {
+  const fastify = await buildFastify((request, reply) => {
     request.session.test = {}
     reply.send(200)
   }, options)
+  t.teardown(() => fastify.close())
 
-  const { statusCode } = await request({
-    url: `http://localhost:${port}`,
+  const { statusCode } = await fastify.inject({
+    method: 'GET',
+    url: '/',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.is(statusCode, 500)
+  t.equal(statusCode, 500)
 })
 
 test('should create new session if ENOENT error on store.get', async (t) => {
-  t.plan(3)
+  t.plan(5)
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     store: new EnoentErrorStore()
   }
-  const port = await testServer((request, reply) => {
+  const fastify = await buildFastify((request, reply) => {
     request.session.test = {}
     reply.send(200)
   }, options)
+  t.teardown(() => fastify.close())
 
-  const { statusCode, cookie } = await request({
-    url: `http://localhost:${port}`,
+  const response = await fastify.inject({
+    method: 'GET',
+    url: '/',
     headers: {
       cookie: DEFAULT_COOKIE,
       'x-forwarded-proto': 'https'
     }
   })
 
-  t.is(statusCode, 200)
-  t.false(cookie.includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'))
-  t.regex(cookie, /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
+  t.equal(response.headers['set-cookie'].includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'), false)
+  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
+  t.equal(response.statusCode, 200)
+  t.equal(response.cookies[0].name, 'sessionId')
+  t.equal(response.cookies[0].value.includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'), false)
 })
 
 test('should pass error to done if non-ENOENT error on store.get', async (t) => {
@@ -68,14 +77,19 @@ test('should pass error to done if non-ENOENT error on store.get', async (t) => 
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     store: new FailingStore()
   }
-  const port = await testServer((request, reply) => reply.send(200), options)
 
-  const { statusCode } = await request({
-    url: `http://localhost:${port}`,
+  const fastify = await buildFastify((request, reply) => {
+    reply.send(200)
+  }, options)
+  t.teardown(() => fastify.close())
+
+  const { statusCode } = await fastify.inject({
+    method: 'GET',
+    url: '/',
     headers: { cookie: DEFAULT_COOKIE }
   })
 
-  t.is(statusCode, 500)
+  t.equal(statusCode, 500)
 })
 
 test('should set new session cookie if expired', async (t) => {
@@ -95,15 +109,17 @@ test('should set new session cookie if expired', async (t) => {
     request.session.test = {}
     reply.send(200)
   }
-  const port = await testServer(handler, options, plugin)
+  const fastify = await buildFastify(handler, options, plugin)
+  t.teardown(() => fastify.close())
 
-  const { statusCode, cookie } = await request({
-    url: `http://localhost:${port}`,
+  const { statusCode, cookie } = await fastify.inject({
+    method: 'GET',
+    url: '/',
     headers: { cookie: DEFAULT_COOKIE }
   })
 
-  t.is(statusCode, 500)
-  t.is(cookie, undefined)
+  t.equal(statusCode, 500)
+  t.equal(cookie, undefined)
 })
 
 test('store should be an event emitter', t => {
