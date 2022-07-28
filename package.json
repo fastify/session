@@ -8,7 +8,7 @@
     "test:unit": "tap",
     "test:typescript": "tsd",
     "benchmark": "node benchmark/bench.js",
-    "lint": "standard lib/* test/* benchmark/*",
+    "lint": "standard lib/* test/* benchmark/*.js",
     "coveralls": "tap --coverage-report=lcov",
     "coverage": "tap --coverage-report=html"
   },
