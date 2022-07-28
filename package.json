@@ -7,7 +7,7 @@
     "test": "npm run test:unit && npm run test:typescript",
     "test:unit": "tap",
     "test:typescript": "tsd",
-    "benchmark": "node bench.js",
+    "benchmark": "node benchmark/bench.js",
     "lint": "standard lib/* test/* bench.js",
     "coveralls": "tap --coverage-report=lcov",
     "coverage": "tap --coverage-report=html"
@@ -36,7 +36,6 @@
     "fastify": "^4.3.0",
     "fastify-cookie": "~5.7.0",
     "ioredis": "^5.0.5",
-    "published-session": "npm:@fastify/session@latest",
     "session-file-store": "^1.5.0",
     "sinon": "^14.0.0",
     "standard": "^17.0.0",
