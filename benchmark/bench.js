@@ -77,9 +77,9 @@ async function main () {
 
   return cronometro(
     {
-      'memory': testFunction(fastifySession, fastifyCookie),
-      'file': testFunction(fastifySession, fastifyCookie, 'file'),
-      'redis': {
+      memory: testFunction(fastifySession, fastifyCookie),
+      file: testFunction(fastifySession, fastifyCookie, 'file'),
+      redis: {
         test: testFunction(fastifySession, fastifyCookie, 'redis'),
         async after () {
           return redisClient.disconnect()
