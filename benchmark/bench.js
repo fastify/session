@@ -6,9 +6,7 @@ const Redis = require('ioredis')
 const fileStoreFactory = require('session-file-store')
 const { isMainThread } = require('worker_threads')
 
-const fastifySession = require('.')
-const oldFastifyCookie = require('fastify-cookie')
-const oldFastifySession = require('published-session')
+const fastifySession = require('..')
 const fastifyCookie = require('@fastify/cookie')
 
 let redisClient
@@ -79,18 +77,10 @@ async function main () {
 
   return cronometro(
     {
-      'current code (memory)': testFunction(fastifySession, fastifyCookie),
-      'old code (memory)': testFunction(oldFastifySession, oldFastifyCookie),
-      'current code (file)': testFunction(fastifySession, fastifyCookie, 'file'),
-      'old code (file)': testFunction(oldFastifySession, oldFastifyCookie, 'file'),
-      'current code (redis)': {
+      memory: testFunction(fastifySession, fastifyCookie),
+      file: testFunction(fastifySession, fastifyCookie, 'file'),
+      redis: {
         test: testFunction(fastifySession, fastifyCookie, 'redis'),
-        async after () {
-          return redisClient.disconnect()
-        }
-      },
-      'old code (redis)': {
-        test: testFunction(oldFastifySession, oldFastifyCookie, 'redis'),
         async after () {
           return redisClient.disconnect()
         }
