@@ -45,7 +45,7 @@ test('should set session cookie', async (t) => {
 })
 
 test('should support multiple secrets', async (t) => {
-  t.plan(2)
+  t.plan(4)
   const options = {
     secret: ['geheim', 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk']
   }
@@ -53,7 +53,7 @@ test('should support multiple secrets', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e', {
-        cookie: { expires: Date.now() - 1000 }
+        cookie: { expires: Date.now() + 1000 }
       }, done)
     })
   })
@@ -64,16 +64,29 @@ test('should support multiple secrets', async (t) => {
   const fastify = await buildFastify(handler, options, plugin)
   t.teardown(() => fastify.close())
 
-  const response = await fastify.inject({
+  const sessionIdEncryptedWithOldSecret = "aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.eiVu2YbrcqbTUYTYaANks%2Fjn%2Bjta7QgpsxLO%2BOLN%2F4U"
+  const sessionIdEncryptedWithNewSecret = "aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.InCp31AuDa7DX%2F8rGBz8RMFiCpmUtjcF%2BS7Aco7tur8"
+
+  const responseForOldSecret = await fastify.inject({
     url: '/',
     headers: {
       'x-forwarded-proto': 'https',
-      cookie: 'sessionId=aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.eiVu2YbrcqbTUYTYaANks%2Fjn%2Bjta7QgpsxLO%2BOLN%2F4U; Path=/; HttpOnly; Secure'
+      cookie: `sessionId=${sessionIdEncryptedWithOldSecret}; Path=/; HttpOnly; Secure`
     }
   })
+  t.equal(responseForOldSecret.statusCode, 200)
+  // It will be replaced with the new secret!
+  t.equal(responseForOldSecret.headers['set-cookie'].includes(sessionIdEncryptedWithNewSecret), true)
 
-  t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'].includes('aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e'), false)
+  const responseForNewSecret = await fastify.inject({
+    url: '/',
+    headers: {
+      'x-forwarded-proto': 'https',
+      cookie: `sessionId=${sessionIdEncryptedWithNewSecret}; Path=/; HttpOnly; Secure`
+    }
+  })
+  t.equal(responseForNewSecret.statusCode, 200)
+  t.equal(responseForNewSecret.headers['set-cookie'].includes(sessionIdEncryptedWithNewSecret), true)
 })
 
 test('should set session cookie using the specified cookie name', async (t) => {
@@ -274,7 +287,7 @@ test('should create new session if cookie contains invalid session', async (t) =
   const response = await fastify.inject({
     url: '/',
     headers: {
-      cookie: 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
+      cookie: 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.ohnoinvalidnooooL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
       'x-forwarded-proto': 'https'
     }
   })
