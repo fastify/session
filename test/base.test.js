@@ -53,7 +53,7 @@ test('should support multiple secrets', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e', {
-        cookie: { expires: Date.now() + 1000 }
+        test: {}
       }, done)
     })
   })
@@ -115,7 +115,7 @@ test('should set session cookie using the default cookie name', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        cookie: { expires: Date.now() + 1000, secure: true, httpOnly: true, path: '/' }
+        cookie: { secure: true, httpOnly: true, path: '/' }
       }, done)
     })
   })
@@ -144,7 +144,7 @@ test('should create new session on expired session', async (t) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
-        cookie: { expires: Date.now() - 1000, secure: true, httpOnly: true, path: '/' }
+        cookie: { expires: new Date(Date.now() - 1000), secure: true, httpOnly: true, path: '/' }
       }, done)
     })
   })
@@ -170,8 +170,8 @@ test('should create new session on expired session', async (t) => {
   t.match(response.headers['set-cookie'], /sessionId=.*\..*; Path=\/; Expires=.*; HttpOnly; Secure/)
 })
 
-test('should set session.expires if maxAge', async (t) => {
-  t.plan(2)
+test('should set session.cookie.expires if maxAge', async (t) => {
+  t.plan(3)
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     cookie: { maxAge: 42 }
@@ -179,7 +179,7 @@ test('should set session.expires if maxAge', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        cookie: { expires: Date.now() + 1000 }
+        test: {}
       }, done)
     })
   })
@@ -192,10 +192,12 @@ test('should set session.expires if maxAge', async (t) => {
 
   const response = await fastify.inject({
     url: '/',
-    headers: { cookie: DEFAULT_COOKIE }
+    headers: { cookie: DEFAULT_COOKIE, 'x-forwarded-proto': 'https'},
   })
 
   t.equal(response.statusCode, 200)
+  // Should be sending cookie as well
+  t.match(response.headers['set-cookie'], /sessionId=.*\..*; Path=\/; Expires=.*; HttpOnly; Secure/)
 })
 
 test('should set new session cookie if expired', async (t) => {
@@ -204,7 +206,7 @@ test('should set new session cookie if expired', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        cookie: { expires: Date.now() - 1000 }
+        cookie: { expires: new Date(Date.now() - 1000) }
       }, done)
     })
   })
@@ -277,7 +279,7 @@ test('should create new session if cookie contains invalid session', async (t) =
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        cookie: { expires: Date.now() + 1000 }
+        test: {}
       }, done)
     })
   })
@@ -314,3 +316,26 @@ test('should not set session cookie if no data in session and saveUninitialized 
   t.equal(response.statusCode, 200)
   t.ok(response.headers['set-cookie'] === undefined)
 })
+
+test('should set session cookie if saveUninitialized is false and data not modified but maxAge is on', async (t) => {
+  t.plan(2)
+  const options = {
+    cookie: {
+      maxAge: 42,
+      expires: new Date(Date.now() + 1000)
+    },
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    saveUninitialized: false
+  }
+  const fastify = await buildFastify((request, reply) => reply.send(200), options)
+  t.teardown(() => fastify.close())
+  
+  const response = await fastify.inject({
+    url: '/',
+    headers: { 'x-forwarded-proto': 'https' }
+  })
+
+  t.equal(response.statusCode, 200)
+  t.ok(response.headers['set-cookie'])
+})
+

@@ -231,7 +231,7 @@ test('should decryptSession with custom request object', async (t) => {
   fastify.addHook('onRequest', (request, reply, done) => {
     request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
       testData: 'this is a test',
-      cookie: { expires: Date.now() + 1000, secure: true, httpOnly: true, path: '/' }
+      cookie: { secure: true, httpOnly: true, path: '/' }
     }, done)
   })
 
@@ -290,7 +290,7 @@ test('should bubble up errors with destroy call if session expired', async (t) =
   const store = {
     set (id, data, cb) { cb(null) },
     get (id, cb) {
-      cb(null, { cookie: { expires: Date.now() - 1000 } })
+      cb(null, { cookie: { expires: new Date(Date.now() - 1000) } })
     },
     destroy (id, cb) { cb(new Error('No can do')) }
   }
