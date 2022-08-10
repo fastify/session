@@ -122,6 +122,12 @@ declare namespace FastifySessionPlugin {
 
     /** Function used to generate new session IDs. Defaults to uid(24). */
     idGenerator?(request?: Fastify.FastifyRequest): string;
+
+    /**
+     * Prefixes all cookie values. Run with "s:" to be be compatible with express-session.
+     * Defaults to false.
+     */
+     cookiePrefix?: string;
   }
 
   interface CookieOptions {

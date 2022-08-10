@@ -127,6 +127,40 @@ test('should set session cookie using the default cookie name', async (t) => {
   t.match(response.headers['set-cookie'], /sessionId=undefined; Path=\/; HttpOnly; Secure/)
 })
 
+test('should set express sessions using the specified cookiePrefix', async (t) => {
+  t.plan(2)
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    cookieName: 'connect.sid',
+    cookiePrefix: 's:'
+  }
+
+  const plugin = fastifyPlugin(async (fastify, opts) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
+      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+        expires: Date.now() + 1000,
+      }, done)
+    })
+  })
+  function handler (request, reply) {
+    request.session.test = {}
+    reply.send(200)
+  }
+  const fastify = await buildFastify(handler, options, plugin)
+  t.teardown(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: {
+      cookie: `connect.sid=s%3AQk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure`,
+      'x-forwarded-proto': 'https'
+    }
+  })
+
+  t.equal(response.statusCode, 200)
+  t.match(response.headers['set-cookie'], /connect.sid=s%3A[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
+})
+
 test('should create new session on expired session', async (t) => {
   t.plan(2)
   const plugin = fastifyPlugin(async (fastify, opts) => {
