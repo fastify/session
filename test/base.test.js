@@ -138,7 +138,7 @@ test('should set express sessions using the specified cookiePrefix', async (t) =
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() + 1000,
+        expires: Date.now() + 1000
       }, done)
     })
   })
@@ -152,7 +152,7 @@ test('should set express sessions using the specified cookiePrefix', async (t) =
   const response = await fastify.inject({
     url: '/',
     headers: {
-      cookie: `connect.sid=s%3AQk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure`,
+      cookie: 'connect.sid=s%3AQk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
       'x-forwarded-proto': 'https'
     }
   })
