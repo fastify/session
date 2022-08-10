@@ -46,7 +46,7 @@ test('should add session.encryptedSessionId object to request', async (t) => {
   const fastify = await buildFastify((request, reply) => {
     t.ok(request.session.encryptedSessionId)
     // serialize, then deserialize to make sure it's gone
-    t.falsy(JSON.parse(JSON.stringify(request.session)).encryptedSessionId)
+    t.notOk(JSON.parse(JSON.stringify(request.session)).encryptedSessionId)
     reply.send(200)
   }, DEFAULT_OPTIONS)
   t.teardown(() => fastify.close())
