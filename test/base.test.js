@@ -102,7 +102,6 @@ test('should set session cookie using the default cookie name', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
         cookie: { expires: Date.now() + 1000, secure: true, httpOnly: true, path: '/' }
       }, done)
     })

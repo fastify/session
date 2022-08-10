@@ -231,7 +231,6 @@ test('should decryptSession with custom request object', async (t) => {
   fastify.addHook('onRequest', (request, reply, done) => {
     request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
       testData: 'this is a test',
-      sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
       cookie: { expires: Date.now() + 1000, secure: true, httpOnly: true, path: '/' }
     }, done)
   })
