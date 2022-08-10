@@ -299,7 +299,7 @@ test('should create new session if cookie contains invalid session', async (t) =
   t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
-test('should not set session cookie if no data in session and saveUninitialized is false', async (t) => {
+test('should not set session cookie if saveUninitialized is false and no data in session', async (t) => {
   t.plan(2)
   const options = {
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
@@ -317,17 +317,49 @@ test('should not set session cookie if no data in session and saveUninitialized 
   t.ok(response.headers['set-cookie'] === undefined)
 })
 
-test('should set session cookie if saveUninitialized is false and data not modified but maxAge is on', async (t) => {
+test('should not set session cookie if saveUninitialized is false and data in session is unmodified', async (t) => {
+  t.plan(2)
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    saveUninitialized: false
+  }
+  const plugin = fastifyPlugin(async (fastify, opts) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
+      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+        test: {}
+      }, done)
+    })
+  })
+  const fastify = await buildFastify((request, reply) => reply.send(200), options, plugin)
+  t.teardown(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: { 'x-forwarded-proto': 'https' }
+  })
+
+  t.equal(response.statusCode, 200)
+  t.ok(response.headers['set-cookie'] === undefined)
+})
+
+test('should set session cookie if saveUninitialized is false and maxAge is on', async (t) => {
   t.plan(2)
   const options = {
     cookie: {
-      maxAge: 42,
-      expires: new Date(Date.now() + 1000)
+      maxAge: 42
     },
     secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
     saveUninitialized: false
   }
-  const fastify = await buildFastify((request, reply) => reply.send(200), options)
+  const plugin = fastifyPlugin(async (fastify, opts) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
+      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+        // In this scenario, maxAge would have set expires in a previous request
+        expires: new Date(Date.now() + 1000)
+      }, done)
+    })
+  })
+  const fastify = await buildFastify((request, reply) => reply.send(200), options, plugin)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
