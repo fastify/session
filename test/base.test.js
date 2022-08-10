@@ -196,7 +196,6 @@ test('should set new session cookie if expired', async (t) => {
     })
   })
   function handler (request, reply) {
-    request.session.test = {}
     reply.send(200)
   }
   const fastify = await buildFastify(handler, DEFAULT_OPTIONS, plugin)
