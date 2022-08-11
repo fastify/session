@@ -2,7 +2,7 @@
 
 const test = require('tap').test
 const fastifyPlugin = require('fastify-plugin')
-const { DEFAULT_OPTIONS, DEFAULT_COOKIE, buildFastify } = require('./util')
+const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_COOKIE_VALUE, DEFAULT_SESSION_ID, buildFastify } = require('./util')
 
 test('should not set session cookie on post without params', async (t) => {
   t.plan(3)
@@ -114,7 +114,7 @@ test('should set session cookie using the default cookie name', async (t) => {
   t.plan(2)
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: { secure: true, httpOnly: true, path: '/' }
       }, done)
     })
@@ -142,8 +142,7 @@ test('should create new session on expired session', async (t) => {
   t.plan(2)
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: { expires: new Date(Date.now() - 1000), secure: true, httpOnly: true, path: '/' }
       }, done)
     })
@@ -178,7 +177,7 @@ test('should set session.cookie.expires if maxAge', async (t) => {
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         test: {}
       }, done)
     })
@@ -205,7 +204,7 @@ test('should set new session cookie if expired', async (t) => {
 
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: { expires: new Date(Date.now() - 1000) }
       }, done)
     })
@@ -224,7 +223,7 @@ test('should set new session cookie if expired', async (t) => {
     }
   })
 
-  t.equal(response.headers['set-cookie'].includes('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'), false)
+  t.equal(response.headers['set-cookie'].includes(DEFAULT_COOKIE_VALUE), false)
   t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
   t.equal(response.statusCode, 200)
 })
@@ -247,7 +246,7 @@ test('should return new session cookie if does not exist in store', async (t) =>
   })
 
   t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'].includes('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'), false)
+  t.equal(response.headers['set-cookie'].includes(DEFAULT_COOKIE_VALUE), false)
   t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
@@ -278,7 +277,7 @@ test('should create new session if cookie contains invalid session', async (t) =
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         test: {}
       }, done)
     })
@@ -325,7 +324,7 @@ test('should not set session cookie if saveUninitialized is false and data in se
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         test: {}
       }, done)
     })
@@ -335,7 +334,7 @@ test('should not set session cookie if saveUninitialized is false and data in se
 
   const response = await fastify.inject({
     url: '/',
-    headers: { 'x-forwarded-proto': 'https' }
+    headers: { cookie: DEFAULT_COOKIE, 'x-forwarded-proto': 'https' }
   })
 
   t.equal(response.statusCode, 200)
@@ -353,7 +352,7 @@ test('should set session cookie if saveUninitialized is false and maxAge is on',
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         // In this scenario, maxAge would have set expires in a previous request
         expires: new Date(Date.now() + 1000)
       }, done)
@@ -364,7 +363,7 @@ test('should set session cookie if saveUninitialized is false and maxAge is on',
 
   const response = await fastify.inject({
     url: '/',
-    headers: { 'x-forwarded-proto': 'https' }
+    headers: { cookie: DEFAULT_COOKIE, 'x-forwarded-proto': 'https' }
   })
 
   t.equal(response.statusCode, 200)
