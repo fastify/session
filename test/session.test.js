@@ -42,9 +42,10 @@ test('should destroy the session', async (t) => {
 })
 
 test('should add session.encryptedSessionId object to request', async (t) => {
-  t.plan(2)
+  t.plan(3)
   const fastify = await buildFastify((request, reply) => {
     t.ok(request.session.encryptedSessionId)
+    t.equal(JSON.parse(JSON.stringify(request.session)).encryptedSessionId, undefined)
     reply.send(200)
   }, DEFAULT_OPTIONS)
   t.teardown(() => fastify.close())
