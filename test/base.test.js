@@ -60,8 +60,7 @@ test('should support multiple secrets', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(sessionId, {
-        sessionId,
-        encryptedSessionId: sessionIdSignedWithOldSecret
+        test: {}
       }, done)
     })
   })
@@ -142,7 +141,6 @@ test('should create new session on expired session', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
-        sessionId: DEFAULT_SESSION_ID,
         cookie: { secure: true, httpOnly: true, path: '/', expires: Date.now() - 1000 }
       }, done)
     })
@@ -198,7 +196,7 @@ test('should set new session cookie if expired', async (t) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: {
-          expires: Date.now() + 1000
+          expires: Date.now() - 1000
         }
       }, done)
     })

@@ -229,7 +229,6 @@ test('should decryptSession with custom request object', async (t) => {
   fastify.addHook('onRequest', (request, reply, done) => {
     request.sessionStore.set(DEFAULT_SESSION_ID, {
       testData: 'this is a test',
-      sessionId: DEFAULT_SESSION_ID,
       cookie: { secure: true, httpOnly: true, path: '/', expires: Date.now() + 1000 }
     }, done)
   })
@@ -357,22 +356,18 @@ test('should update the expires property of the session using Session#touch() ev
   t.plan(3)
 
   const fastify = Fastify()
-
-  const options = {
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
     secret: DEFAULT_SECRET,
     rolling: false,
     cookie: { secure: false, maxAge: 10000 }
-  }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  })
   fastify.addHook('onRequest', (request, reply, done) => {
     request.session.touch()
     reply.send(request.session.cookie.expires)
     done()
   })
-
   fastify.get('/', (request, reply) => reply.send(200))
-  fastify.get('/check', (request, reply) => reply.send(200))
   await fastify.listen({ port: 0 })
   t.teardown(() => { fastify.close() })
 
@@ -384,12 +379,46 @@ test('should update the expires property of the session using Session#touch() ev
   await new Promise(resolve => setTimeout(resolve, 1))
 
   const response2 = await fastify.inject({
-    url: '/check',
+    url: '/',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.equal(response2.statusCode, 200)
-
   t.ok(response1.body !== response2.body)
+})
+
+test('will not update expires property of the session using Session#touch() if maxAge is not set', async (t) => {
+  t.plan(4)
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    secret: DEFAULT_SECRET,
+    rolling: false,
+    cookie: { secure: false }
+  })
+  fastify.addHook('onRequest', (request, reply, done) => {
+    request.session.touch()
+    reply.send(request.session.cookie.expires)
+    done()
+  })
+
+  fastify.get('/', (request, reply) => reply.send(200))
+  await fastify.listen({ port: 0 })
+  t.teardown(() => { fastify.close() })
+
+  const response1 = await fastify.inject({
+    url: '/'
+  })
+  t.equal(response1.statusCode, 200)
+  await new Promise(resolve => setTimeout(resolve, 1))
+  t.equal(response1.body, 'null')
+
+  const response2 = await fastify.inject({
+    url: '/',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.equal(response2.statusCode, 200)
+  t.equal(response2.body, 'null')
 })
 
 test('should use custom sessionId generator if available (with request)', async (t) => {
