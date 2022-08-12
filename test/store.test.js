@@ -2,7 +2,7 @@
 
 const test = require('tap').test
 const fastifyPlugin = require('fastify-plugin')
-const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE } = require('./util')
+const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, DEFAULT_SESSION_ID } = require('./util')
 const { Store } = require('..')
 
 test('should decorate request with sessionStore', async (t) => {
@@ -25,7 +25,7 @@ test('should decorate request with sessionStore', async (t) => {
 test('should pass error on store.set to done', async (t) => {
   t.plan(1)
   const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    secret: DEFAULT_SECRET,
     store: new FailingStore()
   }
   const fastify = await buildFastify((request, reply) => {
@@ -46,7 +46,7 @@ test('should pass error on store.set to done', async (t) => {
 test('should create new session if ENOENT error on store.get', async (t) => {
   t.plan(5)
   const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    secret: DEFAULT_SECRET,
     store: new EnoentErrorStore()
   }
   const fastify = await buildFastify((request, reply) => {
@@ -74,7 +74,7 @@ test('should create new session if ENOENT error on store.get', async (t) => {
 test('should pass error to done if non-ENOENT error on store.get', async (t) => {
   t.plan(1)
   const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    secret: DEFAULT_SECRET,
     store: new FailingStore()
   }
 
@@ -95,12 +95,12 @@ test('should pass error to done if non-ENOENT error on store.get', async (t) => 
 test('should set new session cookie if expired', async (t) => {
   t.plan(2)
   const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    secret: DEFAULT_SECRET,
     store: new FailOnDestroyStore()
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         expires: Date.now() - 1000
       }, done)
     })
