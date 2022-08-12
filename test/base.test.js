@@ -354,7 +354,9 @@ test('should set session cookie if saveUninitialized is false and maxAge is on',
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
         // In this scenario, maxAge would have set expires in a previous request
-        expires: new Date(Date.now() + 1000)
+        cookie: {
+          expires: new Date(Date.now() + 1000)
+        }
       }, done)
     })
   })
