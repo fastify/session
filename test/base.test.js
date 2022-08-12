@@ -2,7 +2,7 @@
 
 const test = require('tap').test
 const fastifyPlugin = require('fastify-plugin')
-const { DEFAULT_OPTIONS, DEFAULT_COOKIE, buildFastify } = require('./util')
+const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, buildFastify } = require('./util')
 
 test('should not set session cookie on post without params', async (t) => {
   t.plan(3)
@@ -47,7 +47,7 @@ test('should set session cookie', async (t) => {
 test('should support multiple secrets', async (t) => {
   t.plan(2)
   const options = {
-    secret: ['geheim', 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk']
+    secret: ['geheim', DEFAULT_SECRET]
   }
 
   const plugin = fastifyPlugin(async (fastify, opts) => {
@@ -79,7 +79,7 @@ test('should support multiple secrets', async (t) => {
 test('should set session cookie using the specified cookie name', async (t) => {
   t.plan(2)
   const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    secret: DEFAULT_SECRET,
     cookieName: 'anothername'
   }
   const fastify = await buildFastify((request, reply) => {
@@ -101,9 +101,9 @@ test('should set session cookie using the default cookie name', async (t) => {
   t.plan(2)
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         expires: Date.now() + 1000,
-        sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
+        sessionId: DEFAULT_SESSION_ID,
         cookie: { secure: true, httpOnly: true, path: '/' }
       }, done)
     })
@@ -131,9 +131,9 @@ test('should create new session on expired session', async (t) => {
   t.plan(2)
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         expires: Date.now() - 1000,
-        sessionId: 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN',
+        sessionId: DEFAULT_SESSION_ID,
         cookie: { secure: true, httpOnly: true, path: '/' }
       }, done)
     })
@@ -142,7 +142,7 @@ test('should create new session on expired session', async (t) => {
     reply.send(200)
   }
   const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    secret: DEFAULT_SECRET,
     cookie: { maxAge: 100 }
   }
   const fastify = await buildFastify(handler, options, plugin)
@@ -163,12 +163,12 @@ test('should create new session on expired session', async (t) => {
 test('should set session.expires if maxAge', async (t) => {
   t.plan(2)
   const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    secret: DEFAULT_SECRET,
     cookie: { maxAge: 42 }
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         expires: Date.now() + 1000
       }, done)
     })
@@ -193,7 +193,7 @@ test('should set new session cookie if expired', async (t) => {
 
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         expires: Date.now() + 1000
       }, done)
     })
@@ -213,14 +213,14 @@ test('should set new session cookie if expired', async (t) => {
     }
   })
 
-  t.equal(response.headers['set-cookie'].includes('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'), false)
+  t.equal(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
   t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
   t.equal(response.statusCode, 200)
 })
 
 test('should return new session cookie if does not exist in store', async (t) => {
   t.plan(3)
-  const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
+  const options = { secret: DEFAULT_SECRET }
   const fastify = await buildFastify((request, reply) => {
     request.session.test = {}
     reply.send(200)
@@ -236,14 +236,14 @@ test('should return new session cookie if does not exist in store', async (t) =>
   })
 
   t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'].includes('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'), false)
+  t.equal(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
   t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should not set session cookie on invalid path', async (t) => {
   t.plan(2)
   const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    secret: DEFAULT_SECRET,
     cookie: { path: '/path/' }
   }
   const fastify = await buildFastify((request, reply) => reply.send(200), options)
@@ -260,14 +260,14 @@ test('should not set session cookie on invalid path', async (t) => {
 
 test('should create new session if cookie contains invalid session', async (t) => {
   t.plan(3)
-  const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
+  const options = { secret: DEFAULT_SECRET }
   function handler (request, reply) {
     request.session.test = {}
     reply.send(200)
   }
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
         expires: Date.now() + 1000
       }, done)
     })
@@ -278,7 +278,7 @@ test('should create new session if cookie contains invalid session', async (t) =
   const response = await fastify.inject({
     url: '/',
     headers: {
-      cookie: 'sessionId=Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN.B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure',
+      cookie: `sessionId=${DEFAULT_SECRET}.B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure`,
       'x-forwarded-proto': 'https'
     }
   })
@@ -291,7 +291,7 @@ test('should create new session if cookie contains invalid session', async (t) =
 test('should not set session cookie if no data in session and saveUninitialized is false', async (t) => {
   t.plan(2)
   const options = {
-    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    secret: DEFAULT_SECRET,
     saveUninitialized: false
   }
   const fastify = await buildFastify((request, reply) => reply.send(200), options)
