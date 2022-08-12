@@ -161,7 +161,7 @@ test('should create new session on expired session', async (t) => {
 })
 
 test('should set session.expires if maxAge', async (t) => {
-  t.plan(2)
+  t.plan(3)
   const options = {
     secret: DEFAULT_SECRET,
     cookie: { maxAge: 42 }
@@ -182,10 +182,11 @@ test('should set session.expires if maxAge', async (t) => {
 
   const response = await fastify.inject({
     url: '/',
-    headers: { cookie: DEFAULT_COOKIE }
+    headers: { cookie: DEFAULT_COOKIE, 'x-forwarded-proto': 'https' }
   })
 
   t.equal(response.statusCode, 200)
+  t.match(response.headers['set-cookie'], /sessionId=.*\..*; Path=\/; Expires=.*; HttpOnly; Secure/)
 })
 
 test('should set new session cookie if expired', async (t) => {
