@@ -269,7 +269,7 @@ test('should create new session if cookie contains invalid session', async (t) =
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
-        expires: Date.now() + 1000
+        test: {}
       }, done)
     })
   })
@@ -279,13 +279,13 @@ test('should create new session if cookie contains invalid session', async (t) =
   const response = await fastify.inject({
     url: '/',
     headers: {
-      cookie: `sessionId=${DEFAULT_SECRET}.B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE; Path=/; HttpOnly; Secure`,
+      cookie: `sessionId=${DEFAULT_SECRET}.badinvalidsignaturenoooo; Path=/; HttpOnly; Secure`,
       'x-forwarded-proto': 'https'
     }
   })
 
   t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'].includes('B7fUDYXx9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE'), false)
+  t.equal(response.headers['set-cookie'].includes('badinvalidsignaturenoooo'), false)
   t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
