@@ -65,7 +65,7 @@ The name of the session cookie. Defaults to `sessionId`.
 The options object is used to generate the `Set-Cookie` header of the session cookie. May have the following properties:
 * `path` - The `Path` attribute. Defaults to `/` (the root path).
 * `maxAge` - A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `maxAge` is used.
-* `rolling` - Forces the session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. This is typically used in conjuction with short, non-session-length maxAge values to provide a quick timeout of the session data with reduced potential of it occurring during on going server interactions. Defaults to true.
+* `rolling` - Forces the session identifier cookie to be set on every response. The expiration is reset to the original maxAge and resetting the cookie lifetime. This is typically used in conjuction with short, non-session-length maxAge values to provide a quick expiration of the session data with reduced potential of session expiration occurring during ongoing server interactions. Defaults to true.
 * `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
 * `secure` - The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Value can be set to `auto`; in this case, the `Secure` attribute will be set to false for an HTTP request. In the case of HTTPS, it will be set to true.  Defaults to true.
 * `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `maxAge` is used.
