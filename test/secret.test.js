@@ -4,6 +4,7 @@ const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
+const { DEFAULT_SECRET } = require('./util')
 
 test('register should fail if no secret is specified', async t => {
   t.plan(1)
@@ -20,7 +21,7 @@ test('register should succeed if valid secret is specified', async t => {
   t.plan(1)
   const fastify = Fastify()
 
-  const options = { secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk' }
+  const options = { secret: DEFAULT_SECRET }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
   await t.resolves(fastify.ready())
