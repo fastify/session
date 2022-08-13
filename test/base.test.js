@@ -132,9 +132,8 @@ test('should create new session on expired session', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
-        expires: Date.now() - 1000,
         sessionId: DEFAULT_SESSION_ID,
-        cookie: { secure: true, httpOnly: true, path: '/' }
+        cookie: { secure: true, httpOnly: true, path: '/', expires: Date.now() - 1000 }
       }, done)
     })
   })
@@ -160,24 +159,17 @@ test('should create new session on expired session', async (t) => {
   t.match(response.headers['set-cookie'], /sessionId=.*\..*; Path=\/; Expires=.*; HttpOnly; Secure/)
 })
 
-test('should set session.expires if maxAge', async (t) => {
+test('should set session.cookie.expires if maxAge', async (t) => {
   t.plan(3)
   const options = {
     secret: DEFAULT_SECRET,
     cookie: { maxAge: 42 }
   }
-  const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set(DEFAULT_SESSION_ID, {
-        expires: Date.now() + 1000
-      }, done)
-    })
-  })
   function handler (request, reply) {
-    t.ok(request.session.expires)
+    t.ok(request.session.cookie.expires)
     reply.send(200)
   }
-  const fastify = await buildFastify(handler, options, plugin)
+  const fastify = await buildFastify(handler, options)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -195,7 +187,9 @@ test('should set new session cookie if expired', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
-        expires: Date.now() + 1000
+        cookie: {
+          expires: Date.now() + 1000
+        }
       }, done)
     })
   })

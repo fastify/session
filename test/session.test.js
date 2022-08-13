@@ -71,25 +71,6 @@ test('should add session.cookie object to request', async (t) => {
   t.equal(response.statusCode, 200)
 })
 
-test('should add session.expires object to request', async (t) => {
-  t.plan(2)
-  const options = {
-    secret: DEFAULT_SECRET,
-    cookie: { maxAge: 42 }
-  }
-  const fastify = await buildFastify((request, reply) => {
-    t.ok(request.session.expires)
-    reply.send(200)
-  }, options)
-  t.teardown(() => fastify.close())
-
-  const response = await fastify.inject({
-    url: '/'
-  })
-
-  t.equal(response.statusCode, 200)
-})
-
 test('should add session.sessionId object to request', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
@@ -248,9 +229,8 @@ test('should decryptSession with custom request object', async (t) => {
   fastify.addHook('onRequest', (request, reply, done) => {
     request.sessionStore.set(DEFAULT_SESSION_ID, {
       testData: 'this is a test',
-      expires: Date.now() + 1000,
       sessionId: DEFAULT_SESSION_ID,
-      cookie: { secure: true, httpOnly: true, path: '/' }
+      cookie: { secure: true, httpOnly: true, path: '/', expires: Date.now() + 1000 }
     }, done)
   })
 
@@ -309,7 +289,7 @@ test('should bubble up errors with destroy call if session expired', async (t) =
   const store = {
     set (id, data, cb) { cb(null) },
     get (id, cb) {
-      cb(null, { expires: Date.now() - 1000, cookie: { expires: Date.now() - 1000 } })
+      cb(null, { cookie: { expires: Date.now() - 1000 } })
     },
     destroy (id, cb) { cb(new Error('No can do')) }
   }
@@ -387,7 +367,7 @@ test('should update the expires property of the session using Session#touch() ev
   fastify.register(fastifySession, options)
   fastify.addHook('onRequest', (request, reply, done) => {
     request.session.touch()
-    reply.send(request.session.expires)
+    reply.send(request.session.cookie.expires)
     done()
   })
 
