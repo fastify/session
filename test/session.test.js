@@ -105,7 +105,7 @@ test('should allow get/set methods for fetching/updating session values', async 
 test('should use custom sessionId generator if available (without request)', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
-    t.equal(request.session.sessionId.startsWith('custom-'), false)
+    t.equal(request.session.sessionId.startsWith('custom-'), true)
     reply.send(200)
   }, {
     idGenerator: () => {
@@ -224,8 +224,8 @@ test('should decryptSession with custom request object', async (t) => {
     secret: DEFAULT_SECRET
   }
 
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  fastify.register(fastifyCookie, options)
+  fastify.register(fastifySession)
   fastify.addHook('onRequest', (request, reply, done) => {
     request.sessionStore.set(DEFAULT_SESSION_ID, {
       testData: 'this is a test',
@@ -294,14 +294,16 @@ test('should bubble up errors with destroy call if session expired', async (t) =
     destroy (id, cb) { cb(new Error('No can do')) }
   }
 
-  const options = {
-    secret: DEFAULT_SECRET,
+  const fastifyCookieOpts = {
+    secret: DEFAULT_SECRET
+  }
+  const fastifySessionOpts = {
     store,
     cookie: { secure: false }
   }
 
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  fastify.register(fastifyCookie, fastifyCookieOpts)
+  fastify.register(fastifySession, fastifySessionOpts)
 
   fastify.get('/', (request, reply) => {
     reply.send(200)
@@ -805,8 +807,6 @@ test('when unsignSignedCookie is true sessions should still be managed correctly
   const store = new Map()
   const cookieSignKey = 'some-key'
   const options = {
-    ...DEFAULT_OPTIONS,
-    unsignSignedCookie: true,
     cookie: { secure: false, signed: false },
     store: {
       set (id, data, cb) {
@@ -821,51 +821,42 @@ test('when unsignSignedCookie is true sessions should still be managed correctly
     }
   }
 
-  const runTestScenario = async (cookieSigned) => {
-    options.cookie.signed = cookieSigned
+  let encryptedSessionId = null
 
-    let encryptedSessionId = null
+  const fastify = Fastify()
+  fastify.register(fastifyCookie, { secret: cookieSignKey })
+  fastify.register(fastifySession, options)
+  fastify.get('/', (request, reply) => {
+    encryptedSessionId = encryptedSessionId || request.session.encryptedSessionId
+    reply.send(200)
+  })
 
-    const fastify = Fastify()
-    fastify.register(fastifyCookie, { secret: cookieSignKey })
-    fastify.register(fastifySession, options)
-    fastify.get('/', (request, reply) => {
-      encryptedSessionId = encryptedSessionId || request.session.encryptedSessionId
-      reply.send(200)
-    })
+  const {
+    statusCode: statusCode1,
+    headers: {
+      'set-cookie': cookie1
+    }
+  } = await fastify.inject('/')
+  t.ok(cookie1)
+  t.equal(statusCode1, 200)
 
-    const {
-      statusCode: statusCode1,
-      headers: {
-        'set-cookie': cookie1
-      }
-    } = await fastify.inject('/')
-    t.ok(cookie1)
-    t.equal(statusCode1, 200)
+  const { sessionId: sessionId1 } = fastify.parseCookie(cookie1)
+  t.equal(sessionId1, encryptedSessionId)
 
-    const { sessionId: sessionId1 } = fastify.parseCookie(cookie1)
-    t.equal(sessionId1, encryptedSessionId)
+  const sessionId = sessionId1
+  const cookie = `sessionId=${sessionId};`
+  const {
+    statusCode: statusCode2,
+    headers: {
+      'set-cookie': cookie2
+    }
+  } = await fastify.inject({
+    path: '/',
+    headers: { cookie }
+  })
+  t.equal(statusCode2, 200)
+  t.ok(cookie2)
 
-    const sessionId = cookieSigned
-      ? cookieSignature.sign(sessionId1, cookieSignKey)
-      : sessionId1
-    const cookie = `sessionId=${sessionId};`
-    const {
-      statusCode: statusCode2,
-      headers: {
-        'set-cookie': cookie2
-      }
-    } = await fastify.inject({
-      path: '/',
-      headers: { cookie }
-    })
-    t.equal(statusCode2, 200)
-    t.ok(cookie2)
-
-    const { sessionId: sessionId2 } = fastify.parseCookie(cookie2)
-    t.equal(sessionId2, encryptedSessionId)
-  }
-
-  await runTestScenario(false)
-  await runTestScenario(true)
+  const { sessionId: sessionId2 } = fastify.parseCookie(cookie2)
+  t.equal(sessionId2, encryptedSessionId)
 })

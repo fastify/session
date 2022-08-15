@@ -11,13 +11,17 @@ const DEFAULT_ENCRYPTED_SESSION_ID = `${DEFAULT_SESSION_ID}.B7fUDYXU9fXF9pNuL3qm
 const DEFAULT_COOKIE_VALUE = `sessionId=${DEFAULT_ENCRYPTED_SESSION_ID};`
 const DEFAULT_COOKIE = `${DEFAULT_COOKIE_VALUE}; Path=/; HttpOnly; Secure`
 
-async function buildFastify (handler, sessionOptions, plugin) {
+async function buildFastify (handler, options, plugin) {
+  const {
+    secret,
+    ...fastifySessionOpts
+  } = options
   const fastify = Fastify()
-  await fastify.register(fastifyCookie)
+  await fastify.register(fastifyCookie, { secret })
   if (plugin) {
     await fastify.register(plugin)
   }
-  await fastify.register(fastifySession, sessionOptions)
+  await fastify.register(fastifySession, fastifySessionOpts)
 
   fastify.get('/', handler)
   await fastify.listen({ port: 0 })
