@@ -81,9 +81,11 @@ Setting this to `false` can save storage space and comply with the EU cookie law
 
 ##### idGenerator(request) (optional)
 
-Function used to generate new session IDs. Defaults to [`uid(24)`](https://github.com/crypto-utils/uid-safe).
+Function used to generate new session IDs.
 Custom implementation example:
 ```js
+const uid = require('uid-safe').sync
+
 idGenerator: (request) => {
      if (request.session.returningVisitor) return `returningVisitor-${uid(24)}`
      else return uid(24)

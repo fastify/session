@@ -21,8 +21,7 @@
   "dependencies": {
     "@fastify/cookie": "^7.4.0",
     "fastify-plugin": "^4.0.0",
-    "safe-stable-stringify": "^2.3.1",
-    "uid-safe": "^2.1.5"
+    "safe-stable-stringify": "^2.3.1"
   },
   "repository": {
     "type": "git",
