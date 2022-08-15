@@ -5,7 +5,6 @@ const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const sinon = require('sinon')
 const fastifySession = require('..')
-const cookieSignature = require('cookie-signature')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
 
 test('should add session object to request', async (t) => {
