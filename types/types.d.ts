@@ -123,7 +123,7 @@ declare namespace FastifySessionPlugin {
      */
     rolling?: boolean;
 
-    /** Function used to generate new session IDs. Defaults to uid(24). */
+    /** Function used to generate new session IDs. */
     idGenerator?(request?: Fastify.FastifyRequest): string;
 
     /**
