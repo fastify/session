@@ -15,30 +15,33 @@ declare module 'fastify' {
   interface Session extends SessionData {}
 }
 
+type Callback = (err?: Error) => void;
+type CallbackSession = (err: Error | null, result: Fastify.Session) => void;
+
 interface SessionData extends ExpressSessionData {
   sessionId: string;
 
   encryptedSessionId: string;
 
-  /** Updates the `expires` property of the session. */
+  /** Updates the `expires` property of the session's cookie. */
   touch(): void;
 
   /**
    * Regenerates the session by generating a new `sessionId`.
    */
-  regenerate(callback: (err?: Error) => void): void;
+  regenerate(callback: Callback): void;
   regenerate(): Promise<void>;
 
   /** Allows to destroy the session in the store. */
-  destroy(callback: (err?: Error) => void): void;
+  destroy(callback: Callback): void;
   destroy(): Promise<void>;
 
   /** Reloads the session data from the store and re-populates the request.session object. */
-  reload(callback: (err?: Error) => void): void;
+  reload(callback: Callback): void;
   reload(): Promise<void>;
 
   /** Save the session back to the store, replacing the contents on the store with the contents in memory. */
-  save(callback: (err?: Error) => void): void;
+  save(callback: Callback): void;
   save(): Promise<void>;
 
   /** sets values in the session. */
@@ -60,13 +63,13 @@ declare namespace FastifySessionPlugin {
     set(
       sessionId: string,
       session: Fastify.Session,
-      callback: (err?: Error) => void
+      callback: Callback
     ): void;
     get(
       sessionId: string,
-      callback: (err: Error | null, session: Fastify.Session) => void
+      callback: CallbackSession
     ): void;
-    destroy(sessionId: string, callback: (err?: Error) => void): void;
+    destroy(sessionId: string, callback: Callback): void;
   }
 
   interface Options {
@@ -159,13 +162,13 @@ export class MemoryStore implements FastifySessionPlugin.SessionStore {
   set(
     sessionId: string,
     session: Fastify.Session,
-    callback: (err?: Error) => void
+    callback: Callback
   ): void;
   get(
     sessionId: string,
-    callback: (err: Error | null, session: Fastify.Session) => void
+    callback: CallbackSession
   ): void;
-  destroy(sessionId: string, callback: (err?: Error) => void): void;
+  destroy(sessionId: string, callback: Callback): void;
 }
 
 export const Store: MemoryStore;
