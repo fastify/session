@@ -20,15 +20,14 @@ npm i @fastify/session
 ```js
 const fastify = require('fastify');
 const fastifySession = require('@fastify/session');
-const fastifyCookie = require('fastify-cookie');
+const fastifyCookie = require('@fastify/cookie');
 
 const app = fastify();
-app.register(fastifyCookie);
-app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
+app.register(fastifyCookie, {secret: 'a secret with minimum length of 32 characters'});
+app.register(fastifySession);
 ```
 Store data in the session by adding it to the `session` decorator at the `request`:
 ```js
-app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 app.addHook('preHandler', (request, reply, next) => {
   request.session.user = {name: 'max'};
   next();
@@ -37,7 +36,6 @@ app.addHook('preHandler', (request, reply, next) => {
 **NOTE**: For all unencrypted (HTTP) connections, you need to set the `secure` cookie option to `false`. See below for all cookie options and their details.
 The `session` object has methods that allow you to get, save, reload and delete sessions.
 ```js
-app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 app.addHook('preHandler', (request, reply, next) => {
   request.session.destroy(next);
 })
@@ -51,14 +49,6 @@ app.addHook('preHandler', (request, reply, next) => {
 ### session(fastify, options, next)
 The session plugin accepts the following options. It decorates the request with the `sessionStore` and a `session` object. The session data is stored server-side using the configured session store.
 #### options
-##### secret (required)
-The secret used to sign the cookie. Must be an array of strings or a string with a length of 32 or greater.
-
-If an array, the first secret is used to sign new cookies and is the first to be checked for incoming cookies.
-Further secrets in the array are used to check incoming cookies in the order specified.
-
-Note that the rest of the application may manipulate the array during its life cycle. This can be done by storing the array in a separate variable that is later used with mutating methods like unshift(), pop(), splice(), etc.
-This can be used to rotate the signing secret at regular intervals. A secret should remain somewhere in the array as long as there are active sessions with cookies signed by it. Secrets management is left up to the rest of the application.
 ##### cookieName (optional)
 The name of the session cookie. Defaults to `sessionId`.
 ##### cookie
