@@ -51,6 +51,8 @@ The session plugin accepts the following options. It decorates the request with 
 #### options
 ##### cookieName (optional)
 The name of the session cookie. Defaults to `sessionId`.
+##### cookiePrefix (optional)
+Prefix for the value of the cookie. This is useful for compatibility with `express-session`, which prefixes all cookies with `"s:"`. Defaults to `""`.
 ##### cookie
 The options object is used to generate the `Set-Cookie` header of the session cookie. May have the following properties:
 * `path` - The `Path` attribute. Defaults to `/` (the root path).
