@@ -128,7 +128,7 @@ declare namespace FastifySessionPlugin {
 
     /**
      * Prefixes all cookie values. Run with "s:" to be be compatible with express-session.
-     * Defaults to false.
+     * Defaults to ""
      */
      cookiePrefix?: string;
   }
