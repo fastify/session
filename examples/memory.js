@@ -12,7 +12,7 @@ fastify.register(fastifySession, {
   cookie: { secure: false }
 })
 
-fastify.get('/', async (request, reply) => {
+fastify.get('/', (request, reply) => {
   reply
     .send(request.cookies.sessionId)
 })
