@@ -61,6 +61,8 @@ Note that the rest of the application may manipulate the array during its life c
 This can be used to rotate the signing secret at regular intervals. A secret should remain somewhere in the array as long as there are active sessions with cookies signed by it. Secrets management is left up to the rest of the application.
 ##### cookieName (optional)
 The name of the session cookie. Defaults to `sessionId`.
+##### cookiePrefix (optional)
+Prefix for the value of the cookie. This is useful for compatibility with `express-session`, which prefixes all cookies with `"s:"`. Defaults to `""`.
 ##### cookie
 The options object is used to generate the `Set-Cookie` header of the session cookie. May have the following properties:
 * `path` - The `Path` attribute. Defaults to `/` (the root path).
