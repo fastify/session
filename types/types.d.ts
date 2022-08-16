@@ -58,6 +58,17 @@ interface ExpressSessionData {
   cookie: FastifySessionPlugin.CookieOptions;
 }
 
+interface UnsignResult {
+  valid: boolean;
+  renew: boolean;
+  value: string | null;
+}
+
+interface Signer {
+  sign: (value: string) => string;
+  unsign: (input: string) => UnsignResult;
+}
+
 declare namespace FastifySessionPlugin {
   interface SessionStore {
     set(
@@ -87,7 +98,14 @@ declare namespace FastifySessionPlugin {
      * A secret should remain somewhere in the array as long as there are active sessions with cookies signed by it.
      * Secrets management is left up to the rest of the application.
      */
-    secret: string | string[];
+    secret: string | string[] | Signer;
+
+    /**
+     * The algorithm used to sign the cookie.
+     * 
+     * @default 'sha256'
+     */
+    algorithm?: string;
 
     /** The name of the session cookie. Defaults to `sessionId`. */
     cookieName?: string;

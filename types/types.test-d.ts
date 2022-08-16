@@ -96,3 +96,14 @@ app.route({
     expectType<Promise<void>>(request.session.save());
   }
 });
+
+const customSigner = {
+  sign: (value: string) => value,
+  unsign: (input: string) => ({
+    valid: true,
+    renew: false,
+    value: null
+  })
+}
+
+app.register(plugin, { secret: customSigner });
