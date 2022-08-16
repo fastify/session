@@ -2,11 +2,11 @@
 
 const test = require('tap').test
 const fastifyPlugin = require('fastify-plugin')
-const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, buildFastify } = require('./util')
+const { DEFAULT_COOKIE_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, buildFastify } = require('./util')
 
 test('should not set session cookie on post without params', async (t) => {
   t.plan(3)
-  const fastify = await buildFastify((request, reply) => reply.send(200), DEFAULT_OPTIONS)
+  const fastify = await buildFastify((request, reply) => reply.send(200), DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -24,7 +24,7 @@ test('should set session cookie', async (t) => {
   const fastify = await buildFastify((request, reply) => {
     request.session.test = {}
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response1 = await fastify.inject({
@@ -112,7 +112,7 @@ test('should set session cookie using the default cookie name', async (t) => {
     request.session.test = {}
     reply.send(200)
   }
-  const fastify = await buildFastify(handler, DEFAULT_OPTIONS, plugin)
+  const fastify = await buildFastify(handler, DEFAULT_COOKIE_OPTIONS, plugin)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -231,7 +231,7 @@ test('should set new session cookie if expired', async (t) => {
     request.session.test = {}
     reply.send(200)
   }
-  const fastify = await buildFastify(handler, DEFAULT_OPTIONS, plugin)
+  const fastify = await buildFastify(handler, DEFAULT_COOKIE_OPTIONS, plugin)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({

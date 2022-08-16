@@ -5,14 +5,14 @@ const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const sinon = require('sinon')
 const fastifySession = require('..')
-const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
+const { buildFastify, DEFAULT_COOKIE_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_COOKIE_VALUE } = require('./util')
 
 test('should add session object to request', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
     t.ok(request.session)
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -30,7 +30,7 @@ test('should destroy the session', async (t) => {
       t.equal(request.session, null)
       reply.send(200)
     })
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -45,7 +45,7 @@ test('should add session.encryptedSessionId object to request', async (t) => {
   const fastify = await buildFastify((request, reply) => {
     t.ok(request.session.encryptedSessionId)
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -60,7 +60,7 @@ test('should add session.cookie object to request', async (t) => {
   const fastify = await buildFastify((request, reply) => {
     t.ok(request.session.cookie)
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -75,7 +75,7 @@ test('should add session.sessionId object to request', async (t) => {
   const fastify = await buildFastify((request, reply) => {
     t.ok(request.session.sessionId)
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -91,7 +91,7 @@ test('should allow get/set methods for fetching/updating session values', async 
     request.session.set('foo', 'bar')
     t.equal(request.session.get('foo'), 'bar')
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -108,13 +108,11 @@ test('should use custom sessionId generator if available (without request)', asy
     reply.send(200)
   }, {
     idGenerator: () => {
-      return `custom-${
-        new Date().getTime()
-      }-${
-        Math.random().toString().slice(2)
-      }`
+      return `custom-${new Date().getTime()
+        }-${Math.random().toString().slice(2)
+        }`
     },
-    ...DEFAULT_OPTIONS
+    ...DEFAULT_COOKIE_OPTIONS
   })
   t.teardown(() => fastify.close())
 
@@ -129,12 +127,10 @@ test('should keep user data in session throughout the time', async (t) => {
   t.plan(3)
   const fastify = Fastify()
 
-  const options = {
-    secret: DEFAULT_SECRET,
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
+  fastify.register(fastifySession, {
     cookie: { secure: false }
-  }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  })
   fastify.get('/', (request, reply) => {
     request.session.foo = 'bar'
     reply.send(200)
@@ -164,13 +160,11 @@ test('should generate new sessionId', async (t) => {
   t.plan(3)
   const fastify = Fastify()
 
-  const options = {
-    secret: DEFAULT_SECRET,
-    cookie: { secure: false }
-  }
   let oldSessionId
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
+  fastify.register(fastifySession, {
+    cookie: { secure: false }
+  })
   fastify.get('/', (request, reply) => {
     oldSessionId = request.session.sessionId
     request.session.regenerate(error => {
@@ -206,9 +200,8 @@ test('should decorate the server with decryptSession', async t => {
   t.plan(2)
   const fastify = Fastify()
 
-  const options = { secret: DEFAULT_SECRET }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
+  fastify.register(fastifySession)
   t.teardown(() => fastify.close())
 
   t.ok(await fastify.ready())
@@ -219,11 +212,7 @@ test('should decryptSession with custom request object', async (t) => {
   t.plan(4)
   const fastify = Fastify()
 
-  const options = {
-    secret: DEFAULT_SECRET
-  }
-
-  fastify.register(fastifyCookie, options)
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
   fastify.register(fastifySession)
   fastify.addHook('onRequest', (request, reply, done) => {
     request.sessionStore.set(DEFAULT_SESSION_ID, {
@@ -245,7 +234,10 @@ test('should decryptSession with custom request object', async (t) => {
   t.equal(response.statusCode, 200)
 
   const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
-  const requestObj = {}
+  const requestObj = {
+    signCookie: fastify.signCookie,
+    unsignCookie: fastify.unsignCookie
+  }
   fastify.decryptSession(sessionId, requestObj, () => {
     t.equal(requestObj.session.cookie.maxAge, null)
     t.equal(requestObj.session.sessionId, DEFAULT_SESSION_ID)
@@ -257,12 +249,8 @@ test('should decryptSession with custom cookie options', async (t) => {
   t.plan(2)
   const fastify = Fastify()
 
-  const options = {
-    secret: DEFAULT_SECRET
-  }
-
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
+  fastify.register(fastifySession)
 
   fastify.get('/', (request, reply) => {
     reply.send(200)
@@ -276,7 +264,10 @@ test('should decryptSession with custom cookie options', async (t) => {
   t.equal(response.statusCode, 200)
 
   const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
-  const requestObj = {}
+  const requestObj = {
+    signCookie: fastify.signCookie,
+    unsignCookie: fastify.unsignCookie
+  }
   fastify.decryptSession(sessionId, requestObj, { maxAge: 86400 }, () => {
     t.equal(requestObj.session.cookie.maxAge, 86400)
   })
@@ -293,16 +284,12 @@ test('should bubble up errors with destroy call if session expired', async (t) =
     destroy (id, cb) { cb(new Error('No can do')) }
   }
 
-  const fastifyCookieOpts = {
-    secret: DEFAULT_SECRET
-  }
-  const fastifySessionOpts = {
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
+  fastify.register(fastifySession, {
     store,
     cookie: { secure: false }
   }
-
-  fastify.register(fastifyCookie, fastifyCookieOpts)
-  fastify.register(fastifySession, fastifySessionOpts)
+  )
 
   fastify.get('/', (request, reply) => {
     reply.send(200)
@@ -323,13 +310,11 @@ test('should not reset session cookie expiration if rolling is false', async (t)
 
   const fastify = Fastify()
 
-  const options = {
-    secret: DEFAULT_SECRET,
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
+  fastify.register(fastifySession, {
     rolling: false,
     cookie: { secure: false, maxAge: 10000 }
-  }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  })
   fastify.addHook('onRequest', (request, reply, done) => {
     reply.send(request.session.expires)
     done()
@@ -359,13 +344,11 @@ test('should update the expires property of the session using Session#touch() ev
 
   const fastify = Fastify()
 
-  const options = {
-    secret: DEFAULT_SECRET,
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
+  fastify.register(fastifySession, {
     rolling: false,
     cookie: { secure: false, maxAge: 10000 }
-  }
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  })
   fastify.addHook('onRequest', (request, reply, done) => {
     request.session.touch()
     reply.send(request.session.cookie.expires)
@@ -395,9 +378,8 @@ test('should update the expires property of the session using Session#touch() ev
 
 test('should use custom sessionId generator if available (with request)', async (t) => {
   const fastify = Fastify()
-  fastify.register(fastifyCookie)
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
   fastify.register(fastifySession, {
-    secret: DEFAULT_SECRET,
     cookie: { secure: false, maxAge: 10000 },
     idGenerator: (request) => {
       if (request.session?.returningVisitor) return `returningVisitor-${new Date().getTime()}`
@@ -446,24 +428,19 @@ test('should use custom sessionId generator if available (with request)', async 
 
 test('should use custom sessionId generator if available (with request and rolling false)', async (t) => {
   const fastify = Fastify()
-  fastify.register(fastifyCookie)
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
   fastify.register(fastifySession, {
-    secret: DEFAULT_SECRET,
     rolling: false,
     cookie: { secure: false, maxAge: 10000 },
     idGenerator: (request) => {
       if (request.session?.returningVisitor) {
-        return `returningVisitor-${
-          new Date().getTime()
-        }-${
-          Math.random().toString().slice(2)
-        }`
+        return `returningVisitor-${new Date().getTime()
+          }-${Math.random().toString().slice(2)
+          }`
       }
-      return `custom-${
-        new Date().getTime()
-      }-${
-        Math.random().toString().slice(2)
-      }`
+      return `custom-${new Date().getTime()
+        }-${Math.random().toString().slice(2)
+        }`
     }
   })
   t.teardown(() => fastify.close())
@@ -519,7 +496,7 @@ test('should reload the session', async (t) => {
 
       reply.send(200)
     })
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -549,7 +526,7 @@ test('should save the session', async (t) => {
         reply.send(200)
       })
     })
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -565,7 +542,7 @@ test('destroy supports promises', async t => {
     await t.resolves(request.session.destroy())
 
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -582,7 +559,7 @@ test('destroy supports rejecting promises', async t => {
 
     reply.send(200)
   }, {
-    ...DEFAULT_OPTIONS,
+    ...DEFAULT_COOKIE_OPTIONS,
     store: {
       set (id, data, cb) { cb(null) },
       get (id, cb) { cb(null) },
@@ -605,7 +582,7 @@ test('regenerate supports promises', async t => {
     await t.resolves(request.session.regenerate())
 
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -622,7 +599,7 @@ test('regenerate supports rejecting promises', async t => {
 
     reply.send(200)
   }, {
-    ...DEFAULT_OPTIONS,
+    ...DEFAULT_COOKIE_OPTIONS,
     store: {
       set (id, data, cb) { cb(new Error('no can do')) },
       get (id, cb) { cb(null) },
@@ -645,7 +622,7 @@ test('reload supports promises', async t => {
     await t.resolves(request.session.reload())
 
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -662,7 +639,7 @@ test('reload supports rejecting promises', async t => {
 
     reply.send(200)
   }, {
-    ...DEFAULT_OPTIONS,
+    ...DEFAULT_COOKIE_OPTIONS,
     store: {
       set (id, data, cb) { cb(null) },
       get (id, cb) { cb(new Error('no can do')) },
@@ -685,7 +662,7 @@ test('save supports promises', async t => {
     await t.resolves(request.session.save())
 
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -702,7 +679,7 @@ test('save supports rejecting promises', async t => {
 
     reply.send(200)
   }, {
-    ...DEFAULT_OPTIONS,
+    ...DEFAULT_COOKIE_OPTIONS,
     store: {
       set (id, data, cb) { cb(new Error('no can do')) },
       get (id, cb) { cb(null) },
@@ -723,7 +700,7 @@ test("clears cookie if not backed by a session, and there's nothing to save", as
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -739,7 +716,7 @@ test('does not clear cookie if no session cookie in request', async t => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -757,10 +734,9 @@ test('only save session when it changes', async t => {
   const store = new Map()
 
   const fastify = Fastify()
-  fastify.register(fastifyCookie)
+  fastify.register(fastifyCookie, DEFAULT_COOKIE_OPTIONS)
 
   fastify.register(fastifySession, {
-    ...DEFAULT_OPTIONS,
     saveUninitialized: false,
     cookie: { secure: false },
     store: {

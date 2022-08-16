@@ -2,7 +2,7 @@
 
 const test = require('tap').test
 const fastifyPlugin = require('fastify-plugin')
-const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, DEFAULT_SESSION_ID } = require('./util')
+const { buildFastify, DEFAULT_COOKIE_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, DEFAULT_SESSION_ID } = require('./util')
 const { Store } = require('..')
 
 test('should decorate request with sessionStore', async (t) => {
@@ -11,7 +11,7 @@ test('should decorate request with sessionStore', async (t) => {
   const fastify = await buildFastify((request, reply) => {
     t.ok(request.sessionStore)
     reply.send(200)
-  }, DEFAULT_OPTIONS)
+  }, DEFAULT_COOKIE_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
