@@ -28,7 +28,7 @@
     "url": "git+https://github.com/fastify/session.git"
   },
   "devDependencies": {
-    "@fastify/cookie": "^7.0.0",
+    "@fastify/cookie": "^8.0.0",
     "@types/node": "^18.0.0",
     "connect-redis": "^6.1.3",
     "cronometro": "^1.1.0",
