@@ -1,6 +1,7 @@
 'use strict'
 
 const test = require('tap').test
+const Signer = require('@fastify/cookie').Signer
 const fastifyPlugin = require('fastify-plugin')
 const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, buildFastify } = require('./util')
 
@@ -333,4 +334,68 @@ test('should not set session cookie if no data in session and saveUninitialized 
 
   t.equal(response.statusCode, 200)
   t.ok(response.headers['set-cookie'] === undefined)
+})
+
+test('should handle algorithm sha256', async (t) => {
+  t.plan(3)
+  const options = { secret: DEFAULT_SECRET, algorithm: 'sha256' }
+  const fastify = await buildFastify((request, reply) => {
+    reply.send(200)
+  }, options)
+  t.teardown(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: {
+      cookie: DEFAULT_COOKIE,
+      'x-forwarded-proto': 'https'
+    }
+  })
+
+  t.equal(response.statusCode, 200)
+  t.equal(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
+  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
+})
+
+test('should handle algorithm sha512', async (t) => {
+  t.plan(3)
+  const options = { secret: DEFAULT_SECRET, algorithm: 'sha512' }
+  const fastify = await buildFastify((request, reply) => {
+    reply.send(200)
+  }, options)
+  t.teardown(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: {
+      cookie: DEFAULT_COOKIE,
+      'x-forwarded-proto': 'https'
+    }
+  })
+
+  t.equal(response.statusCode, 200)
+  t.equal(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
+  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly; Secure/)
+})
+
+test('should handle custom signer', async (t) => {
+  const signer = new Signer(DEFAULT_SECRET, 'sha512')
+  t.plan(3)
+  const options = { secret: signer }
+  const fastify = await buildFastify((request, reply) => {
+    reply.send(200)
+  }, options)
+  t.teardown(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: {
+      cookie: DEFAULT_COOKIE,
+      'x-forwarded-proto': 'https'
+    }
+  })
+
+  t.equal(response.statusCode, 200)
+  t.equal(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
+  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly; Secure/)
 })

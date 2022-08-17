@@ -5,7 +5,6 @@ const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const sinon = require('sinon')
 const fastifySession = require('..')
-const cookieSignature = require('cookie-signature')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
 
 test('should add session object to request', async (t) => {
@@ -799,73 +798,4 @@ test('only save session when it changes', async t => {
   t.equal(setStub.callCount, 1)
   // no set-cookie
   t.equal(setCookieHeader2, undefined)
-})
-
-test('when unsignSignedCookie is true sessions should still be managed correctly', async t => {
-  const store = new Map()
-  const cookieSignKey = 'some-key'
-  const options = {
-    ...DEFAULT_OPTIONS,
-    unsignSignedCookie: true,
-    cookie: { secure: false, signed: false },
-    store: {
-      set (id, data, cb) {
-        store.set(id, data)
-        cb(null)
-      },
-      get (id, cb) { cb(null, store.get(id)) },
-      destroy (id, cb) {
-        store.delete(id)
-        cb(null)
-      }
-    }
-  }
-
-  const runTestScenario = async (cookieSigned) => {
-    options.cookie.signed = cookieSigned
-
-    let encryptedSessionId = null
-
-    const fastify = Fastify()
-    fastify.register(fastifyCookie, { secret: cookieSignKey })
-    fastify.register(fastifySession, options)
-    fastify.get('/', (request, reply) => {
-      encryptedSessionId = encryptedSessionId || request.session.encryptedSessionId
-      reply.send(200)
-    })
-
-    const {
-      statusCode: statusCode1,
-      headers: {
-        'set-cookie': cookie1
-      }
-    } = await fastify.inject('/')
-    t.ok(cookie1)
-    t.equal(statusCode1, 200)
-
-    const { sessionId: sessionId1 } = fastify.parseCookie(cookie1)
-    t.equal(sessionId1, encryptedSessionId)
-
-    const sessionId = cookieSigned
-      ? cookieSignature.sign(sessionId1, cookieSignKey)
-      : sessionId1
-    const cookie = `sessionId=${sessionId};`
-    const {
-      statusCode: statusCode2,
-      headers: {
-        'set-cookie': cookie2
-      }
-    } = await fastify.inject({
-      path: '/',
-      headers: { cookie }
-    })
-    t.equal(statusCode2, 200)
-    t.ok(cookie2)
-
-    const { sessionId: sessionId2 } = fastify.parseCookie(cookie2)
-    t.equal(sessionId2, encryptedSessionId)
-  }
-
-  await runTestScenario(false)
-  await runTestScenario(true)
 })

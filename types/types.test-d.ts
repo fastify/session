@@ -54,7 +54,6 @@ app.register(plugin, {
 });
 app.register(plugin, {
   secret,
-  unsignSignedCookie: true
 });
 app.register(plugin, {
   secret,
@@ -62,10 +61,6 @@ app.register(plugin, {
 });
 
 expectError(app.register(plugin, {}));
-expectError(app.register(plugin, {
-  secret,
-  unsignSignedCookie: 'not-a-boolean'
-}));
 
 app.route({
   method: 'GET',
@@ -101,3 +96,14 @@ app.route({
     expectType<Promise<void>>(request.session.save());
   }
 });
+
+const customSigner = {
+  sign: (value: string) => value,
+  unsign: (input: string) => ({
+    valid: true,
+    renew: false,
+    value: null
+  })
+}
+
+app.register(plugin, { secret: customSigner });
