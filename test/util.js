@@ -17,7 +17,7 @@ async function buildFastify (handler, sessionOptions, plugin) {
   if (plugin) {
     await fastify.register(plugin)
   }
-  await fastify.register(fastifySession, Object.assign({}, sessionOptions))
+  await fastify.register(fastifySession, sessionOptions)
 
   fastify.get('/', handler)
   await fastify.listen({ port: 0 })
