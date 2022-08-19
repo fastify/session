@@ -104,6 +104,6 @@ const customSigner = {
     renew: false,
     value: null
   })
-}
+};
 
 app.register(plugin, { secret: customSigner });
