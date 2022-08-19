@@ -104,7 +104,7 @@ test('should allow get/set methods for fetching/updating session values', async 
 test('should use custom sessionId generator if available (without request)', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
-    t.equal(request.session.sessionId.startsWith('custom-'), false)
+    t.ok(request.session.sessionId.startsWith('custom-'))
     reply.send(200)
   }, {
     idGenerator: () => {
