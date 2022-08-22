@@ -46,15 +46,17 @@ test('should set session cookie', async (t) => {
 })
 
 test('should support multiple secrets', async (t) => {
-  t.plan(2)
+  t.plan(4)
+  const newSecret = 'geheim'
   const options = {
-    secret: ['geheim', DEFAULT_SECRET]
+    secret: [newSecret, DEFAULT_SECRET]
   }
 
+  const sessionId = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e'
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set('aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e', {
-        expires: Date.now() + 1000
+      request.sessionStore.set(sessionId, {
+        test: 1
       }, done)
     })
   })
@@ -65,16 +67,27 @@ test('should support multiple secrets', async (t) => {
   const fastify = await buildFastify(handler, options, plugin)
   t.teardown(() => fastify.close())
 
-  const response = await fastify.inject({
+  const sessionIdSignedWOldSecret = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.InCp31AuDa7DX%2F8rGBz8RMFiCpmUtjcF%2BS7Aco7tur8'
+  const response1 = await fastify.inject({
     url: '/',
     headers: {
       'x-forwarded-proto': 'https',
-      cookie: 'sessionId=aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.eiVu2YbrcqbTUYTYaANks%2Fjn%2Bjta7QgpsxLO%2BOLN%2F4U; Path=/; HttpOnly; Secure'
+      cookie: `sessionId=${sessionIdSignedWOldSecret}; Path=/; HttpOnly; Secure`
     }
   })
+  t.equal(response1.statusCode, 200)
+  t.equal(response1.headers['set-cookie'].includes(sessionId), true)
 
-  t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'].includes('aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e'), false)
+  const sessionIdSignedWNewSecret = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.eiVu2YbrcqbTUYTYaANks%2Fjn%2Bjta7QgpsxLO%2BOLN%2F4U'
+  const response2 = await fastify.inject({
+    url: '/',
+    headers: {
+      'x-forwarded-proto': 'https',
+      cookie: `sessionId=${sessionIdSignedWNewSecret}; Path=/; HttpOnly; Secure`
+    }
+  })
+  t.equal(response2.statusCode, 200)
+  t.equal(response2.headers['set-cookie'].includes(sessionId), true)
 })
 
 test('should set session cookie using the specified cookie name', async (t) => {
@@ -100,20 +113,11 @@ test('should set session cookie using the specified cookie name', async (t) => {
 
 test('should set session cookie using the default cookie name', async (t) => {
   t.plan(2)
-  const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set(DEFAULT_SESSION_ID, {
-        expires: Date.now() + 1000,
-        sessionId: DEFAULT_SESSION_ID,
-        cookie: { secure: true, httpOnly: true, path: '/' }
-      }, done)
-    })
-  })
   function handler (request, reply) {
     request.session.test = {}
     reply.send(200)
   }
-  const fastify = await buildFastify(handler, DEFAULT_OPTIONS, plugin)
+  const fastify = await buildFastify(handler, DEFAULT_OPTIONS)
   t.teardown(() => fastify.close())
 
   const response = await fastify.inject({
@@ -125,7 +129,7 @@ test('should set session cookie using the default cookie name', async (t) => {
   })
 
   t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=undefined; Path=\/; HttpOnly; Secure/)
+  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
 test('should set express sessions using the specified cookiePrefix', async (t) => {
@@ -167,7 +171,6 @@ test('should create new session on expired session', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
-        sessionId: DEFAULT_SESSION_ID,
         cookie: { secure: true, httpOnly: true, path: '/', expires: Date.now() - 1000 }
       }, done)
     })
@@ -223,7 +226,7 @@ test('should set new session cookie if expired', async (t) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: {
-          expires: Date.now() + 1000
+          expires: Date.now() - 1000
         }
       }, done)
     })

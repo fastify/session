@@ -216,7 +216,7 @@ test('should decorate the server with decryptSession', async t => {
 })
 
 test('should decryptSession with custom request object', async (t) => {
-  t.plan(4)
+  t.plan(3)
   const fastify = Fastify()
 
   const options = {
@@ -228,7 +228,6 @@ test('should decryptSession with custom request object', async (t) => {
   fastify.addHook('onRequest', (request, reply, done) => {
     request.sessionStore.set(DEFAULT_SESSION_ID, {
       testData: 'this is a test',
-      sessionId: DEFAULT_SESSION_ID,
       cookie: { secure: true, httpOnly: true, path: '/', expires: Date.now() + 1000 }
     }, done)
   })
@@ -248,7 +247,6 @@ test('should decryptSession with custom request object', async (t) => {
   const requestObj = {}
   fastify.decryptSession(sessionId, requestObj, () => {
     t.equal(requestObj.session.cookie.maxAge, null)
-    t.equal(requestObj.session.sessionId, DEFAULT_SESSION_ID)
     t.equal(requestObj.session.testData, 'this is a test')
   })
 })
