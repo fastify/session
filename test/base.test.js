@@ -98,23 +98,23 @@ test('should support multiple secrets', async (t) => {
   const fastify = await buildFastify(handler, options, plugin)
   t.teardown(() => fastify.close())
 
-  const sessionIdSignedWOldSecret = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.InCp31AuDa7DX%2F8rGBz8RMFiCpmUtjcF%2BS7Aco7tur8'
+  const sessionIdSignedWithOldSecret = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.InCp31AuDa7DX%2F8rGBz8RMFiCpmUtjcF%2BS7Aco7tur8'
   const response1 = await fastify.inject({
     url: '/',
     headers: {
       'x-forwarded-proto': 'https',
-      cookie: `sessionId=${sessionIdSignedWOldSecret}; Path=/; HttpOnly; Secure`
+      cookie: `sessionId=${sessionIdSignedWithOldSecret}; Path=/; HttpOnly; Secure`
     }
   })
   t.equal(response1.statusCode, 200)
   t.equal(response1.headers['set-cookie'].includes(sessionId), true)
 
-  const sessionIdSignedWNewSecret = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.eiVu2YbrcqbTUYTYaANks%2Fjn%2Bjta7QgpsxLO%2BOLN%2F4U'
+  const sessionIdSignedWithNewSecret = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.eiVu2YbrcqbTUYTYaANks%2Fjn%2Bjta7QgpsxLO%2BOLN%2F4U'
   const response2 = await fastify.inject({
     url: '/',
     headers: {
       'x-forwarded-proto': 'https',
-      cookie: `sessionId=${sessionIdSignedWNewSecret}; Path=/; HttpOnly; Secure`
+      cookie: `sessionId=${sessionIdSignedWithNewSecret}; Path=/; HttpOnly; Secure`
     }
   })
   t.equal(response2.statusCode, 200)
