@@ -4,6 +4,7 @@ const test = require('tap').test
 const Signer = require('@fastify/cookie').Signer
 const fastifyPlugin = require('fastify-plugin')
 const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, buildFastify } = require('./util')
+const Store = require('../lib/fastifySession').Store;
 
 test('should not set session cookie on post without params', async (t) => {
   t.plan(3)
@@ -18,6 +19,36 @@ test('should not set session cookie on post without params', async (t) => {
   t.equal(response.statusCode, 400)
   t.ok(response.body.includes('FST_ERR_CTP_EMPTY_JSON_BODY'))
   t.same(response.headers['set-cookie'], undefined)
+})
+
+test('should save the session properly', async (t) => {
+  t.plan(6)
+  const store = new Store()
+  const fastify = await buildFastify((request, reply) => {
+    request.session.test = true
+
+    request.session.save(() => {
+      const storeMap = store.store;
+      // Only one session
+      t.equal(storeMap.size, 1)
+
+      const [sessionId, session] = [...storeMap.entries()][0]
+      const keys = Object.keys(session)
+
+      // Only storing three keys: cookie, encryptedSessionId and test
+      t.equal(keys.length, 3)
+      t.ok(session.cookie)
+      t.ok(session.encryptedSessionId)
+      t.equal(session.test, true)
+    })
+    reply.send()
+  }, {...DEFAULT_OPTIONS, store })
+  t.teardown(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+  t.equal(response.statusCode, 200)
 })
 
 test('should set session cookie', async (t) => {
