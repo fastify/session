@@ -77,28 +77,41 @@ test('should set session cookie', async (t) => {
 })
 
 test('should support multiple secrets', async (t) => {
-  t.plan(4)
+  t.plan(10)
+  const sign = require('@fastify/cookie/signer').sign
+
   const newSecret = 'geheim'
-  const options = {
-    secret: [newSecret, DEFAULT_SECRET]
-  }
 
   const sessionId = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e'
-  const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('onRequest', (request, reply, done) => {
-      request.sessionStore.set(sessionId, {
-        test: 1
-      }, done)
-    })
+  const sessionIdSignedWithOldSecret = sign(sessionId, DEFAULT_SECRET)
+  const sessionIdSignedWithNewSecret = sign(sessionId, newSecret)
+
+  const storeMap = new Map()
+  const store = new Store(storeMap)
+
+  storeMap.set(sessionId, {
+    test: 0,
+    cookie: {}
   })
-  function handler (request, reply) {
-    request.session.test = {}
-    reply.send(200)
+
+  const options = {
+    secret: [newSecret, DEFAULT_SECRET],
+    store
   }
-  const fastify = await buildFastify(handler, options, plugin)
+
+  let counter = 0
+  const fastify = await buildFastify(
+    async function handler (request, reply) {
+      t.equal(request.session.sessionId, sessionId)
+      t.equal(request.session.test, counter)
+
+      request.session.test = ++counter
+      await request.session.save()
+      reply.send(200)
+    }, options)
+
   t.teardown(() => fastify.close())
 
-  const sessionIdSignedWithOldSecret = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.InCp31AuDa7DX%2F8rGBz8RMFiCpmUtjcF%2BS7Aco7tur8'
   const response1 = await fastify.inject({
     url: '/',
     headers: {
@@ -107,9 +120,8 @@ test('should support multiple secrets', async (t) => {
     }
   })
   t.equal(response1.statusCode, 200)
-  t.equal(response1.headers['set-cookie'].includes(sessionId), true)
+  t.ok(response1.headers['set-cookie'].includes(encodeURIComponent(sessionIdSignedWithNewSecret)))
 
-  const sessionIdSignedWithNewSecret = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e.eiVu2YbrcqbTUYTYaANks%2Fjn%2Bjta7QgpsxLO%2BOLN%2F4U'
   const response2 = await fastify.inject({
     url: '/',
     headers: {
@@ -117,6 +129,8 @@ test('should support multiple secrets', async (t) => {
       cookie: `sessionId=${sessionIdSignedWithNewSecret}; Path=/; HttpOnly; Secure`
     }
   })
+  t.not(storeMap.get(sessionId).sessionId)
+  t.equal(storeMap.get(sessionId).test, 2)
   t.equal(response2.statusCode, 200)
   t.equal(response2.headers['set-cookie'].includes(sessionId), true)
 })
