@@ -247,7 +247,7 @@ test('should create new session on expired session', async (t) => {
 
   t.equal(response.statusCode, 200)
   t.not(response.headers['set-cookie'].includes(DEFAULT_SESSION_ID))
-  t.match(response.headers['set-cookie'], RegExp(`sessionId=.*\..*; Path=\/; Expires=${new Date(now + 100).toUTCString()}; HttpOnly; Secure`))
+  t.match(response.headers['set-cookie'], RegExp(`sessionId=.*; Path=/; Expires=${new Date(now + 100).toUTCString()}; HttpOnly; Secure`))
 })
 
 test('should set session.cookie.expires if maxAge', async (t) => {
