@@ -140,7 +140,7 @@ test('should keep user data in session throughout the time', async (t) => {
     reply.send(200)
   })
   fastify.get('/check', (request, reply) => {
-    t.ok(request.session.foo === 'bar')
+    t.equal(request.session.foo, 'bar')
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
@@ -387,7 +387,7 @@ test('should update the expires property of the session using Session#touch() ev
   })
   t.equal(response2.statusCode, 200)
 
-  t.ok(response1.body !== response2.body)
+  t.not(response1.body, response2.body)
 })
 
 test('should use custom sessionId generator if available (with request)', async (t) => {
@@ -423,7 +423,7 @@ test('should use custom sessionId generator if available (with request)', async 
     url: '/'
   })
   t.equal(response1.statusCode, 200)
-  t.ok(response1.headers['set-cookie'] !== undefined)
+  t.not(response1.headers['set-cookie'], undefined)
   t.ok(response1.body.startsWith('custom-'))
 
   const response2 = await fastify.inject({
@@ -431,7 +431,7 @@ test('should use custom sessionId generator if available (with request)', async 
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.equal(response2.statusCode, 200)
-  t.ok(response2.headers['set-cookie'] !== undefined)
+  t.not(response2.headers['set-cookie'], undefined)
 
   const response3 = await fastify.inject({
     url: '/',
@@ -485,7 +485,7 @@ test('should use custom sessionId generator if available (with request and rolli
     url: '/'
   })
   t.equal(response1.statusCode, 200)
-  t.ok(response1.headers['set-cookie'] !== undefined)
+  t.not(response1.headers['set-cookie'], undefined)
   t.ok(response1.body.startsWith('custom-'))
 
   const response2 = await fastify.inject({
@@ -493,7 +493,7 @@ test('should use custom sessionId generator if available (with request and rolli
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.equal(response2.statusCode, 200)
-  t.ok(response2.headers['set-cookie'] !== undefined)
+  t.not(response2.headers['set-cookie'], undefined)
 
   const response3 = await fastify.inject({
     url: '/',
