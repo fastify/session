@@ -750,9 +750,6 @@ test('does not clear cookie if no session cookie in request', async t => {
 test('only save session when it changes', async t => {
   t.plan(6)
   let setCount = 0
-  function setStub () {
-    ++setCount
-  }
   const store = new Map()
 
   const fastify = Fastify()
@@ -764,7 +761,7 @@ test('only save session when it changes', async t => {
     cookie: { secure: false },
     store: {
       set (id, data, cb) {
-        setStub()
+        ++setCount
         store.set(id, data)
         cb(null)
       },
