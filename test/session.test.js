@@ -2,7 +2,6 @@
 
 const test = require('tap').test
 const Fastify = require('fastify')
-const fastifyPlugin = require('fastify-plugin')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
