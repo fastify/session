@@ -1,7 +1,6 @@
 'use strict'
 
 if (process.env.CI) {
-
   const { mock, before, afterEach, teardown } = require('tap')
   const redisStoreFactory = require('connect-redis')
   const Redis = require('ioredis')
@@ -16,7 +15,6 @@ if (process.env.CI) {
       super({ client })
     }
   }
-
 
   before(async () => {
     await client.flushall()

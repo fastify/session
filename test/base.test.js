@@ -29,7 +29,6 @@ test('should save the session properly', async (t) => {
 
     await request.session.save()
     store.length((_err, length) => {
-
       // Only one session
       t.equal(length, 1)
     })
@@ -122,7 +121,7 @@ test('should support multiple secrets', async (t) => {
 
   let counter = 0
   const fastify = await buildFastify(
-    async function handler(request, reply) {
+    async function handler (request, reply) {
       t.equal(request.session.sessionId, sessionId)
       t.equal(request.session.test, counter)
 
@@ -183,7 +182,7 @@ test('should set session cookie using the specified cookie name', async (t) => {
 
 test('should set session cookie using the default cookie name', async (t) => {
   t.plan(2)
-  function handler(request, reply) {
+  function handler (request, reply) {
     request.session.test = {}
     reply.send(200)
   }
@@ -217,7 +216,7 @@ test('should set express sessions using the specified cookiePrefix', async (t) =
       }, done)
     })
   })
-  function handler(request, reply) {
+  function handler (request, reply) {
     request.session.test = {}
     reply.send(200)
   }
@@ -249,7 +248,7 @@ test('should create new session on expired session', async (t) => {
       }, done)
     })
   })
-  function handler(request, reply) {
+  function handler (request, reply) {
     reply.send(200)
   }
   const options = {
@@ -281,7 +280,7 @@ test('should set session.cookie.expires if maxAge', async (t) => {
     secret: DEFAULT_SECRET,
     cookie: { maxAge: 42 }
   }
-  function handler(request, reply) {
+  function handler (request, reply) {
     t.ok(request.session.cookie.expires)
     reply.send(200)
   }
@@ -309,7 +308,7 @@ test('should set new session cookie if expired', async (t) => {
       }, done)
     })
   })
-  function handler(request, reply) {
+  function handler (request, reply) {
     request.session.test = {}
     reply.send(200)
   }
@@ -372,7 +371,7 @@ test('should not set session cookie on invalid path', async (t) => {
 test('should create new session if cookie contains invalid session', async (t) => {
   t.plan(3)
   const options = { secret: DEFAULT_SECRET }
-  function handler(request, reply) {
+  function handler (request, reply) {
     request.session.test = {}
     reply.send(200)
   }
