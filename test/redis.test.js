@@ -29,6 +29,5 @@ if (process.env.CI) {
   mock('./base.test', { '../lib/store': RedisStore })
   mock('./cookie.test', { '../lib/store': RedisStore })
   mock('./session.test', { '../lib/store': RedisStore })
-  mock('./idGenerator.test', { '../lib/store': RedisStore })
   mock('./store.test', { '../lib/store': RedisStore })
 }
