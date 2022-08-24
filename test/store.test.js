@@ -3,7 +3,6 @@
 const test = require('tap').test
 const fastifyPlugin = require('fastify-plugin')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, DEFAULT_SESSION_ID } = require('./util')
-const { Store } = require('..')
 
 test('should decorate request with sessionStore', async (t) => {
   t.plan(2)
@@ -122,15 +121,6 @@ test('should set new session cookie if expired', async (t) => {
 
   t.equal(statusCode, 500)
   t.equal(cookie, undefined)
-})
-
-test('store should be an event emitter', t => {
-  t.plan(1)
-
-  const store = new Store()
-
-  store.on('test', () => t.pass())
-  store.emit('test')
 })
 
 class FailOnDestroyStore {
