@@ -22,7 +22,7 @@ test('should not set session cookie on post without params', async (t) => {
 })
 
 test('should save the session properly', async (t) => {
-  t.plan(6)
+  t.plan(5)
   const store = new Store()
   const fastify = await buildFastify((request, reply) => {
     request.session.test = true
@@ -36,9 +36,8 @@ test('should save the session properly', async (t) => {
       const keys = Object.keys(session)
 
       // Only storing three keys: cookie, encryptedSessionId and test
-      t.equal(keys.length, 3)
+      t.equal(keys.length, 2)
       t.ok(session.cookie)
-      t.ok(session.encryptedSessionId)
       t.equal(session.test, true)
     })
     reply.send()
