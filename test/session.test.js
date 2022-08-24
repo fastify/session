@@ -3,7 +3,6 @@
 const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
-const sinon = require('sinon')
 const fastifySession = require('..')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
 
@@ -750,7 +749,10 @@ test('does not clear cookie if no session cookie in request', async t => {
 
 test('only save session when it changes', async t => {
   t.plan(6)
-  const setStub = sinon.stub()
+  let setCount = 0
+  function setStub() {
+    ++setCount
+  }
   const store = new Map()
 
   const fastify = Fastify()
@@ -784,7 +786,7 @@ test('only save session when it changes', async t => {
   const setCookieHeader1 = response1.headers['set-cookie']
 
   t.equal(response1.statusCode, 200)
-  t.equal(setStub.callCount, 1)
+  t.equal(setCount, 1)
   t.equal(typeof setCookieHeader1, 'string')
 
   const { sessionId } = fastify.parseCookie(setCookieHeader1)
@@ -794,7 +796,7 @@ test('only save session when it changes', async t => {
 
   t.equal(response1.statusCode, 200)
   // still only called once
-  t.equal(setStub.callCount, 1)
+  t.equal(setCount, 1)
   // no set-cookie
   t.equal(setCookieHeader2, undefined)
 })
