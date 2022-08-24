@@ -22,16 +22,13 @@ test('should not set session cookie on post without params', async (t) => {
 })
 
 test('should save the session properly', async (t) => {
-  t.plan(6)
+  t.plan(5)
   const store = new Store()
+
   const fastify = await buildFastify(async (request, reply) => {
     request.session.test = true
 
     await request.session.save()
-    store.length((_err, length) => {
-      // Only one session
-      t.equal(length, 1)
-    })
 
     const sessionId = request.session.sessionId
 
