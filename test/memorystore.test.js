@@ -91,7 +91,7 @@ test('MemoryStore.destroy: should remove a sessionId / 2', t => {
   })
 })
 
-test('MemoryStore.destroy: should remove a sessionId / 2', t => {
+test('MemoryStore.destroy: should not remove stored sessions if invalidId is provided', t => {
   t.plan(3)
 
   const internalStore = new Map()
