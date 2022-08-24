@@ -750,7 +750,7 @@ test('does not clear cookie if no session cookie in request', async t => {
 test('only save session when it changes', async t => {
   t.plan(6)
   let setCount = 0
-  function setStub() {
+  function setStub () {
     ++setCount
   }
   const store = new Map()
