@@ -121,7 +121,7 @@ test('should support multiple secrets', async (t) => {
 
   let counter = 0
   const fastify = await buildFastify(
-    async function handler (request, reply) {
+    function handler (request, reply) {
       t.equal(request.session.sessionId, sessionId)
       t.equal(request.session.test, counter)
 
