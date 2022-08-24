@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npm run test:unit && npm run test:typescript",
     "test:unit": "tap",
-    "test:ci": "CI=1 tap",
+    "test:unit:memory": "NO_REDIS=1 tap",
     "test:typescript": "tsd",
     "benchmark": "node benchmark/bench.js",
     "lint": "standard lib/* test/* benchmark/*.js",

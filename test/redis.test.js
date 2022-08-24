@@ -1,6 +1,6 @@
 'use strict'
 
-if (process.env.CI) {
+if (!process.env.NO_REDIS) {
   const { mock, before, afterEach, teardown } = require('tap')
   const redisStoreFactory = require('connect-redis')
   const Redis = require('ioredis')
