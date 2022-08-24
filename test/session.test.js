@@ -2,6 +2,7 @@
 
 const test = require('tap').test
 const Fastify = require('fastify')
+const fastifyPlugin = require('fastify-plugin')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
@@ -810,11 +811,10 @@ test('will not update expires property of the session using Session#touch() if m
   })
   fastify.addHook('onRequest', (request, reply, done) => {
     request.session.touch()
-    reply.send(request.session.cookie.expires)
     done()
   })
 
-  fastify.get('/', (request, reply) => reply.send(200))
+  fastify.get('/', (request, reply) => reply.send({ expires: request.session.cookie.expires }))
   await fastify.listen({ port: 0 })
   t.teardown(() => { fastify.close() })
 
@@ -823,12 +823,12 @@ test('will not update expires property of the session using Session#touch() if m
   })
   t.equal(response1.statusCode, 200)
   await new Promise(resolve => setTimeout(resolve, 1))
-  t.equal(response1.body, 'null')
+  t.same(response1.json(), { expires: null })
 
   const response2 = await fastify.inject({
     url: '/',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.equal(response2.statusCode, 200)
-  t.equal(response2.body, 'null')
+  t.same(response2.json(), { expires: null })
 })
