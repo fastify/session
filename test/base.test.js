@@ -24,23 +24,32 @@ test('should not set session cookie on post without params', async (t) => {
 test('should save the session properly', async (t) => {
   t.plan(6)
   const store = new Store()
-  const fastify = await buildFastify((request, reply) => {
+  const fastify = await buildFastify(async (request, reply) => {
     request.session.test = true
 
-    request.session.save(() => {
-      const storeMap = store.store
+    await request.session.save()
+    store.length((_err, length) => {
       // Only one session
-      t.equal(storeMap.size, 1)
-
-      const session = [...storeMap.entries()][0][1]
-      const keys = Object.keys(session)
-
-      // Only storing three keys: cookie, encryptedSessionId and test
-      t.equal(keys.length, 3)
-      t.ok(session.cookie)
-      t.ok(session.encryptedSessionId)
-      t.equal(session.test, true)
+      t.equal(length, 1)
     })
+
+    const sessionId = request.session.sessionId
+
+    const session = await new Promise((resolve, reject) => {
+      store.get(sessionId, (err, session) => {
+        err
+          ? reject(err)
+          : resolve(session)
+      })
+    })
+
+    const keys = Object.keys(session)
+
+    // Only storing three keys: cookie, encryptedSessionId and test
+    t.equal(keys.length, 3)
+    t.ok(session.cookie)
+    t.ok(session.encryptedSessionId)
+    t.equal(session.test, true)
     reply.send()
   }, { ...DEFAULT_OPTIONS, store })
   t.teardown(() => fastify.close())
@@ -86,13 +95,16 @@ test('should support multiple secrets', async (t) => {
   const sessionIdSignedWithOldSecret = sign(sessionId, DEFAULT_SECRET)
   const sessionIdSignedWithNewSecret = sign(sessionId, newSecret)
 
-  const storeMap = new Map()
-  const store = new Store(storeMap)
+  const store = new Store()
 
-  storeMap.set(sessionId, {
+  await new Promise((resolve, reject) => store.set(sessionId, {
     test: 0,
     cookie: {}
-  })
+  }, (err) => {
+    err
+      ? reject(err)
+      : resolve()
+  }))
 
   const options = {
     secret: [newSecret, DEFAULT_SECRET],
@@ -101,13 +113,14 @@ test('should support multiple secrets', async (t) => {
 
   let counter = 0
   const fastify = await buildFastify(
-    async function handler (request, reply) {
+    function handler (request, reply) {
       t.equal(request.session.sessionId, sessionId)
       t.equal(request.session.test, counter)
 
       request.session.test = ++counter
-      await request.session.save()
-      reply.send(200)
+      request.session.save(() => {
+        reply.send(200)
+      })
     }, options)
 
   t.teardown(() => fastify.close())
@@ -129,8 +142,12 @@ test('should support multiple secrets', async (t) => {
       cookie: `sessionId=${sessionIdSignedWithNewSecret}; Path=/; HttpOnly; Secure`
     }
   })
-  t.not(storeMap.get(sessionId).sessionId)
-  t.equal(storeMap.get(sessionId).test, 2)
+  store.get(sessionId, (_err, session) => {
+    t.not(session.id, null)
+  })
+  store.get(sessionId, (_err, session) => {
+    t.equal(session.test, 2)
+  })
   t.equal(response2.statusCode, 200)
   t.equal(response2.headers['set-cookie'].includes(sessionId), true)
 })
