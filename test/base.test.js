@@ -126,8 +126,9 @@ test('should support multiple secrets', async (t) => {
       t.equal(request.session.test, counter)
 
       request.session.test = ++counter
-      await request.session.save()
-      reply.send(200)
+      request.session.save(() => {
+        reply.send(200)
+      })
     }, options)
 
   t.teardown(() => fastify.close())
