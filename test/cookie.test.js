@@ -415,8 +415,7 @@ test('should set session secure cookie secureAuto x-forwarded-proto header', asy
 
 test('should use maxAge instead of expires in session if both are set in options.cookie', async (t) => {
   t.plan(3)
-  const expires = new Date()
-  expires.setTime(34214461000) // 1971-02-01T00:01:01.000Z
+  const expires = new Date(34214461000) // 1971-02-01T00:01:01.000Z
   const options = {
     secret: DEFAULT_SECRET,
     cookie: { maxAge: 1000, expires }
