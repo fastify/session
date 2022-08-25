@@ -35,7 +35,7 @@ test('should save the session properly', async (t) => {
       const session = [...storeMap.entries()][0][1]
       const keys = Object.keys(session)
 
-      // Only storing three keys: cookie and test
+      // Only storing two keys: cookie and test
       t.equal(keys.length, 2)
       t.ok(keys.indexOf('cookie') !== -1)
       t.ok(keys.indexOf('test') !== -1)
