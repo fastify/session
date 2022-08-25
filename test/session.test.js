@@ -797,3 +797,37 @@ test('only save session when it changes', async t => {
   // no set-cookie
   t.equal(setCookieHeader2, undefined)
 })
+
+test('will not update expires property of the session using Session#touch() if maxAge is not set', async (t) => {
+  t.plan(4)
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    secret: DEFAULT_SECRET,
+    rolling: false,
+    cookie: { secure: false }
+  })
+  fastify.addHook('onRequest', (request, reply, done) => {
+    request.session.touch()
+    done()
+  })
+
+  fastify.get('/', (request, reply) => reply.send({ expires: request.session.cookie.expires }))
+  await fastify.listen({ port: 0 })
+  t.teardown(() => { fastify.close() })
+
+  const response1 = await fastify.inject({
+    url: '/'
+  })
+  t.equal(response1.statusCode, 200)
+  await new Promise(resolve => setTimeout(resolve, 1))
+  t.same(response1.json(), { expires: null })
+
+  const response2 = await fastify.inject({
+    url: '/',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.equal(response2.statusCode, 200)
+  t.same(response2.json(), { expires: null })
+})
