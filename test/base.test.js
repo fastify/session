@@ -4,7 +4,7 @@ const test = require('tap').test
 const Signer = require('@fastify/cookie').Signer
 const fastifyPlugin = require('fastify-plugin')
 const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, buildFastify } = require('./util')
-const Store = require('../lib/fastifySession').Store
+const TestStore = require('./TestStore')
 
 test('should not set session cookie on post without params', async (t) => {
   t.plan(3)
@@ -23,7 +23,7 @@ test('should not set session cookie on post without params', async (t) => {
 
 test('should save the session properly', async (t) => {
   t.plan(11)
-  const store = new Store()
+  const store = new TestStore()
   const fastify = await buildFastify((request, reply) => {
     request.session.test = true
 
@@ -44,8 +44,8 @@ test('should save the session properly', async (t) => {
 
       t.ok(session.cookie)
       t.equal(session.test, true)
-      t.ok(session.sessionId)
-      t.ok(session.encryptedSessionId)
+      t.equal(session.sessionId, undefined)
+      t.equal(session.encryptedSessionId, undefined)
     })
     reply.send()
   }, { ...DEFAULT_OPTIONS, store })
@@ -93,7 +93,7 @@ test('should support multiple secrets', async (t) => {
   const sessionIdSignedWithNewSecret = sign(sessionId, newSecret)
 
   const storeMap = new Map()
-  const store = new Store(storeMap)
+  const store = new TestStore(storeMap)
 
   storeMap.set(sessionId, {
     test: 0,
@@ -135,7 +135,7 @@ test('should support multiple secrets', async (t) => {
       cookie: `sessionId=${sessionIdSignedWithNewSecret}; Path=/; HttpOnly; Secure`
     }
   })
-  t.not(storeMap.get(sessionId).sessionId)
+  t.equal(storeMap.get(sessionId).sessionId, undefined)
   t.equal(storeMap.get(sessionId).test, 2)
   t.equal(response2.statusCode, 200)
   t.equal(response2.headers['set-cookie'].includes(sessionId), true)
