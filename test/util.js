@@ -3,6 +3,7 @@
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('../lib/fastifySession')
+const TestStore = require('./TestStore')
 
 const DEFAULT_SECRET = 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
 const DEFAULT_OPTIONS = { secret: DEFAULT_SECRET }
@@ -17,7 +18,7 @@ async function buildFastify (handler, sessionOptions, plugin) {
   if (plugin) {
     await fastify.register(plugin)
   }
-  await fastify.register(fastifySession, sessionOptions)
+  await fastify.register(fastifySession, { store: new TestStore(), ...sessionOptions })
 
   fastify.get('/', handler)
   await fastify.listen({ port: 0 })
