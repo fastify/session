@@ -37,10 +37,10 @@ test('should save the session properly', async (t) => {
 
       // Only storing two keys: cookie and test
       t.equal(keys.length, 2)
-      t.ok(keys.indexOf('cookie') !== -1)
-      t.ok(keys.indexOf('test') !== -1)
-      t.ok(keys.indexOf('sessionId') === -1)
-      t.ok(keys.indexOf('encryptedSessionId') === -1)
+      t.ok(keys.includes('cookie'))
+      t.ok(keys.includes('test'))
+      t.not(keys.includes('sessionId'))
+      t.not(keys.includes('encryptedSessionId'))
 
       t.ok(session.cookie)
       t.equal(session.test, true)
