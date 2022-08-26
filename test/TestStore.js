@@ -1,25 +1,10 @@
 'use strict'
 
-const { EventEmitter } = require('events')
+const { MemoryStore } = require('../lib/store')
 
-class TestStore extends EventEmitter {
-  constructor (storeMap = new Map()) {
-    super()
-    this.store = storeMap
-  }
-
+class TestStore extends MemoryStore {
   set (sessionId, session, callback) {
     this.store.set(sessionId, JSON.parse(JSON.stringify(session)))
-    callback()
-  }
-
-  get (sessionId, callback) {
-    const session = this.store.get(sessionId)
-    callback(null, session)
-  }
-
-  destroy (sessionId, callback) {
-    this.store.delete(sessionId)
     callback()
   }
 }
