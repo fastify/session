@@ -747,7 +747,7 @@ test('does not clear cookie if no session cookie in request', async t => {
   t.equal(response.headers['set-cookie'], undefined)
 })
 
-test('only save session when it changes', async t => {
+test('when rolling is false, only save session when it changes', async t => {
   t.plan(6)
   let setCount = 0
   const store = new Map()
@@ -759,6 +759,7 @@ test('only save session when it changes', async t => {
     ...DEFAULT_OPTIONS,
     saveUninitialized: false,
     cookie: { secure: false },
+    rolling: false,
     store: {
       set (id, data, cb) {
         ++setCount
@@ -796,6 +797,56 @@ test('only save session when it changes', async t => {
   t.equal(setCount, 1)
   // no set-cookie
   t.equal(setCookieHeader2, undefined)
+})
+
+test('when rolling is true, keep saving the session', async t => {
+  t.plan(6)
+  let setCount = 0
+  const store = new Map()
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    saveUninitialized: false,
+    cookie: { secure: false },
+    rolling: true,
+    store: {
+      set (id, data, cb) {
+        ++setCount
+        store.set(id, data)
+        cb(null)
+      },
+      get (id, cb) { cb(null, store.get(id)) },
+      destroy (id, cb) {
+        store.delete(id)
+        cb(null)
+      }
+    }
+  })
+
+  fastify.get('/', (request, reply) => {
+    request.session.userId = 42
+
+    reply.send(200)
+  })
+
+  const response1 = await fastify.inject('/')
+  const setCookieHeader1 = response1.headers['set-cookie']
+
+  t.equal(response1.statusCode, 200)
+  t.equal(setCount, 1)
+  t.equal(typeof setCookieHeader1, 'string')
+
+  const { sessionId } = fastify.parseCookie(setCookieHeader1)
+
+  const response2 = await fastify.inject({ path: '/', headers: { cookie: `sessionId=${sessionId}` } })
+  const setCookieHeader2 = response2.headers['set-cookie']
+
+  t.equal(response1.statusCode, 200)
+  t.equal(setCount, 2)
+  t.equal(typeof setCookieHeader2, 'string')
 })
 
 test('will not update expires property of the session using Session#touch() if maxAge is not set', async (t) => {
