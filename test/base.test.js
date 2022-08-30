@@ -194,7 +194,7 @@ test('should set express sessions using the specified cookiePrefix', async (t) =
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: new Date(Date.now() + 1000)
+        test: 1
       }, done)
     })
   })
@@ -217,7 +217,7 @@ test('should set express sessions using the specified cookiePrefix', async (t) =
   t.match(response.headers['set-cookie'], /connect.sid=s%3A[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
-test('should create new session on expired session', async (t) => {
+test('should create new session on expired session with maxAge', async (t) => {
   t.plan(3)
 
   const DateNow = Date.now
@@ -254,28 +254,6 @@ test('should create new session on expired session', async (t) => {
   t.equal(response.statusCode, 200)
   t.not(response.headers['set-cookie'].includes(DEFAULT_SESSION_ID))
   t.match(response.headers['set-cookie'], RegExp(`sessionId=.*; Path=/; Expires=${new Date(now + 100).toUTCString()}; HttpOnly; Secure`))
-})
-
-test('should set session.cookie.expires if maxAge', async (t) => {
-  t.plan(3)
-  const options = {
-    secret: DEFAULT_SECRET,
-    cookie: { maxAge: 42 }
-  }
-  function handler (request, reply) {
-    t.ok(request.session.cookie.expires)
-    reply.send(200)
-  }
-  const fastify = await buildFastify(handler, options)
-  t.teardown(() => fastify.close())
-
-  const response = await fastify.inject({
-    url: '/',
-    headers: { cookie: DEFAULT_COOKIE, 'x-forwarded-proto': 'https' }
-  })
-
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=.*\..*; Path=\/; Expires=.*; HttpOnly; Secure/)
 })
 
 test('should set new session cookie if expired', async (t) => {
