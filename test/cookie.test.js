@@ -95,7 +95,7 @@ test('should set session cookie is request is not secure and x-forwarded-proto =
   t.ok(response.headers['set-cookie'])
 })
 
-test('session.cookie should have expires if maxage is set', async (t) => {
+test('session.cookie should have expires if maxAge is set', async (t) => {
   t.plan(3)
   const options = {
     secret: DEFAULT_SECRET,
