@@ -194,7 +194,7 @@ test('should set express sessions using the specified cookiePrefix', async (t) =
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
-        expires: Date.now() + 1000
+        expires: new Date(Date.now() + 1000)
       }, done)
     })
   })
@@ -226,7 +226,7 @@ test('should create new session on expired session', async (t) => {
   const plugin = fastifyPlugin(async (fastify, opts) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
-        cookie: { secure: true, httpOnly: true, path: '/', expires: Date.now() - 1000 }
+        cookie: { secure: true, httpOnly: true, path: '/', expires: new Date(Date.now() - 1000) }
       }, done)
     })
   })
@@ -285,7 +285,7 @@ test('should set new session cookie if expired', async (t) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: {
-          expires: Date.now() - 1000
+          expires: new Date(Date.now() - 1000)
         }
       }, done)
     })

@@ -101,7 +101,7 @@ test('should set new session cookie if expired', async (t) => {
     fastify.addHook('onRequest', (request, reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: {
-          expires: Date.now() - 1000
+          expires: new Date(Date.now() - 1000)
         }
       }, done)
     })
