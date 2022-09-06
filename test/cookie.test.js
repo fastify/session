@@ -102,7 +102,7 @@ test('session.cookie should have expires if maxAge is set', async (t) => {
     cookie: { maxAge: 100000000, secure: false }
   }
   const fastify = await buildFastify((request, reply) => {
-    t.equal(request.session.cookie.maxAge, 100000000)
+    t.equal(request.session.cookie.originalMaxAge, 100000000)
     reply.send(200)
   }, options)
   t.teardown(() => { fastify.close() })
