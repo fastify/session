@@ -215,7 +215,7 @@ test('should decorate the server with decryptSession', async t => {
 })
 
 test('should decryptSession with custom request object', async (t) => {
-  t.plan(4)
+  t.plan(5)
   const fastify = Fastify()
 
   const options = {
@@ -245,6 +245,10 @@ test('should decryptSession with custom request object', async (t) => {
   const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
   const requestObj = {}
   fastify.decryptSession(sessionId, requestObj, () => {
+    // it should be possible to save the session
+    requestObj.session.save(err => {
+      t.error(err)
+    })
     t.equal(requestObj.session.cookie.originalMaxAge, null)
     t.equal(requestObj.session.testData, 'this is a test')
     t.equal(requestObj.session.sessionId, DEFAULT_SESSION_ID)
