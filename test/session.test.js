@@ -249,7 +249,7 @@ test('should decryptSession with custom request object', async (t) => {
     requestObj.session.save(err => {
       t.error(err)
     })
-    t.equal(requestObj.session.cookie.maxAge, null)
+    t.equal(requestObj.session.cookie.originalMaxAge, null)
     t.equal(requestObj.session.testData, 'this is a test')
     t.equal(requestObj.session.sessionId, DEFAULT_SESSION_ID)
   })
@@ -280,7 +280,7 @@ test('should decryptSession with custom cookie options', async (t) => {
   const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
   const requestObj = {}
   fastify.decryptSession(sessionId, requestObj, { maxAge: 86400 }, () => {
-    t.equal(requestObj.session.cookie.maxAge, 86400)
+    t.equal(requestObj.session.cookie.originalMaxAge, 86400)
   })
 })
 
