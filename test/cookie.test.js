@@ -4,7 +4,8 @@ const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('../lib/fastifySession')
-const { DEFAULT_OPTIONS, DEFAULT_SECRET, buildFastify } = require('./util')
+const fastifyPlugin = require('fastify-plugin')
+const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, buildFastify, DEFAULT_SESSION_ID } = require('./util')
 
 test('should set session cookie', async (t) => {
   t.plan(2)
@@ -437,4 +438,42 @@ test('should use maxAge instead of expires in session if both are set in options
   // and not determined by options.expires and should not have the year of 1971
   t.notMatch(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ 1971 \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure/)
   t.match(response.headers['set-cookie'], new RegExp(String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ ${dateFromBody.getFullYear()} \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure`))
+})
+
+test('should use session.cookie.originalMaxAge instead of the default maxAge', async (t) => {
+  t.plan(2)
+
+  const originalMaxAge = 1000
+  const maxAge = 2000
+
+  const DateNow = Date.now
+  const now = Date.now()
+  Date.now = () => now
+
+  const plugin = fastifyPlugin(async (fastify, opts) => {
+    fastify.addHook('onRequest', (request, reply, done) => {
+      request.sessionStore.set(DEFAULT_SESSION_ID, {
+        cookie: {
+          originalMaxAge,
+          expires: new Date(now + originalMaxAge)
+        }
+      }, done)
+    })
+  })
+
+  const fastify = await buildFastify((request, reply) => {
+    reply.send(200)
+  }, { secret: DEFAULT_SECRET, cookie: { maxAge } }, plugin)
+  t.teardown(() => {
+    fastify.close()
+    Date.now = DateNow
+  })
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: { cookie: DEFAULT_COOKIE, 'x-forwarded-proto': 'https' }
+  })
+
+  t.equal(response.statusCode, 200)
+  t.match(response.headers['set-cookie'], RegExp(`sessionId=.*; Path=/; Expires=${new Date(now + originalMaxAge).toUTCString()}; HttpOnly`))
 })
