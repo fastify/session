@@ -62,6 +62,12 @@ app.register(plugin, {
 
 expectError(app.register(plugin, {}));
 
+expectError(app.decryptSession<string>('sessionId', {}, () => ({})))
+app.decryptSession<{hello: 'world'}>('sessionId', { hello: 'world' }, () => ({}))
+app.decryptSession<{hello: 'world'}>('sessionId', { hello: 'world' }, { domain: '/' }, () => ({}))
+app.decryptSession('sessionId', {}, () => ({}))
+app.decryptSession('sessionId', {}, { domain: '/' }, () => ({}))
+
 app.route({
   method: 'GET',
   url: '/',
