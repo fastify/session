@@ -4,6 +4,11 @@ import { FastifyPluginCallback } from 'fastify';
 import type * as Fastify from 'fastify';
 
 declare module 'fastify' {
+  interface FastifyInstance {
+    decryptSession<Request extends Record<string, any> = FastifyRequest>(sessionId: string, request: Request, cookieOpts: FastifySessionPlugin.CookieOptions, callback: Callback): void;
+    decryptSession<Request extends Record<string, any> = FastifyRequest>(sessionId: string, request: Request, callback: Callback): void;
+  }
+
   interface FastifyRequest {
     /** Allows to access or modify the session data. */
     session: Fastify.Session;
