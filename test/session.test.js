@@ -886,3 +886,224 @@ test('will not update expires property of the session using Session#touch() if m
   t.equal(response2.statusCode, 200)
   t.same(response2.json(), { expires: null })
 })
+
+test('when cookie secure is set to true should handle secure and insecure connections properly', async t => {
+  t.plan(14)
+  let setCount = 0
+  const store = new Map()
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    saveUninitialized: true,
+    cookie: { secure: true, path: '/' },
+    rolling: false,
+    store: {
+      set (id, data, cb) {
+        ++setCount
+        store.set(id, data)
+        cb(null)
+      },
+      get (id, cb) { cb(null, store.get(id)) },
+      destroy (id, cb) {
+        store.delete(id)
+        cb(null)
+      }
+    }
+  })
+
+  fastify.get('/secure', (request, reply) => {
+    request.session.userId = 42
+
+    reply.send(200)
+  })
+
+  fastify.get('/secure2', (request, reply) => {
+    t.equal(request.session.userId, undefined)
+
+    reply.send(200)
+  })
+
+  fastify.get('/secure3', (request, reply) => {
+    t.equal(request.session.userId, 42)
+
+    reply.send(200)
+  })
+
+  // insecure http request should not create a new session
+  const response1 = await fastify.inject({ path: '/secure' })
+  const setCookieHeader1 = response1.headers['set-cookie']
+
+  t.equal(response1.statusCode, 200)
+  t.equal(setCount, 0)
+  t.equal(typeof setCookieHeader1, 'undefined')
+
+  // secure https request should create a new session
+  const response2 = await fastify.inject({ path: '/secure', headers: { 'x-forwarded-proto': 'https' } })
+  const setCookieHeader2 = response2.headers['set-cookie']
+
+  t.equal(response1.statusCode, 200)
+  t.equal(setCount, 1)
+  t.equal(typeof setCookieHeader2, 'string')
+
+  const { sessionId } = fastify.parseCookie(setCookieHeader2)
+
+  // insecure http request should not load the secured session
+  const response3 = await fastify.inject({ path: '/secure2', headers: { cookie: `sessionId=${sessionId}` } })
+  const setCookieHeader3 = response3.headers['set-cookie']
+
+  t.equal(response3.statusCode, 200)
+  t.equal(setCount, 1)
+  t.equal(typeof setCookieHeader3, 'undefined')
+
+  // secure http request should load the secured session
+  const response4 = await fastify.inject({ path: '/secure3', headers: { 'x-forwarded-proto': 'https', cookie: `sessionId=${sessionId}` } })
+  const setCookieHeader4 = response3.headers['set-cookie']
+
+  t.equal(response4.statusCode, 200)
+  t.equal(setCount, 1)
+  t.equal(typeof setCookieHeader4, 'undefined')
+})
+
+test('when cookie secure is set to auto should handle secure and insecure connections properly /1', async t => {
+  t.plan(11)
+  let setCount = 0
+  const store = new Map()
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    saveUninitialized: true,
+    cookie: { secure: 'auto' },
+    rolling: true,
+    store: {
+      set (id, data, cb) {
+        ++setCount
+        store.set(id, data)
+        cb(null)
+      },
+      get (id, cb) { cb(null, store.get(id)) },
+      destroy (id, cb) {
+        store.delete(id)
+        cb(null)
+      }
+    }
+  })
+
+  fastify.get('/insecure', (request, reply) => {
+    request.session.userId = 42
+
+    reply.send(200)
+  })
+
+  fastify.get('/insecure2', (request, reply) => {
+    t.equal(request.session.userId, undefined)
+    reply.send(200)
+  })
+
+  fastify.get('/insecure3', (request, reply) => {
+    t.equal(request.session.userId, 42)
+    reply.send(200)
+  })
+
+  // we set an insecure cookie because we have secure set to auto and make an insecure http call
+  const response1 = await fastify.inject({ path: '/insecure' })
+  const setCookieHeader1 = response1.headers['set-cookie']
+
+  t.equal(response1.statusCode, 200)
+  t.equal(setCount, 1)
+  t.match(response1.headers['set-cookie'], /^sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax$/)
+
+  // we dont have access to the session, because we are sending an non-secure cookie through a secure https call
+  const { sessionId } = fastify.parseCookie(setCookieHeader1)
+  const response2 = await fastify.inject({ path: '/insecure2', headers: { 'x-forwarded-proto': 'https', cookie: `sessionId=${sessionId}` } })
+
+  const setCookieHeader2 = response2.headers['set-cookie']
+
+  t.equal(response1.statusCode, 200)
+  t.equal(setCount, 1)
+  t.equal(typeof setCookieHeader2, 'undefined')
+
+  // we load the session, because we are sending an non-secure cookie through a insecure http call
+  const response3 = await fastify.inject({ path: '/insecure3', headers: { cookie: `sessionId=${sessionId}` } })
+  const setCookieHeader3 = response3.headers['set-cookie']
+
+  t.equal(response3.statusCode, 200)
+  t.equal(setCount, 2)
+  t.match(setCookieHeader3, /^sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax$/)
+})
+
+test('when cookie secure is set to auto should handle secure and insecure connections properly /2', async t => {
+  t.plan(11)
+  let setCount = 0
+  const store = new Map()
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    saveUninitialized: true,
+    cookie: { secure: 'auto' },
+    rolling: true,
+    store: {
+      set (id, data, cb) {
+        ++setCount
+        store.set(id, data)
+        cb(null)
+      },
+      get (id, cb) { cb(null, store.get(id)) },
+      destroy (id, cb) {
+        store.delete(id)
+        cb(null)
+      }
+    }
+  })
+
+  fastify.get('/secure', (request, reply) => {
+    request.session.userId = 42
+
+    reply.send(200)
+  })
+
+  fastify.get('/secure2', (request, reply) => {
+    t.equal(request.session.userId, undefined)
+    reply.send(200)
+  })
+
+  fastify.get('/secure3', (request, reply) => {
+    t.equal(request.session.userId, 42)
+    reply.send(200)
+  })
+
+  // we set a secure cookie because we have secure set to auto and make an secure http call
+  const response1 = await fastify.inject({ path: '/secure', headers: { 'x-forwarded-proto': 'https' } })
+  const setCookieHeader1 = response1.headers['set-cookie']
+
+  t.equal(response1.statusCode, 200)
+  t.equal(setCount, 1)
+  t.match(response1.headers['set-cookie'], /^sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure$/)
+
+  const { sessionId } = fastify.parseCookie(setCookieHeader1)
+
+  // we dont have access to the session, because we are sending an secure cookie through a non-secure http call
+  const response2 = await fastify.inject({ path: '/secure2', headers: { cookie: `sessionId=${sessionId}` } })
+
+  const setCookieHeader2 = response2.headers['set-cookie']
+
+  t.equal(response1.statusCode, 200)
+  t.equal(setCount, 1)
+  t.equal(typeof setCookieHeader2, 'undefined')
+
+  // we have access to the session, because we are sending an secure cookie through a secure http call
+  const response3 = await fastify.inject({ path: '/secure3', headers: { 'x-forwarded-proto': 'https', cookie: `sessionId=${sessionId}` } })
+  const setCookieHeader3 = response3.headers['set-cookie']
+
+  t.equal(response3.statusCode, 200)
+  t.equal(setCount, 2)
+  t.match(setCookieHeader3, /^sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure$/)
+})
