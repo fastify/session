@@ -292,3 +292,54 @@ test('should handle path properly /7', async (t) => {
 
   t.equal(response2.statusCode, 200)
 })
+
+test('should handle path properly /8', async (t) => {
+  t.plan(7)
+  const fastify = Fastify()
+
+  const options = {
+    secret: DEFAULT_SECRET,
+    cookie: { secure: false, path: '/check' }
+  }
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.post('/check/index', (request, reply) => {
+    request.session.foo = 'bar'
+    reply.send(200)
+  })
+  fastify.get('/check/page1', (request, reply) => {
+    t.same(request.session.foo, 'bar')
+    reply.send(200)
+  })
+  fastify.get('/chck/page1', (request, reply) => {
+    t.same(request.session.foo, null)
+    reply.send(200)
+  })
+  await fastify.listen({ port: 0 })
+  t.teardown(() => { fastify.close() })
+
+  const response1 = await fastify.inject({
+    url: '/check/index',
+    method: 'POST'
+  })
+
+  t.equal(response1.statusCode, 200)
+
+  const response2 = await fastify.inject({
+    url: '/check/page1',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.equal(response2.statusCode, 200)
+
+  const response3 = await fastify.inject({
+    url: '/chck/page1',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.equal(response3.statusCode, 200)
+
+  const response4 = await fastify.inject({
+    url: '/check/page1',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.equal(response4.statusCode, 200)
+})
