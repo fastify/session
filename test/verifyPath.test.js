@@ -24,8 +24,6 @@ test('should handle path properly /1', async (t) => {
     t.equal(request.session.foo, 'bar')
     reply.send(200)
   })
-  await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
@@ -59,8 +57,6 @@ test('should handle path properly /2', async (t) => {
     t.equal(request.session.foo, 'bar')
     reply.send(200)
   })
-  await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/check',
@@ -95,8 +91,6 @@ test('should handle path properly /2', async (t) => {
     t.equal(request.session.foo, 'bar')
     reply.send(200)
   })
-  await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/check',
@@ -131,8 +125,6 @@ test('should handle path properly /3', async (t) => {
     t.same(request.session.foo, null)
     reply.send(200)
   })
-  await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/check',
@@ -167,8 +159,6 @@ test('should handle path properly /4', async (t) => {
     t.same(request.session.foo, null)
     reply.send(200)
   })
-  await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/check',
@@ -203,8 +193,6 @@ test('should handle path properly /5', async (t) => {
     t.same(request.session.foo, null)
     reply.send(200)
   })
-  await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/check',
@@ -239,8 +227,6 @@ test('should handle path properly /6', async (t) => {
     t.same(request.session.foo, 'bar')
     reply.send(200)
   })
-  await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/check/index',
@@ -275,8 +261,6 @@ test('should handle path properly /7', async (t) => {
     t.same(request.session.foo, 'bar')
     reply.send(200)
   })
-  await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/check/index',
@@ -315,8 +299,6 @@ test('should handle path properly /8', async (t) => {
     t.same(request.session.foo, null)
     reply.send(200)
   })
-  await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/check/index',
