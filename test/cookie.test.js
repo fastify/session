@@ -477,3 +477,28 @@ test('should use session.cookie.originalMaxAge instead of the default maxAge', a
   t.equal(response.statusCode, 200)
   t.match(response.headers['set-cookie'], RegExp(`sessionId=.*; Path=/; Expires=${new Date(now + originalMaxAge).toUTCString()}; HttpOnly`))
 })
+
+test('when cookie secure is set to false then store secure as false', async t => {
+  t.plan(4)
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    saveUninitialized: true,
+    cookie: { secure: false },
+    rolling: true
+  })
+
+  fastify.get('/', (request, reply) => {
+    t.equal(request.session.cookie.secure, false)
+    reply.send(200)
+  })
+
+  const response = await fastify.inject({ path: '/' })
+
+  t.equal(response.statusCode, 200)
+  t.equal(typeof response.headers['set-cookie'], 'string')
+  t.match(response.headers['set-cookie'], /^sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly$/)
+})
