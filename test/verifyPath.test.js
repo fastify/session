@@ -221,7 +221,7 @@ test('should handle path properly /5', async (t) => {
   t.equal(response2.statusCode, 200)
 })
 
-test('should handle path properly /5', async (t) => {
+test('should handle path properly /6', async (t) => {
   t.plan(3)
   const fastify = Fastify()
 
@@ -257,7 +257,7 @@ test('should handle path properly /5', async (t) => {
   t.equal(response2.statusCode, 200)
 })
 
-test('should handle path properly /6', async (t) => {
+test('should handle path properly /7', async (t) => {
   t.plan(3)
   const fastify = Fastify()
 
