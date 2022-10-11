@@ -723,6 +723,22 @@ test("clears cookie if not backed by a session, and there's nothing to save", as
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
     reply.send(200)
+  }, DEFAULT_OPTIONS)
+  t.teardown(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: { cookie: DEFAULT_COOKIE_VALUE }
+  })
+
+  t.equal(response.statusCode, 200)
+  t.equal(response.headers['set-cookie'], 'sessionId=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT')
+})
+
+test("clearing cookie sets the domain if it's specified in the cookie options", async t => {
+  t.plan(2)
+  const fastify = await buildFastify((request, reply) => {
+    reply.send(200)
   }, {
     ...DEFAULT_OPTIONS,
     cookie: { domain: 'domain.test' }
