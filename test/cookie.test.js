@@ -505,7 +505,7 @@ test('when cookie secure is set to false then store secure as false', async t =>
 })
 
 test('Cookie', t => {
-  t.plan(2)
+  t.plan(4)
 
   const cookie = new Cookie({})
 
@@ -538,5 +538,21 @@ test('Cookie', t => {
 
     t.equal('_expires' in json, false)
     t.equal('maxAge' in json, false)
+  })
+
+  t.test('maxAge calculated from expires', t => {
+    t.plan(2)
+
+    const cookie = new Cookie({ expires: new Date(Date.now() + 1000) })
+    t.equal(cookie.maxAge <= 1000, true)
+    t.equal(cookie.originalMaxAge, null)
+  })
+
+  t.test('maxAge set by maxAge', t => {
+    t.plan(2)
+
+    const cookie = new Cookie({ maxAge: 1000 })
+    t.equal(cookie.maxAge, 1000)
+    t.equal(cookie.originalMaxAge, 1000)
   })
 })
