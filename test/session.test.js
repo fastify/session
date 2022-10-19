@@ -249,7 +249,7 @@ test('should decryptSession with custom request object', async (t) => {
     requestObj.session.save(err => {
       t.error(err)
     })
-    t.equal(requestObj.session.cookie.originalMaxAge, null)
+    t.equal(requestObj.session.cookie.originalMaxAge, 999)
     t.equal(requestObj.session.testData, 'this is a test')
     t.equal(requestObj.session.sessionId, DEFAULT_SESSION_ID)
   })
