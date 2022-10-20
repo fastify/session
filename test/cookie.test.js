@@ -5,6 +5,7 @@ const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('../lib/fastifySession')
 const fastifyPlugin = require('fastify-plugin')
+const Cookie = require('../lib/cookie')
 const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, buildFastify, DEFAULT_SESSION_ID } = require('./util')
 
 test('should set session cookie', async (t) => {
@@ -501,4 +502,57 @@ test('when cookie secure is set to false then store secure as false', async t =>
   t.equal(response.statusCode, 200)
   t.equal(typeof response.headers['set-cookie'], 'string')
   t.match(response.headers['set-cookie'], /^sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly$/)
+})
+
+test('Cookie', t => {
+  t.plan(4)
+
+  const cookie = new Cookie({})
+
+  t.test('properties', t => {
+    t.plan(9)
+
+    t.equal('expires' in cookie, true)
+    t.equal('originalMaxAge' in cookie, true)
+    t.equal('sameSite' in cookie, true)
+    t.equal('secure' in cookie, true)
+    t.equal('path' in cookie, true)
+    t.equal('httpOnly' in cookie, true)
+    t.equal('domain' in cookie, true)
+    t.equal('_expires' in cookie, true)
+    t.equal('maxAge' in cookie, true)
+  })
+
+  t.test('toJSON', t => {
+    t.plan(9)
+
+    const json = cookie.toJSON()
+
+    t.equal('expires' in json, true)
+    t.equal('originalMaxAge' in json, true)
+    t.equal('sameSite' in json, true)
+    t.equal('secure' in json, true)
+    t.equal('path' in json, true)
+    t.equal('httpOnly' in json, true)
+    t.equal('domain' in json, true)
+
+    t.equal('_expires' in json, false)
+    t.equal('maxAge' in json, false)
+  })
+
+  t.test('maxAge calculated from expires', t => {
+    t.plan(2)
+
+    const cookie = new Cookie({ expires: new Date(Date.now() + 1000) })
+    t.equal(cookie.maxAge <= 1000, true)
+    t.equal(cookie.originalMaxAge, null)
+  })
+
+  t.test('maxAge set by maxAge', t => {
+    t.plan(2)
+
+    const cookie = new Cookie({ maxAge: 1000 })
+    t.equal(cookie.maxAge, 1000)
+    t.equal(cookie.originalMaxAge, 1000)
+  })
 })
