@@ -5,7 +5,7 @@ import fastify, {
   Session
 } from 'fastify';
 import { expectError, expectType } from 'tsd';
-import plugin from '..';
+import plugin, { SessionStore } from '..';
 
 class EmptyStore {
   set(_sessionId: string, _session: any, _callback: Function) {}
@@ -24,6 +24,9 @@ declare module 'fastify' {
     };
   }
 }
+
+expectType<SessionStore>(plugin.Store)
+expectType<SessionStore>(plugin.MemoryStore)
 
 const secret = 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345';
 
@@ -78,7 +81,7 @@ app.route({
   async handler(request, reply) {
     expectType<FastifyRequest>(request);
     expectType<FastifyReply>(reply);
-    expectType<Readonly<plugin.SessionStore>>(request.sessionStore);
+    expectType<Readonly<SessionStore>>(request.sessionStore);
     expectError((request.sessionStore = null));
     expectError(request.session.doesNotExist());
     expectType<{ id: number } | undefined>(request.session.user);
