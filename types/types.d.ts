@@ -5,7 +5,7 @@ import type * as Fastify from 'fastify';
 
 declare module 'fastify' {
   interface FastifyInstance {
-    decryptSession<Request extends Record<string, any> = FastifyRequest>(sessionId: string, request: Request, cookieOpts: FastifySessionPlugin.CookieOptions, callback: Callback): void;
+    decryptSession<Request extends Record<string, any> = FastifyRequest>(sessionId: string, request: Request, cookieOpts: fastifySession.CookieOptions, callback: Callback): void;
     decryptSession<Request extends Record<string, any> = FastifyRequest>(sessionId: string, request: Request, callback: Callback): void;
   }
 
@@ -14,10 +14,15 @@ declare module 'fastify' {
     session: Fastify.Session;
 
     /** A session store. */
-    sessionStore: Readonly<FastifySessionPlugin.SessionStore>;
+    sessionStore: Readonly<fastifySession.SessionStore>;
   }
 
-  interface Session extends SessionData {}
+  interface Session extends SessionData { }
+}
+
+type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions> & {
+  Store: fastifySession.MemoryStore,
+  MemoryStore: fastifySession.MemoryStore,
 }
 
 type Callback = (err?: Error) => void;
@@ -60,7 +65,7 @@ interface SessionData extends ExpressSessionData {
 }
 
 interface ExpressSessionData {
-  cookie: FastifySessionPlugin.CookieOptions;
+  cookie: fastifySession.CookieOptions;
 }
 
 interface UnsignResult {
@@ -74,8 +79,8 @@ interface Signer {
   unsign: (input: string) => UnsignResult;
 }
 
-declare namespace FastifySessionPlugin {
-  interface SessionStore {
+declare namespace fastifySession {
+  export interface SessionStore {
     set(
       sessionId: string,
       session: Fastify.Session,
@@ -88,7 +93,7 @@ declare namespace FastifySessionPlugin {
     destroy(sessionId: string, callback: Callback): void;
   }
 
-  interface Options {
+  export interface FastifySessionOptions {
     /**
      * The secret used to sign the cookie.
      *
@@ -128,7 +133,7 @@ declare namespace FastifySessionPlugin {
      * Defaults to a simple in memory store.
      * Note: The default store should not be used in a production environment because it will leak memory.
      */
-    store?: FastifySessionPlugin.SessionStore;
+    store?: fastifySession.SessionStore;
 
     /**
      * Save sessions to the store, even when they are new and not modified.
@@ -149,10 +154,10 @@ declare namespace FastifySessionPlugin {
      * Prefixes all cookie values. Run with "s:" to be be compatible with express-session.
      * Defaults to ""
      */
-     cookiePrefix?: string;
+    cookiePrefix?: string;
   }
 
-  interface CookieOptions {
+  export interface CookieOptions {
     /**  The `Path` attribute. Defaults to `/` (the root path).  */
     path?: string;
 
@@ -174,23 +179,27 @@ declare namespace FastifySessionPlugin {
     /**  The `Domain` attribute. */
     domain?: string;
   }
+
+  export class MemoryStore implements fastifySession.SessionStore {
+    constructor(map?: Map<string, Fastify.Session>);
+    set(
+      sessionId: string,
+      session: Fastify.Session,
+      callback: Callback
+    ): void;
+    get(
+      sessionId: string,
+      callback: CallbackSession
+    ): void;
+    destroy(sessionId: string, callback: Callback): void;
+  }
+
+  export const Store: MemoryStore;
+
+  export const fastifySession: FastifySession
+  export { fastifySession as default }
 }
 
-export class MemoryStore implements FastifySessionPlugin.SessionStore {
-  constructor(map?: Map<string, Fastify.Session>);
-  set(
-    sessionId: string,
-    session: Fastify.Session,
-    callback: Callback
-  ): void;
-  get(
-    sessionId: string,
-    callback: CallbackSession
-  ): void;
-  destroy(sessionId: string, callback: Callback): void;
-}
+declare function fastifySession(...params: Parameters<FastifySession>): ReturnType<FastifySession>
+export = fastifySession
 
-export const Store: MemoryStore;
-
-declare const FastifySessionPlugin: FastifyPluginCallback<FastifySessionPlugin.Options>;
-export default FastifySessionPlugin;
