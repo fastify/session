@@ -26,7 +26,12 @@ type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions
 }
 
 type Callback = (err?: Error) => void;
-type CallbackSession = (err: Error | null, result: Fastify.Session) => void;
+//type CallbackSession = (err: Error | null, result: Fastify.Session) => void;
+
+interface CallbackSession {
+  (err: null, result: Fastify.Session): void
+  (err: Error, result: null): void
+}
 
 interface SessionData extends ExpressSessionData {
   sessionId: string;
