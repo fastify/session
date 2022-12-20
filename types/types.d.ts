@@ -30,7 +30,7 @@ type Callback = (err?: Error) => void;
 
 interface CallbackSession {
   (err: null, result: Fastify.Session): void
-  (err: Error, result: null): void
+  (err: Error): void
 }
 
 interface SessionData extends ExpressSessionData {
