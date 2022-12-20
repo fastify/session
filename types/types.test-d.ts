@@ -86,9 +86,12 @@ app.route({
     expectError(request.session.doesNotExist());
     expectType<{ id: number } | undefined>(request.session.user);
     request.sessionStore.set('session-set-test', request.session, () => {});
-    request.sessionStore.get('', (err, result) => {
+    request.sessionStore.get('', (err, session) => {
       expectType<Error | null>(err);
-      expectType<Session | undefined>(result);
+      expectType<Session | undefined>(session);
+      if (session) {
+        expectType<{ id: number } | undefined>(session.user);
+      }
     });
     expectType<void>(request.session.set('foo', 'bar'));
     expectType<string>(request.session.get('foo'));
