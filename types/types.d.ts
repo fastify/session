@@ -11,7 +11,7 @@ declare module 'fastify' {
 
   interface FastifyRequest {
     /** Allows to access or modify the session data. */
-    session: Fastify.Session;
+    session: Session;
 
     /** A session store. */
     sessionStore: Readonly<fastifySession.SessionStore>;
