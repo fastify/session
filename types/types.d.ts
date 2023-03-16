@@ -11,13 +11,13 @@ declare module 'fastify' {
 
   interface FastifyRequest {
     /** Allows to access or modify the session data. */
-    session: Session;
+    session: FastifySessionObject;
 
     /** A session store. */
     sessionStore: Readonly<fastifySession.SessionStore>;
   }
-
-  interface Session extends SessionData { }
+  
+  interface Session extends ExpressSessionData { }
 }
 
 type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions> & {
@@ -25,10 +25,10 @@ type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions
   MemoryStore: fastifySession.MemoryStore,
 }
 
-type Callback = (err?: Error) => void;
-type CallbackSession = (err: Error | null, result: Fastify.Session) => void;
+type Callback = (err?: any) => void;
+type CallbackSession = (err: any, result?: Fastify.Session | null) => void;
 
-interface SessionData extends ExpressSessionData {
+interface FastifySessionObject extends Fastify.Session {
   sessionId: string;
 
   encryptedSessionId: string;
@@ -65,7 +65,18 @@ interface SessionData extends ExpressSessionData {
 }
 
 interface ExpressSessionData {
-  cookie: fastifySession.CookieOptions;
+  /** The cookie properties as defined by express-session */
+  cookie: {
+    originalMaxAge: number | null;
+    maxAge?: number;
+    signed?: boolean;
+    expires?: Date | null;
+    httpOnly?: boolean;
+    path?: string;
+    domain?: string;
+    secure?: boolean | 'auto';
+    sameSite?: boolean | 'lax' | 'strict' | 'none';
+  }
 }
 
 interface UnsignResult {
