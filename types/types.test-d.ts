@@ -98,10 +98,12 @@ app.route({
     expectType<void>(request.session.reload(() => {}));
     expectType<void>(request.session.destroy(() => {}));
     expectType<void>(request.session.regenerate(() => {}));
+    expectType<void>(request.session.regenerate(['foo'], () => {}));
     expectType<void>(request.session.save(() => {}));
     expectType<Promise<void>>(request.session.reload());
     expectType<Promise<void>>(request.session.destroy());
     expectType<Promise<void>>(request.session.regenerate());
+    expectType<Promise<void>>(request.session.regenerate(['foo']));
     expectType<Promise<void>>(request.session.save());
   }
 });

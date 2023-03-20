@@ -38,9 +38,13 @@ interface SessionData extends ExpressSessionData {
 
   /**
    * Regenerates the session by generating a new `sessionId`.
+   *
+   * ignoreFields specifies which fields should be kept in the new session object.
    */
   regenerate(callback: Callback): void;
+  regenerate(ignoreFields: string[], callback: Callback): void;
   regenerate(): Promise<void>;
+  regenerate(ignoreFields: string[]): Promise<void>;
 
   /** Allows to destroy the session in the store. */
   destroy(callback: Callback): void;
