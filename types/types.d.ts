@@ -79,7 +79,10 @@ interface Signer {
 }
 
 declare namespace fastifySession {
-  export type CallbackSession = ((err: Error) => void) | ((err: null, result: Fastify.Session) => void)
+  export type CallbackSession = {
+    (err: Error, result?: undefined): void;
+    (err: null, result: Fastify.Session): void;
+  }
 
   export interface SessionStore {
     set(
