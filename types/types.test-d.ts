@@ -5,7 +5,10 @@ import fastify, {
   Session
 } from 'fastify';
 import { expectError, expectType } from 'tsd';
-import plugin, { SessionStore } from '..';
+import MongoStore from 'connect-mongo';
+import RedisStore from 'connect-redis';
+import Redis from 'ioredis'
+import plugin, { MemoryStore, SessionStore } from '..';
 
 class EmptyStore {
   set(_sessionId: string, _session: any, _callback: Function) {}
@@ -17,8 +20,6 @@ class EmptyStore {
 
 declare module 'fastify' {
   interface Session {
-    get<T>(key: string): T;
-    set(key: string, value: unknown): void;
     user?: {
       id: number;
     };
@@ -50,6 +51,18 @@ app.register(plugin, {
 app.register(plugin, {
   secret,
   store: new EmptyStore()
+});
+app.register(plugin, {
+  secret,
+  store: new RedisStore({ client: new Redis() })
+});
+app.register(plugin, {
+  secret,
+  store: MongoStore.create({ mongoUrl: 'mongodb://connection-string'})
+});
+app.register(plugin, {
+  secret,
+  store: new MemoryStore(new Map<string, Session>())
 });
 app.register(plugin, {
   secret,
@@ -87,9 +100,11 @@ app.route({
     expectType<{ id: number } | undefined>(request.session.user);
     request.sessionStore.set('session-set-test', request.session, () => {});
     request.sessionStore.get('', (err, session) => {
-      expectType<Error | null>(err);
-      expectType<Session>(session);
-      expectType<{ id: number } | undefined>(session.user);
+      var store = new MemoryStore();
+      if (session) store.set('session-set-test', session, () => {});
+      expectType<any>(err);
+      expectType<Session | null | undefined>(session);
+      expectType<{ id: number } | undefined>(session?.user);
     });
     expectType<void>(request.session.set('foo', 'bar'));
     expectType<string>(request.session.get('foo'));
