@@ -325,3 +325,42 @@ test('should handle path properly /8', async (t) => {
   })
   t.equal(response4.statusCode, 200)
 })
+
+test('should handle path properly /9', async (t) => {
+
+  // Let's check that a search part of the url doesn't spoil the path verification
+
+  t.plan(3)
+  const fastify = Fastify()
+
+  const options = {
+    secret: DEFAULT_SECRET,
+    cookie: { secure: false, path: '/check' }
+  }
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.get('/check', (request, reply) => {
+    request.session.foo = 'bar'
+    reply.send(200)
+  })
+  fastify.get('/check/page1', (request, reply) => {
+    t.equal(request.session.foo, 'bar')
+    reply.send(200)
+  })
+
+  const response1 = await fastify.inject({
+    url: '/check',
+    query: {
+      foo: 'bar'
+    }
+  })
+
+  t.equal(response1.statusCode, 200)
+
+  const response2 = await fastify.inject({
+    url: '/check/page1',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+
+  t.equal(response2.statusCode, 200)
+})
