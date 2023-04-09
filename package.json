@@ -9,6 +9,7 @@
     "test:typescript": "tsd",
     "benchmark": "node benchmark/bench.js",
     "lint": "standard lib/* test/* benchmark/*.js",
+    "lint:fix": "standard --fix",
     "coveralls": "tap --coverage-report=lcov",
     "coverage": "tap --coverage-report=html"
   },
