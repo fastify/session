@@ -327,7 +327,6 @@ test('should handle path properly /8', async (t) => {
 })
 
 test('should handle path properly /9', async (t) => {
-
   // Let's check that a search part of the url doesn't spoil the path verification
 
   t.plan(3)
