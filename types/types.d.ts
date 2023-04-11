@@ -87,14 +87,15 @@ declare namespace fastifySession {
     save(): Promise<void>;
 
     /** sets values in the session. */
-    set(key: string, value: unknown): void;
+    set<K extends keyof Fastify.Session, V = Fastify.Session[K]>(key: K, value: V): void;
 
     /** gets values from the session. */
-    get<T>(key: string): T;
+    get<K extends keyof Fastify.Session, V = Fastify.Session[K] | undefined>(key: K): V;
 
     /** checks if session has been modified since it was generated or loaded from the store. */
     isModified(): boolean;
   }
+
   export interface SessionStore {
     set(
       sessionId: string,

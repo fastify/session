@@ -180,6 +180,16 @@ declare module "fastify" {
 }
 ```
 
+When you think that the getter or setter is too strict.
+You are allowed to use `any` types to loosen the check.
+
+```ts
+fastify.get('/', async function(request) {
+  request.session.get<any>('not-exist')
+  request.session.set<any>('not-exist', 'happy')
+})
+```
+
 ## License
 
 [MIT](./LICENSE)
