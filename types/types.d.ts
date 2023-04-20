@@ -15,6 +15,8 @@ declare module 'fastify' {
   interface Session extends SessionData {}
 }
 
+type Callback = (err?: Error) => void;
+
 interface SessionData extends ExpressSessionData {
   sessionId: string;
 
@@ -26,8 +28,10 @@ interface SessionData extends ExpressSessionData {
   /**
    * Regenerates the session by generating a new `sessionId`.
    */
+  regenerate(ignoreFields: string[], callback: Callback): void;
   regenerate(callback: (err?: Error) => void): void;
   regenerate(): Promise<void>;
+  regenerate(ignoreFields: string[]): Promise<void>;
 
   /** Allows to destroy the session in the store. */
   destroy(callback: (err?: Error) => void): void;
