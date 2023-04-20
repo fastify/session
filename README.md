@@ -110,7 +110,7 @@ Allows to destroy the session in the store. If you do not pass a callback, a Pro
 
 Updates the `expires` property of the session.
 
-#### Session#regenerate(callback)
+#### Session#regenerate([ignoreFields, ]callback)
 
 Regenerates the session by generating a new `sessionId` and persist it to the store. If you do not pass a callback, a Promise will be returned.
 ```js
@@ -124,6 +124,8 @@ fastify.get('/regenerate', (request, reply, done) => {
   });
 });
 ```
+
+You can pass an array of fields that should be kept when the session is regenerated
 
 #### Session#reload(callback)
 

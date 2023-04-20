@@ -197,6 +197,88 @@ test('should generate new sessionId', async (t) => {
 
   t.is(response2.statusCode, 200)
 })
+test('should generate new sessionId keeping ignoreFields', async (t) => {
+  t.plan(4)
+  const fastify = Fastify()
+
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    cookie: { secure: false }
+  }
+  let oldSessionId
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.get('/', (request, reply) => {
+    oldSessionId = request.session.sessionId
+    request.session.set('message', 'hello world')
+    request.session.regenerate(['message'], error => {
+      if (error) {
+        reply.status(500).send('Error ' + error)
+      } else {
+        reply.send(200)
+      }
+    })
+  })
+  fastify.get('/check', (request, reply) => {
+    t.not(request.session.sessionId, oldSessionId)
+    t.is(request.session.get('message'), 'hello world')
+    reply.send(200)
+  })
+  await fastify.listen({ port: 0 })
+  t.teardown(() => { fastify.close() })
+
+  const response1 = await fastify.inject({
+    url: '/'
+  })
+
+  t.is(response1.statusCode, 200)
+
+  const response2 = await fastify.inject({
+    url: '/check',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+
+  t.is(response2.statusCode, 200)
+})
+
+test('should generate new sessionId keeping ignoreFields (async)', async (t) => {
+  t.plan(4)
+  const fastify = Fastify()
+
+  const options = {
+    secret: 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk',
+    cookie: { secure: false }
+  }
+  let oldSessionId
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+  fastify.get('/', async (request, reply) => {
+    oldSessionId = request.session.sessionId
+    request.session.set('message', 'hello world')
+    await request.session.regenerate(['message'])
+    reply.send(200)
+  })
+  fastify.get('/check', (request, reply) => {
+    t.not(request.session.sessionId, oldSessionId)
+    t.is(request.session.get('message'), 'hello world')
+    reply.send(200)
+  })
+  await fastify.listen({ port: 0 })
+  t.teardown(() => { fastify.close() })
+
+  const response1 = await fastify.inject({
+    url: '/'
+  })
+
+  t.is(response1.statusCode, 200)
+
+  const response2 = await fastify.inject({
+    url: '/check',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+
+  t.is(response2.statusCode, 200)
+})
 
 test('should decorate the server with decryptSession', async t => {
   t.plan(2)
