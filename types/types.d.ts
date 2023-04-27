@@ -1,7 +1,7 @@
 /// <reference types='node' />
 
-import { FastifyPluginCallback } from 'fastify';
 import type * as Fastify from 'fastify';
+import { FastifyPluginCallback } from 'fastify';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -11,7 +11,7 @@ declare module 'fastify' {
 
   interface FastifyRequest {
     /** Allows to access or modify the session data. */
-    session: FastifySessionObject;
+    session: fastifySession.FastifySessionObject;
 
     /** A session store. */
     sessionStore: Readonly<fastifySession.SessionStore>;
@@ -27,46 +27,6 @@ type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions
 
 type Callback = (err?: any) => void;
 type CallbackSession = (err: any, result?: Fastify.Session | null) => void;
-
-interface FastifySessionObject extends Fastify.Session {
-  sessionId: string;
-
-  encryptedSessionId: string;
-
-  /** Updates the `expires` property of the session's cookie. */
-  touch(): void;
-
-  /**
-   * Regenerates the session by generating a new `sessionId`.
-   *
-   * ignoreFields specifies which fields should be kept in the new session object.
-   */
-  regenerate(callback: Callback): void;
-  regenerate(ignoreFields: string[], callback: Callback): void;
-  regenerate(): Promise<void>;
-  regenerate(ignoreFields: string[]): Promise<void>;
-
-  /** Allows to destroy the session in the store. */
-  destroy(callback: Callback): void;
-  destroy(): Promise<void>;
-
-  /** Reloads the session data from the store and re-populates the request.session object. */
-  reload(callback: Callback): void;
-  reload(): Promise<void>;
-
-  /** Save the session back to the store, replacing the contents on the store with the contents in memory. */
-  save(callback: Callback): void;
-  save(): Promise<void>;
-
-  /** sets values in the session. */
-  set(key: string, value: unknown): void;
-
-  /** gets values from the session. */
-  get<T>(key: string): T;
-
-  /** checks if session has been modified since it was generated or loaded from the store. */
-  isModified(): boolean;
-}
 
 interface ExpressSessionData {
   /** The cookie properties as defined by express-session */
@@ -95,6 +55,47 @@ interface Signer {
 }
 
 declare namespace fastifySession {
+  
+  export interface FastifySessionObject extends Fastify.Session {
+    sessionId: string;
+
+    encryptedSessionId: string;
+
+    /** Updates the `expires` property of the session's cookie. */
+    touch(): void;
+
+    /**
+     * Regenerates the session by generating a new `sessionId`.
+     *
+     * ignoreFields specifies which fields should be kept in the new session object.
+     */
+    regenerate(callback: Callback): void;
+    regenerate(ignoreFields: string[], callback: Callback): void;
+    regenerate(): Promise<void>;
+    regenerate(ignoreFields: string[]): Promise<void>;
+
+    /** Allows to destroy the session in the store. */
+    destroy(callback: Callback): void;
+    destroy(): Promise<void>;
+
+    /** Reloads the session data from the store and re-populates the request.session object. */
+    reload(callback: Callback): void;
+    reload(): Promise<void>;
+
+    /** Save the session back to the store, replacing the contents on the store with the contents in memory. */
+    save(callback: Callback): void;
+    save(): Promise<void>;
+
+    /** sets values in the session. */
+    set<K extends keyof Fastify.Session, V = Fastify.Session[K]>(key: K, value: V): void;
+
+    /** gets values from the session. */
+    get<K extends keyof Fastify.Session, V = Fastify.Session[K] | undefined>(key: K): V;
+
+    /** checks if session has been modified since it was generated or loaded from the store. */
+    isModified(): boolean;
+  }
+
   export interface SessionStore {
     set(
       sessionId: string,
