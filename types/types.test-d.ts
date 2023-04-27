@@ -1,14 +1,14 @@
+import MongoStore from 'connect-mongo';
+import RedisStore from 'connect-redis';
 import fastify, {
   FastifyInstance,
   FastifyReply,
   FastifyRequest,
   Session
 } from 'fastify';
-import { expectError, expectType } from 'tsd';
-import MongoStore from 'connect-mongo';
-import RedisStore from 'connect-redis';
-import Redis from 'ioredis'
-import plugin, { MemoryStore, SessionStore } from '..';
+import Redis from 'ioredis';
+import { expectAssignable, expectError, expectType } from 'tsd';
+import { MemoryStore, SessionStore, default as fastifySession, default as plugin } from '..';
 
 class EmptyStore {
   set(_sessionId: string, _session: any, _callback: Function) {}
@@ -23,6 +23,7 @@ declare module 'fastify' {
     user?: {
       id: number;
     };
+    foo: string
   }
 }
 
@@ -107,7 +108,7 @@ app.route({
       expectType<{ id: number } | undefined>(session?.user);
     });
     expectType<void>(request.session.set('foo', 'bar'));
-    expectType<string>(request.session.get('foo'));
+    expectType<string>(request.session.get<'foo', string>('foo'));
     expectType<void>(request.session.touch());
     expectType<boolean>(request.session.isModified());
     expectType<void>(request.session.reload(() => {}));
@@ -133,3 +134,17 @@ const customSigner = {
 };
 
 app.register(plugin, { secret: customSigner });
+
+const app2 = fastify()
+app2.register(fastifySession)
+
+app2.get('/', async function(request) {
+  expectType<undefined | { id: number }>(request.session.get('user'))
+  expectAssignable(request.session.set('user', { id: 2 }))
+
+  expectError(request.session.get('not exist'))
+  expectError(request.session.set('not exist', 'abc'))
+
+  expectType<'bar'>(request.session.get<any, 'bar'>('not exist'))
+  expectAssignable(request.session.set<any, string>('not exist', 'abc'))
+})
