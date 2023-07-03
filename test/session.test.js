@@ -898,11 +898,58 @@ test('when rolling is false, only save session when it changes', async t => {
   const response2 = await fastify.inject({ path: '/', headers: { cookie: `sessionId=${sessionId}` } })
   const setCookieHeader2 = response2.headers['set-cookie']
 
-  t.equal(response1.statusCode, 200)
+  t.equal(response2.statusCode, 200)
   // still only called once
   t.equal(setCount, 1)
   // no set-cookie
   t.equal(setCookieHeader2, undefined)
+})
+
+test('when rolling is false, only save session when it changes, but not if manually saved', async t => {
+  t.plan(4)
+  let setCount = 0
+  const store = new Map()
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    saveUninitialized: false,
+    cookie: { secure: false },
+    rolling: false,
+    store: {
+      set (id, data, cb) {
+        ++setCount
+        store.set(id, data)
+        cb(null)
+      },
+      get (id, cb) { cb(null, store.get(id)) },
+      destroy (id, cb) {
+        store.delete(id)
+        cb(null)
+      }
+    }
+  })
+
+  fastify.get('/', async (request, reply) => {
+    request.session.userId = 42
+
+    t.equal(request.session.isModified(), true)
+
+    // manually save the session
+    await request.session.save()
+
+    t.equal(request.session.isModified(), false)
+
+    await reply.send(200)
+  })
+
+  const { statusCode } = await fastify.inject('/')
+
+  t.equal(statusCode, 200)
+  // we manually saved the session, so it should be called once (not once for manual save and once in `onSend`)
+  t.equal(setCount, 1)
 })
 
 test('when rolling is true, keep saving the session', async t => {
@@ -950,7 +997,7 @@ test('when rolling is true, keep saving the session', async t => {
   const response2 = await fastify.inject({ path: '/', headers: { cookie: `sessionId=${sessionId}` } })
   const setCookieHeader2 = response2.headers['set-cookie']
 
-  t.equal(response1.statusCode, 200)
+  t.equal(response2.statusCode, 200)
   t.equal(setCount, 2)
   t.equal(typeof setCookieHeader2, 'string')
 })
