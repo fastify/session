@@ -906,7 +906,7 @@ test('when rolling is false, only save session when it changes', async t => {
 })
 
 test('when rolling is false, only save session when it changes, but not if manually saved', async t => {
-  t.plan(4)
+  t.plan(5)
   let setCount = 0
   const store = new Map()
 
@@ -945,11 +945,12 @@ test('when rolling is false, only save session when it changes, but not if manua
     await reply.send(200)
   })
 
-  const { statusCode } = await fastify.inject('/')
+  const { statusCode, headers } = await fastify.inject('/')
 
   t.equal(statusCode, 200)
   // we manually saved the session, so it should be called once (not once for manual save and once in `onSend`)
   t.equal(setCount, 1)
+  t.equal(typeof headers['set-cookie'], 'string')
 })
 
 test('when rolling is true, keep saving the session', async t => {
