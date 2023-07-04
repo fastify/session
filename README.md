@@ -151,6 +151,14 @@ Gets a value from the session
 
 Sets a value in the session
 
+#### Session#isModified()
+
+Whether the session has been modified from what was loaded from the store (or created)
+
+#### Session#isSaved()
+
+Whether the session (and any of its potential modifications) has persisted to the store
+
 ### fastify.decryptSession(sessionId, request, cookieOptions, next)
 This plugin also decorates the fastify instance with `decryptSession` in case you want to decrypt the session manually.
 
