@@ -1,6 +1,6 @@
 {
   "name": "@fastify/session",
-  "version": "10.3.1",
+  "version": "10.4.0",
   "description": "a session plugin for fastify",
   "main": "lib/fastifySession.js",
   "scripts": {
