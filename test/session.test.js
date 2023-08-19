@@ -5,9 +5,9 @@ const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
-const Cookie = require('cookie');
+const Cookie = require('cookie')
 
-function sleep(ms) {
+function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
@@ -422,7 +422,7 @@ test('should refresh session cookie expiration if refresh is set to nonzero', as
   fastify.register(fastifySession, options)
 
   fastify.get('/check', (request, reply) => {
-    request.session.testSessionId = request.session.sessionId;
+    request.session.testSessionId = request.session.sessionId
     return reply.send(request.session.testSessionId)
   })
   await fastify.listen({ port: 0 })
@@ -432,32 +432,32 @@ test('should refresh session cookie expiration if refresh is set to nonzero', as
     url: '/check'
   })
   t.equal(response1.statusCode, 200)
-  t.ok(response1.headers['set-cookie']);
+  t.ok(response1.headers['set-cookie'])
   // we should not get 'set-cookie' header if we sent request
   // within <refresh> interval . Here it is 1000 ms
-  await sleep(500);
+  await sleep(500)
   let response2 = await fastify.inject({
     url: '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.equal(response2.statusCode, 200)
-  t.notOk(response2.headers['set-cookie']);
+  t.notOk(response2.headers['set-cookie'])
 
   response1 = await fastify.inject({
     url: '/check'
   })
   t.equal(response1.statusCode, 200)
-  t.ok(response1.headers['set-cookie']);
+  t.ok(response1.headers['set-cookie'])
   // we should get 'set-cookie' header if we sent request
   // after <refresh> interval . Here it is 1000 ms
-  await sleep(1100);
+  await sleep(1100)
   response2 = await fastify.inject({
     url: '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
   t.equal(response2.statusCode, 200)
-  t.ok(response2.headers['set-cookie']);
-  t.equal(Cookie.parse(response2.headers['set-cookie']).sessionId, Cookie.parse(response1.headers['set-cookie']).sessionId);
+  t.ok(response2.headers['set-cookie'])
+  t.equal(Cookie.parse(response2.headers['set-cookie']).sessionId, Cookie.parse(response1.headers['set-cookie']).sessionId)
 })
 
 test('should not reset session cookie expiration if rolling is false', async (t) => {
