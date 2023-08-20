@@ -97,7 +97,7 @@ Forces the session identifier cookie to be set on every response. The expiration
 Automatically refresh ( extend the expiry of ) session before `<refresh>` milliseconds before `expiry`. This is more efficient way than setting `rolling` option.
 The default value is `0 ms` meaning, this feature is disabled.
 Consider `cookie.maxAge` is `60 seconds`. If we set `refresh` = `20 seconds`, then it will auto refresh the session if sent any request after 40 second.
-it is recommended to disable `rolling` and `saveUninitialized` options if we set this option
+It is recommended to disable `rolling` and `saveUninitialized` options if we set this option.
 
 ##### idGenerator(request) (optional)
 
