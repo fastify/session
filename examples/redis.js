@@ -4,11 +4,10 @@ const Fastify = require('fastify')
 const fastifySession = require('..')
 const fastifyCookie = require('@fastify/cookie')
 const Redis = require('ioredis')
-const redisStoreFactory = require('connect-redis')
+const RedisStore = require('connect-redis')
 
 const fastify = Fastify()
 
-const RedisStore = redisStoreFactory(fastifySession)
 const store = new RedisStore({
   client: new Redis({
     enableAutoPipelining: true
