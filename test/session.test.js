@@ -1036,3 +1036,50 @@ test('will not update expires property of the session using Session#touch() if m
   t.equal(response2.statusCode, 200)
   t.same(response2.json(), { expires: null })
 })
+
+test('should save session if existing, modified, rolling false, and cookie.expires null', async (t) => {
+  t.plan(8)
+
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    cookie: { secure: false },
+    rolling: false
+  })
+  fastify.get('/', (request, reply) => {
+    request.session.set('foo', 'bar')
+    t.equal(request.session.cookie.expires, null)
+    reply.send(200)
+  })
+  fastify.get('/second', (request, reply) => {
+    t.equal(request.session.get('foo'), 'bar')
+    request.session.set('foo', 'baz')
+    t.equal(request.session.cookie.expires, null)
+    reply.send(200)
+  })
+  fastify.get('/third', (request, reply) => {
+    t.equal(request.session.get('foo'), 'baz')
+    t.equal(request.session.cookie.expires, null)
+    reply.send(200)
+  })
+  await fastify.listen({ port: 0 })
+  t.teardown(() => { fastify.close() })
+
+  const response1 = await fastify.inject({
+    url: '/'
+  })
+  t.equal(response1.statusCode, 200)
+
+  const response2 = await fastify.inject({
+    url: '/second',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.equal(response2.statusCode, 200)
+
+  const response3 = await fastify.inject({
+    url: '/third',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.equal(response3.statusCode, 200)
+})
