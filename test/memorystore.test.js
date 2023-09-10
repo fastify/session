@@ -2,7 +2,7 @@
 
 const test = require('tap').test
 const { MemoryStore } = require('../lib/store')
-const { EventEmitter } = require('stream')
+const { EventEmitter } = require('node:stream')
 
 test('MemoryStore.constructor: created MemoryStore should be an EventEmitter', (t) => {
   t.plan(2)
