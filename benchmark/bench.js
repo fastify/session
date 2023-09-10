@@ -4,7 +4,7 @@ const redisStoreFactory = require('connect-redis')
 const Fastify = require('fastify')
 const Redis = require('ioredis')
 const fileStoreFactory = require('session-file-store')
-const { isMainThread } = require('worker_threads')
+const { isMainThread } = require('node:worker_threads')
 
 const fastifySession = require('..')
 const fastifyCookie = require('@fastify/cookie')

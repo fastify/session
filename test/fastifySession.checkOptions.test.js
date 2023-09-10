@@ -4,7 +4,7 @@ const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
-const crypto = require('crypto')
+const crypto = require('node:crypto')
 
 test('fastifySession.checkOptions: register should fail if no secret is specified', async t => {
   t.plan(1)
