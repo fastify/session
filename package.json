@@ -3,6 +3,7 @@
   "version": "10.5.0",
   "description": "a session plugin for fastify",
   "main": "lib/fastifySession.js",
+  "type": "commonjs",
   "scripts": {
     "test": "npm run test:unit && npm run test:typescript",
     "test:unit": "tap",
