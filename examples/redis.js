@@ -4,7 +4,7 @@ const Fastify = require('fastify')
 const fastifySession = require('..')
 const fastifyCookie = require('@fastify/cookie')
 const Redis = require('ioredis')
-const RedisStore = require('connect-redis')
+const RedisStore = require('connect-redis').default
 
 const fastify = Fastify()
 
