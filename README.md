@@ -182,9 +182,20 @@ fastify.decryptSession(sessionId, request, { maxAge: 86400 }, () => {
 ```
 
 ### Typescript support:
-This plugin supports typescript, and you can extend fastify module to add your custom session type.
+This plugin supports typescript, and you can extend fastify module to add your custom session type. 
 
 ```ts
+// Use module imports rather than commonjs' require for correct declaration merging in TypeScript. 
+
+// Wrong ❌:
+// const fastifySession = require('@fastify/session');
+// const fastifyCookie = require('@fastify/cookie');
+
+// Correct ✔️:
+import { fastifySession } from '@fastify/session';
+import { fastifyCookie } from '@fastify/cookie';
+
+// Extend fastify.session with your custom type.
 declare module "fastify" {
     interface Session {
         user_id: string
