@@ -2,7 +2,7 @@
 
 import type * as Fastify from 'fastify';
 import { FastifyPluginCallback } from 'fastify';
-import { SerializeOptions } from "@fastify/cookie/types/plugin"
+import { SerializeOptions } from "@fastify/cookie"
 
 declare module 'fastify' {
   interface FastifyInstance {
