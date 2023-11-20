@@ -2,6 +2,7 @@
 
 import type * as Fastify from 'fastify';
 import { FastifyPluginCallback } from 'fastify';
+import { SerializeOptions } from "@fastify/cookie/types/plugin"
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -173,28 +174,7 @@ declare namespace fastifySession {
     cookiePrefix?: string;
   }
 
-  export interface CookieOptions {
-    /**  The `Path` attribute. Defaults to `/` (the root path).  */
-    path?: string;
-
-    /**  A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `expires` is used. */
-    maxAge?: number;
-
-    /**  The `boolean` value of the `HttpOnly` attribute. Defaults to true. */
-    httpOnly?: boolean;
-
-    /**  The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Value can be set to `auto`; in this case the `Secure` attribute will be set to false for HTTP request, in case of HTTPS it will be set to true.  Defaults to true. */
-    secure?: boolean | 'auto';
-
-    /**  The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `expires` is used. */
-    expires?: Date;
-
-    /** A `boolean` or one of the `SameSite` string attributes. E.g.: `lax`, `node` or `strict`.  */
-    sameSite?: 'lax' | 'none' | 'strict' | boolean;
-
-    /**  The `Domain` attribute. */
-    domain?: string;
-  }
+  export interface CookieOptions extends Omit<SerializeOptions, 'encode'> {}
 
   export class MemoryStore implements fastifySession.SessionStore {
     constructor(map?: Map<string, Fastify.Session>);
