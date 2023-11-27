@@ -46,7 +46,7 @@ app.register(plugin, {
 app.register(plugin, {
   secret,
   cookie: {
-    secure: false
+    secure: 'auto'
   }
 });
 app.register(plugin, {
