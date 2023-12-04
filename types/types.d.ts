@@ -142,7 +142,7 @@ declare namespace fastifySession {
      *
      * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
      */
-    cookie?: SerializeOptions;
+    cookie?: CookieOptions;
 
     /**
      * A session store.
@@ -172,6 +172,10 @@ declare namespace fastifySession {
      * Defaults to ""
      */
     cookiePrefix?: string;
+  }
+
+  export interface CookieOptions extends Omit<SerializeOptions, 'secure'> {
+    secure?: boolean | 'auto';
   }
 
   export class MemoryStore implements fastifySession.SessionStore {
