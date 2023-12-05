@@ -562,7 +562,7 @@ test('Cookie', t => {
     t.equal('path' in json, true)
     t.equal('httpOnly' in json, true)
     t.equal('domain' in json, true)
-    t.equal('partitioned' in cookie, true)
+    t.equal('partitioned' in json, true)
 
     t.equal('_expires' in json, false)
     t.equal('maxAge' in json, false)
