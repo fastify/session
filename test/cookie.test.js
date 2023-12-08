@@ -415,6 +415,32 @@ test('should set session secure cookie secureAuto x-forwarded-proto header', asy
   t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
 })
 
+test('should set session partitioned cookie secure http encrypted', async (t) => {
+  t.plan(2)
+  const fastify = Fastify()
+  fastify.addHook('onRequest', async (request, reply) => {
+    request.raw.socket.encrypted = true
+  })
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    secret: DEFAULT_SECRET,
+    cookie: { secure: 'true', partitioned: true }
+  })
+  fastify.get('/', (request, reply) => {
+    request.session.test = {}
+    reply.send(200)
+  })
+  await fastify.listen({ port: 0 })
+  t.teardown(() => { fastify.close() })
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+
+  t.equal(response.statusCode, 200)
+  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; Partitioned/)
+})
+
 test('should use maxAge instead of expires in session if both are set in options.cookie', async (t) => {
   t.plan(3)
   const expires = new Date(34214461000) // 1971-02-01T00:01:01.000Z
@@ -510,7 +536,7 @@ test('Cookie', t => {
   const cookie = new Cookie({})
 
   t.test('properties', t => {
-    t.plan(9)
+    t.plan(10)
 
     t.equal('expires' in cookie, true)
     t.equal('originalMaxAge' in cookie, true)
@@ -521,10 +547,11 @@ test('Cookie', t => {
     t.equal('domain' in cookie, true)
     t.equal('_expires' in cookie, true)
     t.equal('maxAge' in cookie, true)
+    t.equal('partitioned' in cookie, true)
   })
 
   t.test('toJSON', t => {
-    t.plan(9)
+    t.plan(10)
 
     const json = cookie.toJSON()
 
@@ -535,6 +562,7 @@ test('Cookie', t => {
     t.equal('path' in json, true)
     t.equal('httpOnly' in json, true)
     t.equal('domain' in json, true)
+    t.equal('partitioned' in json, true)
 
     t.equal('_expires' in json, false)
     t.equal('maxAge' in json, false)
