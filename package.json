@@ -34,7 +34,7 @@
     "@types/node": "^20.1.0",
     "connect-mongo": "^5.0.0",
     "connect-redis": "^7.0.0",
-    "cronometro": "^1.1.0",
+    "cronometro": "^2.0.0",
     "fastify": "^4.3.0",
     "ioredis": "^5.0.5",
     "session-file-store": "^1.5.0",
