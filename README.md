@@ -4,7 +4,7 @@
 [![NPM version](https://img.shields.io/npm/v/@fastify/session.svg?style=flat)](https://www.npmjs.com/package/@fastify/session)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
-A session plugin for [fastify](http://fastify.io/).
+A session plugin for [fastify](http://fastify.dev/).
 Requires the [@fastify/cookie](https://github.com/fastify/fastify-cookie) plugin.
 
 **NOTE:** This is the continuation of [fastify-session](https://github.com/SerayaEryn/fastify-session) which is unmaintained by now. All work credit till [`e201f7`](https://github.com/fastify/session/commit/e201f78fc9d7bd33c6f2e84988be7c8af4b5a8a3) commit goes to [SerayaEryn](https://github.com/SerayaEryn) and contributors.
