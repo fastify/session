@@ -5,6 +5,11 @@ const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
+const Cookie = require('cookie')
+
+function sleep (ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
 
 test('should add session object to request', async (t) => {
   t.plan(2)
@@ -399,6 +404,60 @@ test('should bubble up errors with destroy call if session expired', async (t) =
   })
   t.equal(response.statusCode, 500)
   t.equal(JSON.parse(response.body).message, 'No can do')
+})
+
+test('should refresh session cookie expiration if refresh is set to nonzero', async (t) => {
+  t.plan(9)
+
+  const fastify = Fastify()
+
+  const options = {
+    secret: DEFAULT_SECRET,
+    rolling: false,
+    saveUninitialized: false,
+    refresh: 1000, // should refresh cookie after 1 second
+    cookie: { secure: false, maxAge: 2000 }
+  }
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+
+  fastify.get('/check', (request, reply) => {
+    request.session.testSessionId = request.session.sessionId
+    return reply.send(request.session.testSessionId)
+  })
+  await fastify.listen({ port: 0 })
+  t.teardown(() => { fastify.close() })
+
+  let response1 = await fastify.inject({
+    url: '/check'
+  })
+  t.equal(response1.statusCode, 200)
+  t.ok(response1.headers['set-cookie'])
+  // we should not get 'set-cookie' header if we sent request
+  // within <refresh> interval . Here it is 1000 ms
+  await sleep(500)
+  let response2 = await fastify.inject({
+    url: '/check',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.equal(response2.statusCode, 200)
+  t.notOk(response2.headers['set-cookie'])
+
+  response1 = await fastify.inject({
+    url: '/check'
+  })
+  t.equal(response1.statusCode, 200)
+  t.ok(response1.headers['set-cookie'])
+  // we should get 'set-cookie' header if we sent request
+  // after <refresh> interval . Here it is 1000 ms
+  await sleep(1100)
+  response2 = await fastify.inject({
+    url: '/check',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.equal(response2.statusCode, 200)
+  t.ok(response2.headers['set-cookie'])
+  t.equal(Cookie.parse(response2.headers['set-cookie']).sessionId, Cookie.parse(response1.headers['set-cookie']).sessionId)
 })
 
 test('should not reset session cookie expiration if rolling is false', async (t) => {
