@@ -54,7 +54,7 @@ test('should not set session cookie is request is not secure', async (t) => {
 
 test('should not set session cookie is request is not secure and x-forwarded-proto != https', async (t) => {
   t.plan(2)
-  const fastify = Fastify()
+  const fastify = Fastify({ trustProxy: true })
   fastify.addHook('onRequest', async (request, reply) => {
     request.raw.socket.encrypted = false
   })
@@ -75,7 +75,7 @@ test('should not set session cookie is request is not secure and x-forwarded-pro
 
 test('should set session cookie is request is not secure and x-forwarded-proto = https', async (t) => {
   t.plan(2)
-  const fastify = Fastify()
+  const fastify = Fastify({ trustProxy: true })
   fastify.addHook('onRequest', async (request, reply) => {
     request.raw.socket.encrypted = false
   })
@@ -182,7 +182,7 @@ test('should set session cookie with sameSite', async (t) => {
 
 test('should set session another path in cookie', async (t) => {
   t.plan(2)
-  const fastify = Fastify()
+  const fastify = Fastify({ trustProxy: true })
 
   const options = {
     secret: DEFAULT_SECRET,
