@@ -13,7 +13,7 @@ const DEFAULT_COOKIE_VALUE = `sessionId=${DEFAULT_ENCRYPTED_SESSION_ID};`
 const DEFAULT_COOKIE = `${DEFAULT_COOKIE_VALUE}; Path=/; HttpOnly; Secure`
 
 async function buildFastify (handler, sessionOptions, plugin) {
-  const fastify = Fastify()
+  const fastify = Fastify({ trustProxy: true })
   await fastify.register(fastifyCookie)
   if (plugin) {
     await fastify.register(plugin)
