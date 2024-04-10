@@ -568,19 +568,31 @@ test('Cookie', t => {
     t.equal('maxAge' in json, false)
   })
 
+  // the clock ticks while we're testing, so to prevent occasional test
+  // failures where these tests tick over 1ms, take the time difference into
+  // account:
+
   t.test('maxAge calculated from expires', t => {
     t.plan(2)
 
+    const startT = Date.now()
     const cookie = new Cookie({ expires: new Date(Date.now() + 1000) })
-    t.equal(cookie.maxAge <= 1000, true)
+    const maxAge = cookie.maxAge
+    const duration = Date.now() - startT
+
+    t.equal(maxAge <= 1000 && maxAge >= 1000 - duration, true)
     t.equal(cookie.originalMaxAge, null)
   })
 
   t.test('maxAge set by maxAge', t => {
     t.plan(2)
 
+    const startT = Date.now()
     const cookie = new Cookie({ maxAge: 1000 })
-    t.equal(cookie.maxAge, 1000)
+    const maxAge = cookie.maxAge
+    const duration = Date.now() - startT
+
+    t.equal(maxAge <= 1000 && maxAge >= 1000 - duration, true)
     t.equal(cookie.originalMaxAge, 1000)
   })
 })
