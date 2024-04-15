@@ -174,7 +174,10 @@ declare namespace fastifySession {
     cookiePrefix?: string;
   }
 
-  export interface CookieOptions extends Omit<CookieSerializeOptions, 'signed'> {}
+  export interface CookieOptions extends Omit<CookieSerializeOptions, 'signed' | 'maxAge'> {
+    /** A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `expires` is used. */
+    maxAge?: number;
+  }
 
   export class MemoryStore implements fastifySession.SessionStore {
     constructor(map?: Map<string, Fastify.Session>);
