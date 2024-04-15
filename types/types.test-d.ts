@@ -7,8 +7,8 @@ import fastify, {
   Session
 } from 'fastify';
 import Redis from 'ioredis';
-import { expectAssignable, expectError, expectType } from 'tsd';
-import { MemoryStore, SessionStore, default as fastifySession, default as plugin } from '..';
+import { expectAssignable, expectDocCommentIncludes, expectError, expectType } from 'tsd';
+import { CookieOptions, MemoryStore, SessionStore, default as fastifySession, default as plugin } from '..';
 
 class EmptyStore {
   set(_sessionId: string, _session: any, _callback: Function) {}
@@ -46,9 +46,14 @@ app.register(plugin, {
 app.register(plugin, {
   secret,
   cookie: {
+    maxAge: 1000,
     secure: 'auto'
   }
 });
+
+const cookieMaxAge: CookieOptions = {};
+expectDocCommentIncludes<"millisecond">(cookieMaxAge.maxAge);
+
 app.register(plugin, {
   secret,
   store: new EmptyStore()
