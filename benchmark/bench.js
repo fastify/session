@@ -1,6 +1,6 @@
 'use strict'
 
-const redisStoreFactory = require('connect-redis')
+const RedisStore = require('connect-redis').default
 const Fastify = require('fastify')
 const Redis = require('ioredis')
 const fileStoreFactory = require('session-file-store')
@@ -16,7 +16,6 @@ function createServer (sessionPlugin, cookiePlugin, storeType) {
   let store
 
   if (storeType === 'redis') {
-    const RedisStore = redisStoreFactory(sessionPlugin)
     if (!redisClient) {
       redisClient = new Redis()
     }
