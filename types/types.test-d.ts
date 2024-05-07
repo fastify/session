@@ -113,7 +113,7 @@ app.route({
       expectType<{ id: number } | undefined>(session?.user);
     });
     expectType<void>(request.session.set('foo', 'bar'));
-    expectType<string>(request.session.get<'foo', string>('foo'));
+    expectType<string | undefined>(request.session.get('foo'));
     expectType<void>(request.session.touch());
     expectType<boolean>(request.session.isModified());
     expectType<void>(request.session.reload(() => {}));
@@ -144,12 +144,18 @@ const app2 = fastify()
 app2.register(fastifySession)
 
 app2.get('/', async function(request) {
+  let num: number | undefined, str: string | undefined;
+  expectError(num = request.session.get('foo'));
+  expectAssignable(str = request.session.get('foo'));
+  expectError(request.session.set('foo', 2));
+  expectAssignable(request.session.set('foo', 'bar'));
+
   expectType<undefined | { id: number }>(request.session.get('user'))
   expectAssignable(request.session.set('user', { id: 2 }))
 
   expectError(request.session.get('not exist'))
   expectError(request.session.set('not exist', 'abc'))
 
-  expectType<'bar'>(request.session.get<any, 'bar'>('not exist'))
-  expectAssignable(request.session.set<any, string>('not exist', 'abc'))
+  expectType<any>(request.session.get<any>('not exist'))
+  expectAssignable(request.session.set<any>('not exist', 'abc'))
 })
