@@ -1,63 +1,63 @@
-"use strict";
+'use strict'
 
-const test = require("tap").test;
-const { buildFastify, DEFAULT_SECRET } = require("./util");
-const { setTimeout } = require("node:timers/promises");
+const test = require('tap').test
+const { buildFastify, DEFAULT_SECRET } = require('./util')
+const { setTimeout } = require('node:timers/promises')
 
-test("sessions should be deleted if expired", async (t) => {
-  t.plan(5);
+test('sessions should be deleted if expired', async (t) => {
+  t.plan(5)
 
-  const sessions = {};
+  const sessions = {}
   const options = {
     secret: DEFAULT_SECRET,
     store: {
-      get(id, cb) {
-        t.pass("session was restored");
-        cb(null, sessions[id]);
+      get (id, cb) {
+        t.pass('session was restored')
+        cb(null, sessions[id])
       },
-      set(id, session, cb) {
-        sessions[id] = session;
-        cb();
+      set (id, session, cb) {
+        sessions[id] = session
+        cb()
       },
-      destroy(id, cb) {
-        t.pass("expired session is destroyed");
-        cb();
-      },
+      destroy (id, cb) {
+        t.pass('expired session is destroyed')
+        cb()
+      }
     },
-    cookie: { maxAge: 1000, secure: false },
-  };
+    cookie: { maxAge: 1000, secure: false }
+  }
 
   const fastify = await buildFastify((request, reply) => {
-    reply.send(200);
-  }, options);
+    reply.send(200)
+  }, options)
   t.teardown(() => {
-    fastify.close();
-  });
+    fastify.close()
+  })
 
-  let response;
+  let response
   response = await fastify.inject({
-    url: "/",
-  });
+    url: '/'
+  })
 
-  const initialSession = response.headers["set-cookie"]
-    .split(" ")[0]
-    .replace(";", "");
-  t.ok(initialSession.startsWith("sessionId="));
+  const initialSession = response.headers['set-cookie']
+    .split(' ')[0]
+    .replace(';', '')
+  t.ok(initialSession.startsWith('sessionId='))
 
   // Wait for the cookie to expire
-  await setTimeout(2000);
+  await setTimeout(2000)
 
   response = await fastify.inject({
-    url: "/",
+    url: '/',
     headers: {
-      Cookie: initialSession,
-    },
-  });
+      Cookie: initialSession
+    }
+  })
 
-  const endingSession = response.headers["set-cookie"]
-    .split(" ")[0]
-    .replace(";", "");
-  t.ok(endingSession.startsWith("sessionId="));
+  const endingSession = response.headers['set-cookie']
+    .split(' ')[0]
+    .replace(';', '')
+  t.ok(endingSession.startsWith('sessionId='))
 
-  t.not(initialSession, endingSession);
-});
+  t.not(initialSession, endingSession)
+})
