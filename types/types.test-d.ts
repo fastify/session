@@ -7,7 +7,7 @@ import fastify, {
   Session
 } from 'fastify';
 import Redis from 'ioredis';
-import { expectAssignable, expectDocCommentIncludes, expectError, expectType } from 'tsd';
+import { expectAssignable, expectNotAssignable, expectDocCommentIncludes, expectError, expectType } from 'tsd';
 import { CookieOptions, MemoryStore, SessionStore, default as fastifySession, default as plugin } from '..';
 
 class EmptyStore {
@@ -144,11 +144,11 @@ const app2 = fastify()
 app2.register(fastifySession)
 
 app2.get('/', async function(request) {
-  let num: number | undefined, str: string | undefined;
-  expectError(num = request.session.get('foo'));
-  expectAssignable(str = request.session.get('foo'));
+  expectAssignable<string | undefined>(request.session.get('foo'));
+  expectNotAssignable<number | undefined>(request.session.get('foo'));
+
+  expectType<void>(request.session.set('foo', 'bar'));
   expectError(request.session.set('foo', 2));
-  expectAssignable(request.session.set('foo', 'bar'));
 
   expectType<undefined | { id: number }>(request.session.get('user'))
   expectAssignable(request.session.set('user', { id: 2 }))
