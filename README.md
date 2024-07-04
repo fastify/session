@@ -119,6 +119,19 @@ Allows to destroy the session in the store. If you do not pass a callback, a Pro
 
 Updates the `expires` property of the session's cookie.
 
+#### Session#options(opts)
+
+Updates default options for setCookie inside a route.
+
+```js
+fastify.post('/', (request, reply) => {
+  request.session.set('data', request.body)
+  // .options takes any parameter that you can pass to setCookie
+  request.session.options({ maxAge: 60 * 60 }); // 3600 seconds => maxAge is always passed in seconds
+  reply.send('hello world')
+})
+```
+
 #### Session#regenerate([ignoreFields, ]callback)
 
 Regenerates the session by generating a new `sessionId` and persist it to the store. If you do not pass a callback, a Promise will be returned.
