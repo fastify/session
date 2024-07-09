@@ -84,6 +84,8 @@ A session store. Needs the following methods:
 
 Compatible to stores from [express-session](https://github.com/expressjs/session).
 
+Using an async store which connects to external services requires you to add the `trustProxy` setting to your fastify instance if you want to use secure cookies over https.
+
 Defaults to a simple in-memory store.</br>
 **Note**: The default store should not be used in a production environment because it will leak memory.
 
