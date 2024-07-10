@@ -1141,7 +1141,7 @@ test('Custom options', async t => {
 })
 
 test('Override global options', t => {
-  t.plan(7)
+  t.plan(11)
 
   const fastify = Fastify()
   fastify.register(fastifyCookie)
@@ -1156,20 +1156,22 @@ test('Override global options', t => {
 
   fastify.post('/', (request, reply) => {
     request.session.set('data', request.body)
-    request.session.options({ maxAge: 1000 * 60 * 60 })
+    request.session.options({ maxAge: 1000 * 60 * 60 }) // maxAge updated to 1 hour
 
     reply.send('hello world')
   })
 
   t.teardown(fastify.close.bind(fastify))
 
-  fastify.get('/', (request, reply) => {
+  fastify.get('/', async (request, reply) => {
     const data = request.session.get('data')
+    await request.session.regenerate()
 
     if (!data) {
       reply.code(404).send()
       return
     }
+
     reply.send(data)
   })
 
@@ -1195,7 +1197,12 @@ test('Override global options', t => {
       }
     }, (error, response) => {
       t.error(error)
+      t.equal(response.statusCode, 200)
       t.same(JSON.parse(response.payload), { some: 'data' })
+      t.ok(response.headers['set-cookie'])
+      const { expires, path } = response.cookies[0]
+      t.equal(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+      t.equal(path, '/')
     })
   })
 })
