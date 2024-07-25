@@ -5,6 +5,7 @@ const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
+const { setTimeout: sleep } = require('timers/promises')
 
 test('should add session object to request', async (t) => {
   t.plan(2)
@@ -413,9 +414,9 @@ test('should not reset session cookie expiration if rolling is false', async (t)
   }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  fastify.addHook('onRequest', (request, reply, done) => {
+  fastify.addHook('onRequest', async (request, reply) => {
+    await sleep(1)
     reply.send(request.session.expires)
-    done()
   })
 
   fastify.get('/', (request, reply) => reply.send(200))
@@ -449,10 +450,10 @@ test('should update the expires property of the session using Session#touch() ev
   }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  fastify.addHook('onRequest', (request, reply, done) => {
+  fastify.addHook('onRequest', async (request, reply) => {
+    await sleep(1)
     request.session.touch()
     reply.send(request.session.cookie.expires)
-    done()
   })
 
   fastify.get('/', (request, reply) => reply.send(200))
