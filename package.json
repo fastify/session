@@ -31,7 +31,7 @@
   "devDependencies": {
     "@fastify/cookie": "^9.3.1",
     "@fastify/pre-commit": "^2.1.0",
-    "@types/node": "^20.12.7",
+    "@types/node": "^22.0.0",
     "connect-mongo": "^5.1.0",
     "connect-redis": "^7.1.1",
     "cronometro": "^3.0.2",
