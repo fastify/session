@@ -816,7 +816,7 @@ test("clears cookie if not backed by a session, and there's nothing to save", as
   })
 
   t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'], 'sessionId=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT')
+  t.equal(response.headers['set-cookie'], 'sessionId=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
 })
 
 test("clearing cookie sets the domain if it's specified in the cookie options", async t => {
@@ -835,7 +835,7 @@ test("clearing cookie sets the domain if it's specified in the cookie options", 
   })
 
   t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'], 'sessionId=; Domain=domain.test; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT')
+  t.equal(response.headers['set-cookie'], 'sessionId=; Domain=domain.test; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
 })
 
 test('does not clear cookie if no session cookie in request', async t => {
