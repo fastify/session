@@ -1,6 +1,6 @@
 {
   "name": "@fastify/session",
-  "version": "11.0.0-pre.fv5.2",
+  "version": "11.0.0",
   "description": "a session plugin for fastify",
   "main": "lib/fastifySession.js",
   "type": "commonjs",
@@ -29,13 +29,13 @@
     "url": "git+https://github.com/fastify/session.git"
   },
   "devDependencies": {
-    "@fastify/cookie": "^10.0.0-pre.fv5.1",
+    "@fastify/cookie": "^10.0.0",
     "@fastify/pre-commit": "^2.1.0",
     "@types/node": "^22.0.0",
     "connect-mongo": "^5.1.0",
     "connect-redis": "^7.1.1",
     "cronometro": "^3.0.2",
-    "fastify": "^5.0.0-alpha.3",
+    "fastify": "^5.0.0-alpha.4",
     "ioredis": "^5.3.2",
     "session-file-store": "^1.5.0",
     "standard": "^17.1.0",
