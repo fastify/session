@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('tap').test
+const test = require('node:test')
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
@@ -10,101 +10,101 @@ const { setTimeout: sleep } = require('timers/promises')
 test('should add session object to request', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
-    t.ok(request.session)
+    t.assert.ok(request.session)
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should destroy the session', async (t) => {
   t.plan(3)
   const fastify = await buildFastify((request, reply) => {
     request.session.destroy((err) => {
-      t.same(err, null)
-      t.equal(request.session, null)
+      t.assert.ifError(err)
+      t.assert.strictEqual(request.session, null)
       reply.send(200)
     })
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should add session.encryptedSessionId object to request', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
-    t.ok(request.session.encryptedSessionId)
+    t.assert.ok(request.session.encryptedSessionId)
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should add session.cookie object to request', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
-    t.ok(request.session.cookie)
+    t.assert.ok(request.session.cookie)
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should add session.sessionId object to request', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
-    t.ok(request.session.sessionId)
+    t.assert.ok(request.session.sessionId)
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should allow get/set methods for fetching/updating session values', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
     request.session.set('foo', 'bar')
-    t.equal(request.session.get('foo'), 'bar')
+    t.assert.strictEqual(request.session.get('foo'), 'bar')
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should use custom sessionId generator if available (without request)', async (t) => {
   t.plan(2)
   const fastify = await buildFastify((request, reply) => {
-    t.ok(request.session.sessionId.startsWith('custom-'))
+    t.assert.ok(request.session.sessionId.startsWith('custom-'))
     reply.send(200)
   }, {
     idGenerator: () => {
@@ -116,13 +116,13 @@ test('should use custom sessionId generator if available (without request)', asy
     },
     ...DEFAULT_OPTIONS
   })
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should keep user data in session throughout the time', async (t) => {
@@ -140,24 +140,24 @@ test('should keep user data in session throughout the time', async (t) => {
     reply.send(200)
   })
   fastify.get('/check', (request, reply) => {
-    t.equal(request.session.foo, 'bar')
+    t.assert.strictEqual(request.session.foo, 'bar')
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response1.statusCode, 200)
+  t.assert.strictEqual(response1.statusCode, 200)
 
   const response2 = await fastify.inject({
     url: '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
 
-  t.equal(response2.statusCode, 200)
+  t.assert.strictEqual(response2.statusCode, 200)
 })
 
 test('should generate new sessionId', async (t) => {
@@ -169,8 +169,8 @@ test('should generate new sessionId', async (t) => {
     cookie: { secure: false }
   }
   let oldSessionId
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, options)
+  await fastify.register(fastifyCookie)
+  await fastify.register(fastifySession, options)
   fastify.get('/', (request, reply) => {
     oldSessionId = request.session.sessionId
     request.session.regenerate(error => {
@@ -182,24 +182,24 @@ test('should generate new sessionId', async (t) => {
     })
   })
   fastify.get('/check', (request, reply) => {
-    t.not(request.session.sessionId, oldSessionId)
+    t.assert.notStrictEqual(request.session.sessionId, oldSessionId)
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response1.statusCode, 200)
+  t.assert.strictEqual(response1.statusCode, 200)
 
   const response2 = await fastify.inject({
     url: '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
 
-  t.equal(response2.statusCode, 200)
+  t.assert.strictEqual(response2.statusCode, 200)
 })
 
 test('should generate new sessionId keeping ignoreFields', async (t) => {
@@ -225,25 +225,25 @@ test('should generate new sessionId keeping ignoreFields', async (t) => {
     })
   })
   fastify.get('/check', (request, reply) => {
-    t.not(request.session.sessionId, oldSessionId)
-    t.equal(request.session.get('message'), 'hello world')
+    t.assert.notStrictEqual(request.session.sessionId, oldSessionId)
+    t.assert.strictEqual(request.session.get('message'), 'hello world')
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response1.statusCode, 200)
+  t.assert.strictEqual(response1.statusCode, 200)
 
   const response2 = await fastify.inject({
     url: '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
 
-  t.equal(response2.statusCode, 200)
+  t.assert.strictEqual(response2.statusCode, 200)
 })
 
 test('should generate new sessionId keeping ignoreFields (async)', async (t) => {
@@ -264,25 +264,25 @@ test('should generate new sessionId keeping ignoreFields (async)', async (t) => 
     reply.send(200)
   })
   fastify.get('/check', (request, reply) => {
-    t.not(request.session.sessionId, oldSessionId)
-    t.equal(request.session.get('message'), 'hello world')
+    t.assert.notStrictEqual(request.session.sessionId, oldSessionId)
+    t.assert.strictEqual(request.session.get('message'), 'hello world')
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response1.statusCode, 200)
+  t.assert.strictEqual(response1.statusCode, 200)
 
   const response2 = await fastify.inject({
     url: '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
 
-  t.equal(response2.statusCode, 200)
+  t.assert.strictEqual(response2.statusCode, 200)
 })
 
 test('should decorate the server with decryptSession', async t => {
@@ -292,10 +292,10 @@ test('should decorate the server with decryptSession', async t => {
   const options = { secret: DEFAULT_SECRET }
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
-  t.ok(await fastify.ready())
-  t.ok(fastify.decryptSession)
+  t.assert.ok(await fastify.ready())
+  t.assert.ok(fastify.decryptSession)
 })
 
 test('should decryptSession with custom request object', async (t) => {
@@ -319,23 +319,23 @@ test('should decryptSession with custom request object', async (t) => {
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 
   const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
   const requestObj = {}
   fastify.decryptSession(sessionId, requestObj, () => {
     // it should be possible to save the session
     requestObj.session.save(err => {
-      t.error(err)
+      t.assert.ifError(err)
     })
-    t.equal(requestObj.session.cookie.originalMaxAge, null)
-    t.equal(requestObj.session.testData, 'this is a test')
-    t.equal(requestObj.session.sessionId, DEFAULT_SESSION_ID)
+    t.assert.strictEqual(requestObj.session.cookie.originalMaxAge, null)
+    t.assert.strictEqual(requestObj.session.testData, 'this is a test')
+    t.assert.strictEqual(requestObj.session.sessionId, DEFAULT_SESSION_ID)
   })
 })
 
@@ -354,17 +354,17 @@ test('should decryptSession with custom cookie options', async (t) => {
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 
   const { sessionId } = fastify.parseCookie(DEFAULT_COOKIE)
   const requestObj = {}
   fastify.decryptSession(sessionId, requestObj, { maxAge: 86400 }, () => {
-    t.equal(requestObj.session.cookie.originalMaxAge, 86400)
+    t.assert.strictEqual(requestObj.session.cookie.originalMaxAge, 86400)
   })
 })
 
@@ -392,14 +392,14 @@ test('should bubble up errors with destroy call if session expired', async (t) =
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
     headers: { cookie: 'sessionId=_TuQsCBgxtHB3bu6wsRpTXfjqR5sK-q_.3mu5mErW+QI7w+Q0V2fZtrztSvqIpYgsnnC8LQf6ERY;' }
   })
-  t.equal(response.statusCode, 500)
-  t.equal(JSON.parse(response.body).message, 'No can do')
+  t.assert.strictEqual(response.statusCode, 500)
+  t.assert.strictEqual(JSON.parse(response.body).message, 'No can do')
 })
 
 test('should not reset session cookie expiration if rolling is false', async (t) => {
@@ -422,20 +422,20 @@ test('should not reset session cookie expiration if rolling is false', async (t)
   fastify.get('/', (request, reply) => reply.send(200))
   fastify.get('/check', (request, reply) => reply.send(200))
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
-  t.equal(response1.statusCode, 200)
+  t.assert.strictEqual(response1.statusCode, 200)
 
   const response2 = await fastify.inject({
     url: '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
-  t.equal(response2.statusCode, 200)
+  t.assert.strictEqual(response2.statusCode, 200)
 
-  t.equal(response1.body, response2.body)
+  t.assert.strictEqual(response1.body, response2.body)
 })
 
 test('should update the expires property of the session using Session#touch() even if rolling is false', async (t) => {
@@ -459,12 +459,12 @@ test('should update the expires property of the session using Session#touch() ev
   fastify.get('/', (request, reply) => reply.send(200))
   fastify.get('/check', (request, reply) => reply.send(200))
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
-  t.equal(response1.statusCode, 200)
+  t.assert.strictEqual(response1.statusCode, 200)
 
   await new Promise(resolve => setTimeout(resolve, 1))
 
@@ -472,9 +472,9 @@ test('should update the expires property of the session using Session#touch() ev
     url: '/check',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
-  t.equal(response2.statusCode, 200)
+  t.assert.strictEqual(response2.statusCode, 200)
 
-  t.not(response1.body, response2.body)
+  t.assert.notStrictEqual(response1.body, response2.body)
 })
 
 test('should use custom sessionId generator if available (with request)', async (t) => {
@@ -488,7 +488,7 @@ test('should use custom sessionId generator if available (with request)', async 
       else return `custom-${new Date().getTime()}`
     }
   })
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   fastify.get('/', (request, reply) => {
     reply.status(200).send(request.session.sessionId)
@@ -504,28 +504,28 @@ test('should use custom sessionId generator if available (with request)', async 
     })
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
-  t.equal(response1.statusCode, 200)
-  t.not(response1.headers['set-cookie'], undefined)
-  t.ok(response1.body.startsWith('custom-'))
+  t.assert.strictEqual(response1.statusCode, 200)
+  t.assert.notStrictEqual(response1.headers['set-cookie'], undefined)
+  t.assert.ok(response1.body.startsWith('custom-'))
 
   const response2 = await fastify.inject({
     url: '/login',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
-  t.equal(response2.statusCode, 200)
-  t.not(response2.headers['set-cookie'], undefined)
+  t.assert.strictEqual(response2.statusCode, 200)
+  t.assert.notStrictEqual(response2.headers['set-cookie'], undefined)
 
   const response3 = await fastify.inject({
     url: '/',
     headers: { Cookie: response2.headers['set-cookie'] }
   })
-  t.equal(response3.statusCode, 200)
-  t.ok(response3.body.startsWith('returningVisitor-'))
+  t.assert.strictEqual(response3.statusCode, 200)
+  t.assert.ok(response3.body.startsWith('returningVisitor-'))
 })
 
 test('should use custom sessionId generator if available (with request and rolling false)', async (t) => {
@@ -550,7 +550,7 @@ test('should use custom sessionId generator if available (with request and rolli
       }`
     }
   })
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   fastify.get('/', (request, reply) => {
     reply.status(200).send(request.session.sessionId)
@@ -566,103 +566,109 @@ test('should use custom sessionId generator if available (with request and rolli
     })
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
-  t.equal(response1.statusCode, 200)
-  t.not(response1.headers['set-cookie'], undefined)
-  t.ok(response1.body.startsWith('custom-'))
+  t.assert.strictEqual(response1.statusCode, 200)
+  t.assert.notStrictEqual(response1.headers['set-cookie'], undefined)
+  t.assert.ok(response1.body.startsWith('custom-'))
 
   const response2 = await fastify.inject({
     url: '/login',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
-  t.equal(response2.statusCode, 200)
-  t.not(response2.headers['set-cookie'], undefined)
+  t.assert.strictEqual(response2.statusCode, 200)
+  t.assert.notStrictEqual(response2.headers['set-cookie'], undefined)
 
   const response3 = await fastify.inject({
     url: '/',
     headers: { Cookie: response2.headers['set-cookie'] }
   })
-  t.equal(response3.statusCode, 200)
-  t.ok(response3.body.startsWith('returningVisitor-'))
+  t.assert.strictEqual(response3.statusCode, 200)
+  t.assert.ok(response3.body.startsWith('returningVisitor-'))
 })
 
 test('should reload the session', async (t) => {
   t.plan(4)
   const fastify = await buildFastify((request, reply) => {
     request.session.someData = 'some-data'
-    t.equal(request.session.someData, 'some-data')
+    t.assert.strictEqual(request.session.someData, 'some-data')
 
     request.session.reload((err) => {
-      t.same(err, null)
+      t.assert.deepStrictEqual(err, null)
 
-      t.equal(request.session.someData, undefined)
+      t.assert.strictEqual(request.session.someData, undefined)
 
       reply.send(200)
     })
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should save the session', async (t) => {
   t.plan(6)
   const fastify = await buildFastify((request, reply) => {
     request.session.someData = 'some-data'
-    t.equal(request.session.someData, 'some-data')
+    t.assert.strictEqual(request.session.someData, 'some-data')
 
     request.session.save((err) => {
-      t.same(err, null)
+      t.assert.ifError(err)
 
-      t.equal(request.session.someData, 'some-data')
+      t.assert.strictEqual(request.session.someData, 'some-data')
 
       // unlike previous test, here the session data remains after a save
       request.session.reload((err) => {
-        t.same(err, null)
+        t.assert.ifError(err)
 
-        t.equal(request.session.someData, 'some-data')
+        t.assert.strictEqual(request.session.someData, 'some-data')
 
         reply.send(200)
       })
     })
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('destroy supports promises', async t => {
   t.plan(2)
   const fastify = await buildFastify(async (request, reply) => {
-    await t.resolves(request.session.destroy())
+    await t.assert.doesNotReject(request.session.destroy())
 
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('destroy supports rejecting promises', async t => {
-  t.plan(2)
+  t.plan(3)
   const fastify = await buildFastify(async (request, reply) => {
-    await t.rejects(request.session.destroy(), 'no can do')
+    await t.assert.rejects(
+      async () => request.session.destroy(),
+      (err) => {
+        t.assert.strictEqual(err.message, 'no can do')
+        return true
+      }
+    )
 
     reply.send(200)
   }, {
@@ -673,36 +679,42 @@ test('destroy supports rejecting promises', async t => {
       destroy (id, cb) { cb(new Error('no can do')) }
     }
   })
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
   // 200 since we assert inline and swallow the error
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('regenerate supports promises', async t => {
   t.plan(2)
   const fastify = await buildFastify(async (request, reply) => {
-    await t.resolves(request.session.regenerate())
+    await t.assert.doesNotReject(request.session.regenerate())
 
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('regenerate supports rejecting promises', async t => {
-  t.plan(2)
+  t.plan(3)
   const fastify = await buildFastify(async (request, reply) => {
-    await t.rejects(request.session.regenerate(), 'no can do')
+    await t.assert.rejects(
+      request.session.regenerate(),
+      (err) => {
+        t.assert.strictEqual(err.message, 'no can do')
+        return true
+      }
+    )
 
     reply.send(200)
   }, {
@@ -713,36 +725,42 @@ test('regenerate supports rejecting promises', async t => {
       destroy (id, cb) { cb(null) }
     }
   })
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
   // 200 since we assert inline and swallow the error
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('reload supports promises', async t => {
   t.plan(2)
   const fastify = await buildFastify(async (request, reply) => {
-    await t.resolves(request.session.reload())
+    await t.assert.doesNotReject(request.session.reload())
 
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('reload supports rejecting promises', async t => {
-  t.plan(2)
+  t.plan(3)
   const fastify = await buildFastify(async (request, reply) => {
-    await t.rejects(request.session.reload(), 'no can do')
+    await t.assert.rejects(
+      request.session.reload(),
+      (err) => {
+        t.assert.strictEqual(err.message, 'no can do')
+        return true
+      }
+    )
 
     reply.send(200)
   }, {
@@ -753,36 +771,36 @@ test('reload supports rejecting promises', async t => {
       destroy (id, cb) { cb(null) }
     }
   })
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
   // 200 since we assert inline and swallow the error
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('save supports promises', async t => {
   t.plan(2)
   const fastify = await buildFastify(async (request, reply) => {
-    await t.resolves(request.session.save())
+    await t.assert.doesNotReject(request.session.save())
 
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('save supports rejecting promises', async t => {
   t.plan(2)
   const fastify = await buildFastify(async (request, reply) => {
-    await t.rejects(request.session.save())
+    await t.assert.rejects(request.session.save())
 
     reply.send(200)
   }, {
@@ -793,14 +811,14 @@ test('save supports rejecting promises', async t => {
       destroy (id, cb) { cb(null) }
     }
   })
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/'
   })
 
   // 200 since we assert inline and swallow the error
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test("clears cookie if not backed by a session, and there's nothing to save", async t => {
@@ -808,15 +826,15 @@ test("clears cookie if not backed by a session, and there's nothing to save", as
   const fastify = await buildFastify((request, reply) => {
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/',
     headers: { cookie: DEFAULT_COOKIE_VALUE }
   })
 
-  t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'], 'sessionId=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.headers['set-cookie'], 'sessionId=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
 })
 
 test("clearing cookie sets the domain if it's specified in the cookie options", async t => {
@@ -827,15 +845,15 @@ test("clearing cookie sets the domain if it's specified in the cookie options", 
     ...DEFAULT_OPTIONS,
     cookie: { domain: 'domain.test' }
   })
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/',
     headers: { cookie: DEFAULT_COOKIE_VALUE }
   })
 
-  t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'], 'sessionId=; Domain=domain.test; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.headers['set-cookie'], 'sessionId=; Domain=domain.test; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
 })
 
 test('does not clear cookie if no session cookie in request', async t => {
@@ -843,15 +861,15 @@ test('does not clear cookie if no session cookie in request', async t => {
   const fastify = await buildFastify((request, reply) => {
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     url: '/',
     headers: { cookie: 'someOtherCookie=foobar' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'], undefined)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.headers['set-cookie'], undefined)
 })
 
 test('when rolling is false, only save session when it changes', async t => {
@@ -890,23 +908,23 @@ test('when rolling is false, only save session when it changes', async t => {
   const response1 = await fastify.inject('/')
   const setCookieHeader1 = response1.headers['set-cookie']
 
-  t.equal(response1.statusCode, 200)
-  t.equal(setCount, 1)
-  t.equal(typeof setCookieHeader1, 'string')
+  t.assert.strictEqual(response1.statusCode, 200)
+  t.assert.strictEqual(setCount, 1)
+  t.assert.strictEqual(typeof setCookieHeader1, 'string')
 
   const { sessionId } = fastify.parseCookie(setCookieHeader1)
 
   const response2 = await fastify.inject({ path: '/', headers: { cookie: `sessionId=${sessionId}` } })
   const setCookieHeader2 = response2.headers['set-cookie']
 
-  t.equal(response2.statusCode, 200)
+  t.assert.strictEqual(response2.statusCode, 200)
   // still only called once
-  t.equal(setCount, 1)
+  t.assert.strictEqual(setCount, 1)
   // no set-cookie
-  t.equal(setCookieHeader2, undefined)
+  t.assert.strictEqual(setCookieHeader2, undefined)
 })
 
-test('when rolling is false, only save session when it changes, but not if manually saved', async t => {
+test('when rolling is false, only save session when it changes, but.assert.notStrictEqual if manually saved', async t => {
   t.plan(5)
   let setCount = 0
   const store = new Map()
@@ -936,22 +954,22 @@ test('when rolling is false, only save session when it changes, but not if manua
   fastify.get('/', async (request, reply) => {
     request.session.userId = 42
 
-    t.equal(request.session.isModified(), true)
+    t.assert.strictEqual(request.session.isModified(), true)
 
     // manually save the session
     await request.session.save()
 
-    t.equal(request.session.isModified(), false)
+    t.assert.strictEqual(request.session.isModified(), false)
 
     await reply.send(200)
   })
 
   const { statusCode, headers } = await fastify.inject('/')
 
-  t.equal(statusCode, 200)
+  t.assert.strictEqual(statusCode, 200)
   // we manually saved the session, so it should be called once (not once for manual save and once in `onSend`)
-  t.equal(setCount, 1)
-  t.equal(typeof headers['set-cookie'], 'string')
+  t.assert.strictEqual(setCount, 1)
+  t.assert.strictEqual(typeof headers['set-cookie'], 'string')
 })
 
 test('when rolling is true, keep saving the session', async t => {
@@ -990,18 +1008,18 @@ test('when rolling is true, keep saving the session', async t => {
   const response1 = await fastify.inject('/')
   const setCookieHeader1 = response1.headers['set-cookie']
 
-  t.equal(response1.statusCode, 200)
-  t.equal(setCount, 1)
-  t.equal(typeof setCookieHeader1, 'string')
+  t.assert.strictEqual(response1.statusCode, 200)
+  t.assert.strictEqual(setCount, 1)
+  t.assert.strictEqual(typeof setCookieHeader1, 'string')
 
   const { sessionId } = fastify.parseCookie(setCookieHeader1)
 
   const response2 = await fastify.inject({ path: '/', headers: { cookie: `sessionId=${sessionId}` } })
   const setCookieHeader2 = response2.headers['set-cookie']
 
-  t.equal(response2.statusCode, 200)
-  t.equal(setCount, 2)
-  t.equal(typeof setCookieHeader2, 'string')
+  t.assert.strictEqual(response2.statusCode, 200)
+  t.assert.strictEqual(setCount, 2)
+  t.assert.strictEqual(typeof setCookieHeader2, 'string')
 })
 
 test('will not update expires property of the session using Session#touch() if maxAge is not set', async (t) => {
@@ -1021,21 +1039,21 @@ test('will not update expires property of the session using Session#touch() if m
 
   fastify.get('/', (request, reply) => reply.send({ expires: request.session.cookie.expires }))
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
-  t.equal(response1.statusCode, 200)
+  t.assert.strictEqual(response1.statusCode, 200)
   await new Promise(resolve => setTimeout(resolve, 1))
-  t.same(response1.json(), { expires: null })
+  t.assert.deepStrictEqual(response1.json(), { expires: null })
 
   const response2 = await fastify.inject({
     url: '/',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
-  t.equal(response2.statusCode, 200)
-  t.same(response2.json(), { expires: null })
+  t.assert.strictEqual(response2.statusCode, 200)
+  t.assert.deepStrictEqual(response2.json(), { expires: null })
 })
 
 test('should save session if existing, modified, rolling false, and cookie.expires null', async (t) => {
@@ -1050,39 +1068,39 @@ test('should save session if existing, modified, rolling false, and cookie.expir
   })
   fastify.get('/', (request, reply) => {
     request.session.set('foo', 'bar')
-    t.equal(request.session.cookie.expires, null)
+    t.assert.strictEqual(request.session.cookie.expires, null)
     reply.send(200)
   })
   fastify.get('/second', (request, reply) => {
-    t.equal(request.session.get('foo'), 'bar')
+    t.assert.strictEqual(request.session.get('foo'), 'bar')
     request.session.set('foo', 'baz')
-    t.equal(request.session.cookie.expires, null)
+    t.assert.strictEqual(request.session.cookie.expires, null)
     reply.send(200)
   })
   fastify.get('/third', (request, reply) => {
-    t.equal(request.session.get('foo'), 'baz')
-    t.equal(request.session.cookie.expires, null)
+    t.assert.strictEqual(request.session.get('foo'), 'baz')
+    t.assert.strictEqual(request.session.cookie.expires, null)
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response1 = await fastify.inject({
     url: '/'
   })
-  t.equal(response1.statusCode, 200)
+  t.assert.strictEqual(response1.statusCode, 200)
 
   const response2 = await fastify.inject({
     url: '/second',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
-  t.equal(response2.statusCode, 200)
+  t.assert.strictEqual(response2.statusCode, 200)
 
   const response3 = await fastify.inject({
     url: '/third',
     headers: { Cookie: response1.headers['set-cookie'] }
   })
-  t.equal(response3.statusCode, 200)
+  t.assert.strictEqual(response3.statusCode, 200)
 })
 
 test('Custom options', async t => {
@@ -1104,7 +1122,7 @@ test('Custom options', async t => {
     reply.send('hello world')
   })
 
-  t.teardown(fastify.close.bind(fastify))
+  t.after(() => fastify.close.bind(fastify))
 
   fastify.get('/', (request, reply) => {
     const data = request.session.get('data')
@@ -1122,11 +1140,11 @@ test('Custom options', async t => {
       some: 'data'
     }
   }, (error, response) => {
-    t.error(error)
-    t.equal(response.statusCode, 200)
-    t.ok(response.headers['set-cookie'])
+    t.assert.ifError(error)
+    t.assert.strictEqual(response.statusCode, 200)
+    t.assert.ok(response.headers['set-cookie'])
     const { expires } = response.cookies[0]
-    t.equal(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+    t.assert.strictEqual(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
 
     fastify.inject({
       method: 'GET',
@@ -1135,18 +1153,20 @@ test('Custom options', async t => {
         cookie: response.headers['set-cookie']
       }
     }, (error, response) => {
-      t.error(error)
-      t.same(JSON.parse(response.payload), { some: 'data' })
+      t.assert.ifError(error)
+      t.assert.deepStrictEqual(JSON.parse(response.payload), { some: 'data' })
     })
   })
+
+  await sleep()
 })
 
-test('Override global options', t => {
+test('Override global options', async t => {
   t.plan(11)
 
   const fastify = Fastify()
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, {
+  await fastify.register(fastifyCookie)
+  await fastify.register(fastifySession, {
     ...DEFAULT_OPTIONS,
     cookie: {
       secure: false,
@@ -1162,7 +1182,7 @@ test('Override global options', t => {
     reply.send('hello world')
   })
 
-  t.teardown(fastify.close.bind(fastify))
+  t.after(async () => await fastify.close())
 
   fastify.get('/', (request, reply) => {
     const data = request.session.get('data')
@@ -1174,39 +1194,37 @@ test('Override global options', t => {
     reply.send(data)
   })
 
-  fastify.inject({
+  let response = await fastify.inject({
     method: 'POST',
     url: '/',
     payload: {
       some: 'data'
     }
-  }, (error, response) => {
-    t.error(error)
-    t.equal(response.statusCode, 200)
-    t.ok(response.headers['set-cookie'])
-    const { expires, path } = response.cookies[0]
-    t.equal(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
-    t.equal(path, '/')
-
-    fastify.inject({
-      method: 'GET',
-      url: '/',
-      headers: {
-        cookie: response.headers['set-cookie']
-      }
-    }, (error, response) => {
-      t.error(error)
-      t.equal(response.statusCode, 200)
-      t.same(JSON.parse(response.payload), { some: 'data' })
-      t.ok(response.headers['set-cookie'])
-      const { expires, path } = response.cookies[0]
-      t.equal(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
-      t.equal(path, '/')
-    })
   })
+  t.assert.ok(response)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.ok(response.headers['set-cookie'])
+  let cookie = response.cookies[0]
+  t.assert.strictEqual(cookie.expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+  t.assert.strictEqual(cookie.path, '/')
+
+  response = await fastify.inject({
+    method: 'GET',
+    url: '/',
+    headers: {
+      cookie: response.headers['set-cookie']
+    }
+  })
+  t.assert.ok(response)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.deepStrictEqual(JSON.parse(response.payload), { some: 'data' })
+  t.assert.ok(response.headers['set-cookie'])
+  cookie = response.cookies[0]
+  t.assert.strictEqual(cookie.expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+  t.assert.strictEqual(cookie.path, '/')
 })
 
-test('Override global options with regenerate', t => {
+test('Override global options with regenerate', async t => {
   t.plan(11)
 
   const fastify = Fastify()
@@ -1227,7 +1245,7 @@ test('Override global options with regenerate', t => {
     reply.send('hello world')
   })
 
-  t.teardown(fastify.close.bind(fastify))
+  t.after(() => fastify.close.bind(fastify))
 
   fastify.get('/', async (request, reply) => {
     const data = request.session.get('data')
@@ -1241,34 +1259,33 @@ test('Override global options with regenerate', t => {
     reply.send(data)
   })
 
-  fastify.inject({
+  let response = await fastify.inject({
     method: 'POST',
     url: '/',
     payload: {
       some: 'data'
     }
-  }, (error, response) => {
-    t.error(error)
-    t.equal(response.statusCode, 200)
-    t.ok(response.headers['set-cookie'])
-    const { expires, path } = response.cookies[0]
-    t.equal(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
-    t.equal(path, '/')
-
-    fastify.inject({
-      method: 'GET',
-      url: '/',
-      headers: {
-        cookie: response.headers['set-cookie']
-      }
-    }, (error, response) => {
-      t.error(error)
-      t.equal(response.statusCode, 200)
-      t.same(JSON.parse(response.payload), { some: 'data' })
-      t.ok(response.headers['set-cookie'])
-      const { expires, path } = response.cookies[0]
-      t.equal(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
-      t.equal(path, '/')
-    })
   })
+  t.assert.ok(response)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.ok(response.headers['set-cookie'])
+  let cookie = response.cookies[0]
+  t.assert.strictEqual(cookie.expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+  t.assert.strictEqual(cookie.path, '/')
+
+  response = await fastify.inject({
+    method: 'GET',
+    url: '/',
+    headers: {
+      cookie: response.headers['set-cookie']
+    }
+  })
+
+  t.assert.ok(response)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.deepStrictEqual(JSON.parse(response.payload), { some: 'data' })
+  t.assert.ok(response.headers['set-cookie'])
+  cookie = response.cookies[0]
+  t.assert.strictEqual(cookie.expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+  t.assert.strictEqual(cookie.path, '/')
 })

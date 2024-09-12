@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('tap').test
+const test = require('node:test')
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('../lib/fastifySession')
@@ -22,14 +22,15 @@ test('should set session cookie', async (t) => {
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should not set session cookie is request is not secure', async (t) => {
@@ -42,14 +43,14 @@ test('should not set session cookie is request is not secure', async (t) => {
   fastify.register(fastifySession, DEFAULT_OPTIONS)
   fastify.get('/', (request, reply) => reply.send(200))
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'], undefined)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.headers['set-cookie'], undefined)
 })
 
 test('should not set session cookie is request is not secure and x-forwarded-proto != https', async (t) => {
@@ -62,15 +63,15 @@ test('should not set session cookie is request is not secure and x-forwarded-pro
   fastify.register(fastifySession, DEFAULT_OPTIONS)
   fastify.get('/', (request, reply) => reply.send(200))
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
     headers: { 'x-forwarded-proto': 'http' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.equal(response.headers['set-cookie'], undefined)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.headers['set-cookie'], undefined)
 })
 
 test('should set session cookie is request is not secure and x-forwarded-proto = https', async (t) => {
@@ -86,15 +87,15 @@ test('should set session cookie is request is not secure and x-forwarded-proto =
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.ok(response.headers['set-cookie'])
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.ok(response.headers['set-cookie'])
 })
 
 test('session.cookie should have expires if maxAge is set', async (t) => {
@@ -104,17 +105,17 @@ test('session.cookie should have expires if maxAge is set', async (t) => {
     cookie: { maxAge: 100000000, secure: false }
   }
   const fastify = await buildFastify((request, reply) => {
-    t.equal(request.session.cookie.originalMaxAge, 100000000)
+    t.assert.strictEqual(request.session.cookie.originalMaxAge, 100000000)
     reply.send(200)
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.ok(response.headers['set-cookie'].includes('Expires='))
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.ok(response.headers['set-cookie'].includes('Expires='))
 })
 
 test('should set session cookie with expires if maxAge', async (t) => {
@@ -127,15 +128,16 @@ test('should set session cookie with expires if maxAge', async (t) => {
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=[\w, :]{29}; HttpOnly; Secure/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=[\w, :]{29}; HttpOnly; Secure`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session cookie with maxAge', async (t) => {
@@ -148,15 +150,16 @@ test('should set session cookie with maxAge', async (t) => {
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Domain=localhost; Path=\/; HttpOnly; Secure/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Domain=localhost; Path=\/; HttpOnly; Secure`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session cookie with sameSite', async (t) => {
@@ -169,15 +172,16 @@ test('should set session cookie with sameSite', async (t) => {
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; SameSite=Strict/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; SameSite=Strict`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session another path in cookie', async (t) => {
@@ -195,15 +199,16 @@ test('should set session another path in cookie', async (t) => {
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/a/test/path',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[[\w-%]{43,57}; Path=\/a\/test\/path; HttpOnly; Secure/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[[\w-%]{43,57}; Path=\/a\/test\/path; HttpOnly; Secure`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session cookie with expires', async (t) => {
@@ -218,15 +223,16 @@ test('should set session cookie with expires', async (t) => {
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=Mon, 01 Feb 1971 00:01:01 GMT; HttpOnly; Secure/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=Mon, 01 Feb 1971 00:01:01 GMT; HttpOnly; Secure`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session non HttpOnly cookie', async (t) => {
@@ -239,15 +245,16 @@ test('should set session non HttpOnly cookie', async (t) => {
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Secure/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Secure`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session non secure cookie', async (t) => {
@@ -260,14 +267,15 @@ test('should set session non secure cookie', async (t) => {
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session non secure cookie secureAuto', async (t) => {
@@ -280,14 +288,15 @@ test('should set session non secure cookie secureAuto', async (t) => {
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session cookie secureAuto', async (t) => {
@@ -306,14 +315,15 @@ test('should set session cookie secureAuto', async (t) => {
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session cookie secureAuto change SameSite', async (t) => {
@@ -332,14 +342,15 @@ test('should set session cookie secureAuto change SameSite', async (t) => {
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session cookie secureAuto keep SameSite when secured', async (t) => {
@@ -358,14 +369,15 @@ test('should set session cookie secureAuto keep SameSite when secured', async (t
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; SameSite=None/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; SameSite=None`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session secure cookie secureAuto http encrypted', async (t) => {
@@ -384,14 +396,15 @@ test('should set session secure cookie secureAuto http encrypted', async (t) => 
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session secure cookie secureAuto x-forwarded-proto header', async (t) => {
@@ -404,15 +417,16 @@ test('should set session secure cookie secureAuto x-forwarded-proto header', asy
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should set session partitioned cookie secure http encrypted', async (t) => {
@@ -431,14 +445,15 @@ test('should set session partitioned cookie secure http encrypted', async (t) =>
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; Partitioned/)
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; Partitioned`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('should use maxAge instead of expires in session if both are set in options.cookie', async (t) => {
@@ -452,7 +467,7 @@ test('should use maxAge instead of expires in session if both are set in options
     request.session.test = {}
     reply.code(200).send(Date.now().toString())
   }, options)
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
 
   const response = await fastify.inject({
     url: '/',
@@ -460,11 +475,13 @@ test('should use maxAge instead of expires in session if both are set in options
   })
 
   const dateFromBody = new Date(Number(response.body))
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
   // Expires attribute should be determined by options.maxAge -> Date.now() + 1000 and should have the same year from response.body,
   // and not determined by options.expires and should not have the year of 1971
-  t.notMatch(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ 1971 \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure/)
-  t.match(response.headers['set-cookie'], new RegExp(String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ ${dateFromBody.getFullYear()} \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure`))
+  const pattern1 = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ 1971 \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure/`
+  t.assert.strictEqual(new RegExp(pattern1).exec(response.headers['set-cookie']), null)
+  const pattern2 = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ ${dateFromBody.getFullYear()} \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure`
+  t.assert.strictEqual(new RegExp(pattern2).test(response.headers['set-cookie']), true)
 })
 
 test('should use session.cookie.originalMaxAge instead of the default maxAge', async (t) => {
@@ -491,7 +508,7 @@ test('should use session.cookie.originalMaxAge instead of the default maxAge', a
   const fastify = await buildFastify((request, reply) => {
     reply.send(200)
   }, { secret: DEFAULT_SECRET, cookie: { maxAge } }, plugin)
-  t.teardown(() => {
+  t.after(() => {
     fastify.close()
     Date.now = DateNow
   })
@@ -501,8 +518,9 @@ test('should use session.cookie.originalMaxAge instead of the default maxAge', a
     headers: { cookie: DEFAULT_COOKIE, 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(response.statusCode, 200)
-  t.match(response.headers['set-cookie'], RegExp(`sessionId=.*; Path=/; Expires=${new Date(now + originalMaxAge).toUTCString()}; HttpOnly`))
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=.*; Path=/; Expires=${new Date(now + originalMaxAge).toUTCString()}; HttpOnly`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
 test('when cookie secure is set to false then store secure as false', async t => {
@@ -519,60 +537,61 @@ test('when cookie secure is set to false then store secure as false', async t =>
   })
 
   fastify.get('/', (request, reply) => {
-    t.equal(request.session.cookie.secure, false)
+    t.assert.strictEqual(request.session.cookie.secure, false)
     reply.send(200)
   })
 
   const response = await fastify.inject({ path: '/' })
 
-  t.equal(response.statusCode, 200)
-  t.equal(typeof response.headers['set-cookie'], 'string')
-  t.match(response.headers['set-cookie'], /^sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly$/)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(typeof response.headers['set-cookie'], 'string')
+  const pattern = String.raw`^sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly$`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
-test('Cookie', t => {
+test('Cookie', async t => {
   t.plan(4)
 
   const cookie = new Cookie({})
 
-  t.test('properties', t => {
+  await t.test('properties', t => {
     t.plan(10)
 
-    t.equal('expires' in cookie, true)
-    t.equal('originalMaxAge' in cookie, true)
-    t.equal('sameSite' in cookie, true)
-    t.equal('secure' in cookie, true)
-    t.equal('path' in cookie, true)
-    t.equal('httpOnly' in cookie, true)
-    t.equal('domain' in cookie, true)
-    t.equal('_expires' in cookie, true)
-    t.equal('maxAge' in cookie, true)
-    t.equal('partitioned' in cookie, true)
+    t.assert.strictEqual('expires' in cookie, true)
+    t.assert.strictEqual('originalMaxAge' in cookie, true)
+    t.assert.strictEqual('sameSite' in cookie, true)
+    t.assert.strictEqual('secure' in cookie, true)
+    t.assert.strictEqual('path' in cookie, true)
+    t.assert.strictEqual('httpOnly' in cookie, true)
+    t.assert.strictEqual('domain' in cookie, true)
+    t.assert.strictEqual('_expires' in cookie, true)
+    t.assert.strictEqual('maxAge' in cookie, true)
+    t.assert.strictEqual('partitioned' in cookie, true)
   })
 
-  t.test('toJSON', t => {
+  await t.test('toJSON', t => {
     t.plan(10)
 
     const json = cookie.toJSON()
 
-    t.equal('expires' in json, true)
-    t.equal('originalMaxAge' in json, true)
-    t.equal('sameSite' in json, true)
-    t.equal('secure' in json, true)
-    t.equal('path' in json, true)
-    t.equal('httpOnly' in json, true)
-    t.equal('domain' in json, true)
-    t.equal('partitioned' in json, true)
+    t.assert.strictEqual('expires' in json, true)
+    t.assert.strictEqual('originalMaxAge' in json, true)
+    t.assert.strictEqual('sameSite' in json, true)
+    t.assert.strictEqual('secure' in json, true)
+    t.assert.strictEqual('path' in json, true)
+    t.assert.strictEqual('httpOnly' in json, true)
+    t.assert.strictEqual('domain' in json, true)
+    t.assert.strictEqual('partitioned' in json, true)
 
-    t.equal('_expires' in json, false)
-    t.equal('maxAge' in json, false)
+    t.assert.strictEqual('_expires' in json, false)
+    t.assert.strictEqual('maxAge' in json, false)
   })
 
   // the clock ticks while we're testing, so to prevent occasional test
   // failures where these tests tick over 1ms, take the time difference into
   // account:
 
-  t.test('maxAge calculated from expires', t => {
+  await t.test('maxAge calculated from expires', t => {
     t.plan(2)
 
     const startT = Date.now()
@@ -580,11 +599,11 @@ test('Cookie', t => {
     const maxAge = cookie.maxAge
     const duration = Date.now() - startT
 
-    t.equal(maxAge <= 1000 && maxAge >= 1000 - duration, true)
-    t.equal(cookie.originalMaxAge, null)
+    t.assert.strictEqual(maxAge <= 1000 && maxAge >= 1000 - duration, true)
+    t.assert.strictEqual(cookie.originalMaxAge, null)
   })
 
-  t.test('maxAge set by maxAge', t => {
+  await t.test('maxAge set by maxAge', t => {
     t.plan(2)
 
     const startT = Date.now()
@@ -592,7 +611,7 @@ test('Cookie', t => {
     const maxAge = cookie.maxAge
     const duration = Date.now() - startT
 
-    t.equal(maxAge <= 1000 && maxAge >= 1000 - duration, true)
-    t.equal(cookie.originalMaxAge, 1000)
+    t.assert.strictEqual(maxAge <= 1000 && maxAge >= 1000 - duration, true)
+    t.assert.strictEqual(cookie.originalMaxAge, 1000)
   })
 })
