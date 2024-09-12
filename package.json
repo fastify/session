@@ -6,13 +6,11 @@
   "type": "commonjs",
   "scripts": {
     "test": "npm run test:unit && npm run test:typescript",
-    "test:unit": "tap",
+    "test:unit": "c8 --100 node --test",
     "test:typescript": "tsd",
     "benchmark": "node benchmark/bench.js",
     "lint": "standard lib/* test/* benchmark/*.js",
-    "lint:fix": "standard --fix",
-    "coveralls": "tap --coverage-report=lcov",
-    "coverage": "tap --coverage-report=html"
+    "lint:fix": "standard --fix"
   },
   "keywords": [
     "session",
@@ -32,6 +30,7 @@
     "@fastify/cookie": "^10.0.0",
     "@fastify/pre-commit": "^2.1.0",
     "@types/node": "^22.0.0",
+    "c8": "^10.1.2",
     "connect-mongo": "^5.1.0",
     "connect-redis": "^7.1.1",
     "cronometro": "^3.0.2",
@@ -39,7 +38,6 @@
     "ioredis": "^5.3.2",
     "session-file-store": "^1.5.0",
     "standard": "^17.1.0",
-    "tap": "^18.7.2",
     "tsd": "^0.31.0"
   },
   "types": "types/types.d.ts",

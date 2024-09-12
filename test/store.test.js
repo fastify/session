@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('tap').test
+const test = require('node:test')
 const fastifyPlugin = require('fastify-plugin')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, DEFAULT_SESSION_ID } = require('./util')
 
@@ -8,17 +8,17 @@ test('should decorate request with sessionStore', async (t) => {
   t.plan(2)
 
   const fastify = await buildFastify((request, reply) => {
-    t.ok(request.sessionStore)
+    t.assert.ok(request.sessionStore)
     reply.send(200)
   }, DEFAULT_OPTIONS)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     method: 'GET',
     url: '/'
   })
 
-  t.equal(response.statusCode, 200)
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should pass error on store.set to done', async (t) => {
@@ -31,7 +31,7 @@ test('should pass error on store.set to done', async (t) => {
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const { statusCode } = await fastify.inject({
     method: 'GET',
@@ -39,7 +39,7 @@ test('should pass error on store.set to done', async (t) => {
     headers: { 'x-forwarded-proto': 'https' }
   })
 
-  t.equal(statusCode, 500)
+  t.assert.strictEqual(statusCode, 500)
 })
 
 test('should create new session if ENOENT error on store.get', async (t) => {
@@ -52,7 +52,7 @@ test('should create new session if ENOENT error on store.get', async (t) => {
     request.session.test = {}
     reply.send(200)
   }, options)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const response = await fastify.inject({
     method: 'GET',
@@ -63,11 +63,12 @@ test('should create new session if ENOENT error on store.get', async (t) => {
     }
   })
 
-  t.equal(response.headers['set-cookie'].includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'), false)
-  t.match(response.headers['set-cookie'], /sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure/)
-  t.equal(response.statusCode, 200)
-  t.equal(response.cookies[0].name, 'sessionId')
-  t.equal(response.cookies[0].value.includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'), false)
+  t.assert.strictEqual(response.headers['set-cookie'].includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'), false)
+  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  t.assert.strictEqual(RegExp(pattern).test(response.headers['set-cookie']), true)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.cookies[0].name, 'sessionId')
+  t.assert.strictEqual(response.cookies[0].value.includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'), false)
 })
 
 test('should pass error to done if non-ENOENT error on store.get', async (t) => {
@@ -80,7 +81,7 @@ test('should pass error to done if non-ENOENT error on store.get', async (t) => 
   const fastify = await buildFastify((request, reply) => {
     reply.send(200)
   }, options)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const { statusCode } = await fastify.inject({
     method: 'GET',
@@ -88,7 +89,7 @@ test('should pass error to done if non-ENOENT error on store.get', async (t) => 
     headers: { cookie: DEFAULT_COOKIE }
   })
 
-  t.equal(statusCode, 500)
+  t.assert.strictEqual(statusCode, 500)
 })
 
 test('should set new session cookie if expired', async (t) => {
@@ -111,7 +112,7 @@ test('should set new session cookie if expired', async (t) => {
     reply.send(200)
   }
   const fastify = await buildFastify(handler, options, plugin)
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const { statusCode, cookie } = await fastify.inject({
     method: 'GET',
@@ -119,8 +120,8 @@ test('should set new session cookie if expired', async (t) => {
     headers: { cookie: DEFAULT_COOKIE }
   })
 
-  t.equal(statusCode, 500)
-  t.equal(cookie, undefined)
+  t.assert.strictEqual(statusCode, 500)
+  t.assert.strictEqual(cookie, undefined)
 })
 
 class FailOnDestroyStore {

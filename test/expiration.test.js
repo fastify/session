@@ -1,8 +1,8 @@
 'use strict'
 
-const test = require('tap').test
+const test = require('node:test')
 const { buildFastify, DEFAULT_SECRET } = require('./util')
-const { setTimeout } = require('node:timers/promises')
+const { setTimeout: sleep } = require('node:timers/promises')
 
 test('sessions should be deleted if expired', async (t) => {
   t.plan(5)
@@ -12,7 +12,7 @@ test('sessions should be deleted if expired', async (t) => {
     secret: DEFAULT_SECRET,
     store: {
       get (id, cb) {
-        t.pass('session was restored')
+        t.assert.ok(id)
         cb(null, sessions[id])
       },
       set (id, session, cb) {
@@ -20,7 +20,7 @@ test('sessions should be deleted if expired', async (t) => {
         cb()
       },
       destroy (id, cb) {
-        t.pass('expired session is destroyed')
+        t.assert.ok(id)
         cb()
       }
     },
@@ -30,7 +30,7 @@ test('sessions should be deleted if expired', async (t) => {
   const fastify = await buildFastify((request, reply) => {
     reply.send(200)
   }, options)
-  t.teardown(() => {
+  t.after(() => {
     fastify.close()
   })
 
@@ -42,10 +42,10 @@ test('sessions should be deleted if expired', async (t) => {
   const initialSession = response.headers['set-cookie']
     .split(' ')[0]
     .replace(';', '')
-  t.ok(initialSession.startsWith('sessionId='))
+  t.assert.ok(initialSession.startsWith('sessionId='))
 
   // Wait for the cookie to expire
-  await setTimeout(2000)
+  await sleep(2000)
 
   response = await fastify.inject({
     url: '/',
@@ -57,7 +57,7 @@ test('sessions should be deleted if expired', async (t) => {
   const endingSession = response.headers['set-cookie']
     .split(' ')[0]
     .replace(';', '')
-  t.ok(endingSession.startsWith('sessionId='))
+  t.assert.ok(endingSession.startsWith('sessionId='))
 
-  t.not(initialSession, endingSession)
+  t.assert.notEqual(initialSession, endingSession)
 })
