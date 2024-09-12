@@ -1165,8 +1165,8 @@ test('Override global options', async t => {
   t.plan(11)
 
   const fastify = Fastify()
-  fastify.register(fastifyCookie)
-  fastify.register(fastifySession, {
+  await fastify.register(fastifyCookie)
+  await fastify.register(fastifySession, {
     ...DEFAULT_OPTIONS,
     cookie: {
       secure: false,
@@ -1182,7 +1182,7 @@ test('Override global options', async t => {
     reply.send('hello world')
   })
 
-  t.after(() => fastify.close.bind(fastify))
+  t.after(async () => await fastify.close())
 
   fastify.get('/', (request, reply) => {
     const data = request.session.get('data')
@@ -1194,38 +1194,34 @@ test('Override global options', async t => {
     reply.send(data)
   })
 
-  fastify.inject({
+  let response = await fastify.inject({
     method: 'POST',
     url: '/',
     payload: {
       some: 'data'
     }
-  }, (error, response) => {
-    t.assert.ifError(error)
-    t.assert.strictEqual(response.statusCode, 200)
-    t.assert.ok(response.headers['set-cookie'])
-    const { expires, path } = response.cookies[0]
-    t.assert.strictEqual(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
-    t.assert.strictEqual(path, '/')
-
-    fastify.inject({
-      method: 'GET',
-      url: '/',
-      headers: {
-        cookie: response.headers['set-cookie']
-      }
-    }, (error, response) => {
-      t.assert.ifError(error)
-      t.assert.strictEqual(response.statusCode, 200)
-      t.assert.deepStrictEqual(JSON.parse(response.payload), { some: 'data' })
-      t.assert.ok(response.headers['set-cookie'])
-      const { expires, path } = response.cookies[0]
-      t.assert.strictEqual(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
-      t.assert.strictEqual(path, '/')
-    })
   })
+  t.assert.ok(response)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.ok(response.headers['set-cookie'])
+  let cookie = response.cookies[0]
+  t.assert.strictEqual(cookie.expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+  t.assert.strictEqual(cookie.path, '/')
 
-  await sleep()
+  response = await fastify.inject({
+    method: 'GET',
+    url: '/',
+    headers: {
+      cookie: response.headers['set-cookie']
+    }
+  })
+  t.assert.ok(response)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.deepStrictEqual(JSON.parse(response.payload), { some: 'data' })
+  t.assert.ok(response.headers['set-cookie'])
+  cookie = response.cookies[0]
+  t.assert.strictEqual(cookie.expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+  t.assert.strictEqual(cookie.path, '/')
 })
 
 test('Override global options with regenerate', async t => {
@@ -1263,35 +1259,33 @@ test('Override global options with regenerate', async t => {
     reply.send(data)
   })
 
-  fastify.inject({
+  let response = await fastify.inject({
     method: 'POST',
     url: '/',
     payload: {
       some: 'data'
     }
-  }, (error, response) => {
-    t.assert.ifError(error)
-    t.assert.strictEqual(response.statusCode, 200)
-    t.assert.ok(response.headers['set-cookie'])
-    const { expires, path } = response.cookies[0]
-    t.assert.strictEqual(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
-    t.assert.strictEqual(path, '/')
-
-    fastify.inject({
-      method: 'GET',
-      url: '/',
-      headers: {
-        cookie: response.headers['set-cookie']
-      }
-    }, (error, response) => {
-      t.assert.ifError(error)
-      t.assert.strictEqual(response.statusCode, 200)
-      t.assert.deepStrictEqual(JSON.parse(response.payload), { some: 'data' })
-      t.assert.ok(response.headers['set-cookie'])
-      const { expires, path } = response.cookies[0]
-      t.assert.strictEqual(expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
-      t.assert.strictEqual(path, '/')
-    })
   })
-  await sleep()
+  t.assert.ok(response)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.ok(response.headers['set-cookie'])
+  let cookie = response.cookies[0]
+  t.assert.strictEqual(cookie.expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+  t.assert.strictEqual(cookie.path, '/')
+
+  response = await fastify.inject({
+    method: 'GET',
+    url: '/',
+    headers: {
+      cookie: response.headers['set-cookie']
+    }
+  })
+
+  t.assert.ok(response)
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.deepStrictEqual(JSON.parse(response.payload), { some: 'data' })
+  t.assert.ok(response.headers['set-cookie'])
+  cookie = response.cookies[0]
+  t.assert.strictEqual(cookie.expires.toUTCString(), new Date(Date.now() + 1000 * 60 * 60).toUTCString())
+  t.assert.strictEqual(cookie.path, '/')
 })
