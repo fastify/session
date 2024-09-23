@@ -19,7 +19,7 @@
   "author": "Denis Fäcke",
   "license": "MIT",
   "dependencies": {
-    "fastify-plugin": "^4.5.1",
+    "fastify-plugin": "^5.0.1",
     "safe-stable-stringify": "^2.4.3"
   },
   "repository": {
