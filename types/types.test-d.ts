@@ -106,7 +106,7 @@ app.route({
     expectType<{ id: number } | undefined>(request.session.user);
     request.sessionStore.set('session-set-test', request.session, () => {});
     request.sessionStore.get('', (err, session) => {
-      var store = new MemoryStore();
+      const store = new MemoryStore();
       if (session) store.set('session-set-test', session, () => {});
       expectType<any>(err);
       expectType<Session | null | undefined>(session);
