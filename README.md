@@ -52,7 +52,7 @@ app.addHook('preHandler', (request, reply, next) => {
 The session plugin accepts the following options. It decorates the request with the `sessionStore` and a `session` object. The session data is stored server-side using the configured session store.
 #### options
 ##### secret (required)
-The secret used to sign the cookie. Must be an array of strings or a string with a length of 32 or greater or a custom signer. 
+The secret used to sign the cookie. Must be an array of strings or a string with a length of 32 or greater or a custom signer.
 
 If an array, the first secret is used to sign new cookies and is the first to be checked for incoming cookies.
 Further secrets in the array are used to check incoming cookies in the order specified.
@@ -190,10 +190,10 @@ fastify.decryptSession(sessionId, request, { maxAge: 86400 }, () => {
 ```
 
 ### Typescript support:
-This plugin supports typescript, and you can extend fastify module to add your custom session type. 
+This plugin supports typescript, and you can extend fastify module to add your custom session type.
 
 ```ts
-// Use module imports rather than commonjs' require for correct declaration merging in TypeScript. 
+// Use module imports rather than commonjs' require for correct declaration merging in TypeScript.
 
 // Wrong ❌:
 // const fastifySession = require('@fastify/session');
