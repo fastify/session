@@ -26,6 +26,10 @@
     "type": "git",
     "url": "git+https://github.com/fastify/session.git"
   },
+  "bugs": {
+    "url": "https://github.com/fastify/session/issues"
+  },
+  "homepage": "https://github.com/fastify/session#readme",
   "devDependencies": {
     "@fastify/cookie": "^11.0.0",
     "@fastify/pre-commit": "^2.1.0",
