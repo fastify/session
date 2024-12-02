@@ -36,7 +36,7 @@
     "@types/node": "^22.0.0",
     "c8": "^10.1.2",
     "connect-mongo": "^5.1.0",
-    "connect-redis": "^7.1.1",
+    "connect-redis": "^8.0.0",
     "cronometro": "^4.0.0",
     "fastify": "^5.0.0",
     "ioredis": "^5.3.2",
