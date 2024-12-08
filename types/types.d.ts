@@ -1,8 +1,8 @@
 /// <reference types='node' />
 
-import type * as Fastify from 'fastify';
-import { FastifyPluginCallback } from 'fastify';
-import { CookieSerializeOptions } from "@fastify/cookie"
+import type * as Fastify from 'fastify'
+import { FastifyPluginCallback } from 'fastify'
+import { CookieSerializeOptions } from '@fastify/cookie'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -26,8 +26,8 @@ type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions
   MemoryStore: fastifySession.MemoryStore,
 }
 
-type Callback = (err?: any) => void;
-type CallbackSession = (err: any, result?: Fastify.Session | null) => void;
+type Callback = (err?: any) => void
+type CallbackSession = (err: any, result?: Fastify.Session | null) => void
 
 interface ExpressSessionData {
   /** The cookie properties as defined by express-session */
@@ -180,25 +180,24 @@ declare namespace fastifySession {
   }
 
   export class MemoryStore implements fastifySession.SessionStore {
-    constructor(map?: Map<string, Fastify.Session>);
-    set(
+    constructor (map?: Map<string, Fastify.Session>)
+    set (
       sessionId: string,
       session: Fastify.Session,
       callback: Callback
-    ): void;
-    get(
+    ): void
+    get (
       sessionId: string,
       callback: CallbackSession
-    ): void;
-    destroy(sessionId: string, callback: Callback): void;
+    ): void
+    destroy (sessionId: string, callback: Callback): void
   }
 
-  export const Store: MemoryStore;
+  export const Store: MemoryStore
 
   export const fastifySession: FastifySession
   export { fastifySession as default }
 }
 
-declare function fastifySession(...params: Parameters<FastifySession>): ReturnType<FastifySession>
+declare function fastifySession (...params: Parameters<FastifySession>): ReturnType<FastifySession>
 export = fastifySession
-
