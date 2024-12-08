@@ -9,8 +9,8 @@
     "test:unit": "c8 --100 node --test",
     "test:typescript": "tsd",
     "benchmark": "node benchmark/bench.js",
-    "lint": "standard lib/* test/* benchmark/*.js",
-    "lint:fix": "standard --fix"
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
   },
   "keywords": [
     "session",
@@ -40,8 +40,8 @@
     "cronometro": "^4.0.0",
     "fastify": "^5.0.0",
     "ioredis": "^5.3.2",
+    "neostandard": "^0.11.9",
     "session-file-store": "^1.5.0",
-    "standard": "^17.1.0",
     "tsd": "^0.31.0"
   },
   "types": "types/types.d.ts",
