@@ -79,7 +79,7 @@ app.register(plugin, {
 })
 app.register(plugin, {
   secret,
-  idGenerator: (request) => `${request == undefined ? 'null' : request.ip}-${Date.now()}`
+  idGenerator: (request) => `${request === undefined ? 'null' : request.ip}-${Date.now()}`
 })
 
 expectError(app.register(plugin, {}))
