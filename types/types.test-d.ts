@@ -33,7 +33,6 @@ expectType<SessionStore>(plugin.MemoryStore)
 const secret = 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345'
 
 const app: FastifyInstance = fastify()
-app.register(plugin)
 app.register(plugin, { secret: 'DizIzSecret' })
 app.register(plugin, { secret: 'DizIzSecret', rolling: true })
 app.register(plugin, {
@@ -82,6 +81,7 @@ app.register(plugin, {
   idGenerator: (request) => `${request === undefined ? 'null' : request.ip}-${Date.now()}`
 })
 
+expectError(app.register(plugin))
 expectError(app.register(plugin, {}))
 
 expectError(app.decryptSession<string>('sessionId', {}, () => ({})))
@@ -141,7 +141,7 @@ const customSigner = {
 app.register(plugin, { secret: customSigner })
 
 const app2 = fastify()
-app2.register(fastifySession)
+app2.register(fastifySession, { secret: 'DizIzSecret' })
 
 app2.get('/', async function (request) {
   expectAssignable<string | undefined>(request.session.get('foo'))
