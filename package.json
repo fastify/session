@@ -17,6 +17,26 @@
     "fastify"
   ],
   "author": "Denis Fäcke",
+  "contributors": [
+    {
+      "name": "Matteo Collina",
+      "email": "hello@matteocollina.com"
+    },
+    {
+      "name": "Aras Abbasi",
+      "email": "aras.abbasi@gmail.com"
+    },
+    {
+      "name": "Vincent Le Goff",
+      "email": "vince.legoff@gmail.com",
+      "url": "https://github.com/zekth"
+    },
+    {
+      "name": "Frazer Smith",
+      "email": "frazer.dev@icloud.com",
+      "url": "https://github.com/fdawgs"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
     "fastify-plugin": "^5.0.1",
@@ -30,6 +50,16 @@
     "url": "https://github.com/fastify/session/issues"
   },
   "homepage": "https://github.com/fastify/session#readme",
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/fastify"
+    },
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/fastify"
+    }
+  ],
   "devDependencies": {
     "@fastify/cookie": "^11.0.0",
     "@fastify/pre-commit": "^2.1.0",
