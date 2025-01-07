@@ -131,7 +131,7 @@ app.route({
 
 const customSigner = {
   sign: (value: string) => value,
-  unsign: (input: string) => ({
+  unsign: (_input: string) => ({
     valid: true,
     renew: false,
     value: null

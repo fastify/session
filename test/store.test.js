@@ -78,7 +78,7 @@ test('should pass error to done if non-ENOENT error on store.get', async (t) => 
     store: new FailingStore()
   }
 
-  const fastify = await buildFastify((request, reply) => {
+  const fastify = await buildFastify((_request, reply) => {
     reply.send(200)
   }, options)
   t.after(() => fastify.close())
@@ -98,8 +98,8 @@ test('should set new session cookie if expired', async (t) => {
     secret: DEFAULT_SECRET,
     store: new FailOnDestroyStore()
   }
-  const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('onRequest', (request, reply, done) => {
+  const plugin = fastifyPlugin(async (fastify) => {
+    fastify.addHook('onRequest', (request, _reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: {
           expires: new Date(Date.now() - 1000)
@@ -139,7 +139,7 @@ class FailOnDestroyStore {
     callback(null, session)
   }
 
-  destroy (sessionId, callback) {
+  destroy (_sessionId, callback) {
     callback(new Error())
   }
 }
@@ -154,7 +154,7 @@ class EnoentErrorStore {
     callback()
   }
 
-  get (sessionId, callback) {
+  get (_sessionId, callback) {
     const error = Object.assign(new Error(), { code: 'ENOENT' })
     callback(error)
   }
@@ -166,15 +166,15 @@ class EnoentErrorStore {
 }
 
 class FailingStore {
-  set (sessionId, session, callback) {
+  set (_sessionId, _session, callback) {
     callback(new Error('store.set'))
   }
 
-  get (sessionId, callback) {
+  get (_sessionId, callback) {
     callback(new Error())
   }
 
-  destroy (sessionId, callback) {
+  destroy (_sessionId, callback) {
     callback(new Error())
   }
 }

@@ -9,7 +9,7 @@ const { setTimeout: sleep } = require('timers/promises')
 
 test('should not set session cookie on post without params', async (t) => {
   t.plan(3)
-  const fastify = await buildFastify((request, reply) => reply.send(200), DEFAULT_OPTIONS)
+  const fastify = await buildFastify((_request, reply) => reply.send(200), DEFAULT_OPTIONS)
   t.after(() => fastify.close())
 
   const response = await fastify.inject({
@@ -196,8 +196,8 @@ test('should set express sessions using the specified cookiePrefix', async (t) =
     cookiePrefix: 's:'
   }
 
-  const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('onRequest', (request, reply, done) => {
+  const plugin = fastifyPlugin(async (fastify) => {
+    fastify.addHook('onRequest', (request, _reply, done) => {
       request.sessionStore.set('Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN', {
         expires: new Date(Date.now() + 1000)
       }, done)
@@ -229,14 +229,14 @@ test('should create new session on expired session', async (t) => {
   const DateNow = Date.now
   const now = Date.now()
   Date.now = () => now
-  const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('onRequest', (request, reply, done) => {
+  const plugin = fastifyPlugin(async (fastify) => {
+    fastify.addHook('onRequest', (request, _reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: { secure: true, httpOnly: true, path: '/', expires: new Date(Date.now() - 1000) }
       }, done)
     })
   })
-  function handler (request, reply) {
+  function handler (_request, reply) {
     reply.send(200)
   }
   const options = {
@@ -288,8 +288,8 @@ test('should set session.cookie.expires if maxAge', async (t) => {
 test('should set new session cookie if expired', async (t) => {
   t.plan(3)
 
-  const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('onRequest', (request, reply, done) => {
+  const plugin = fastifyPlugin(async (fastify) => {
+    fastify.addHook('onRequest', (request, _reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
         cookie: {
           expires: new Date(Date.now() - 1000)
@@ -348,7 +348,7 @@ test('should not set session cookie on invalid path', async (t) => {
     secret: DEFAULT_SECRET,
     cookie: { path: '/path/' }
   }
-  const fastify = await buildFastify((request, reply) => reply.send(200), options)
+  const fastify = await buildFastify((_request, reply) => reply.send(200), options)
   t.after(() => fastify.close())
 
   const response = await fastify.inject({
@@ -367,8 +367,8 @@ test('should create new session if cookie contains invalid session', async (t) =
     request.session.test = {}
     reply.send(200)
   }
-  const plugin = fastifyPlugin(async (fastify, opts) => {
-    fastify.addHook('onRequest', (request, reply, done) => {
+  const plugin = fastifyPlugin(async (fastify) => {
+    fastify.addHook('onRequest', (request, _reply, done) => {
       request.sessionStore.set(DEFAULT_SESSION_ID, {
         test: {}
       }, done)
@@ -397,7 +397,7 @@ test('should not set session cookie if no data in session and saveUninitialized 
     secret: DEFAULT_SECRET,
     saveUninitialized: false
   }
-  const fastify = await buildFastify((request, reply) => reply.send(200), options)
+  const fastify = await buildFastify((_request, reply) => reply.send(200), options)
   t.after(() => fastify.close())
 
   const response = await fastify.inject({
@@ -412,7 +412,7 @@ test('should not set session cookie if no data in session and saveUninitialized 
 test('should handle algorithm sha256', async (t) => {
   t.plan(3)
   const options = { secret: DEFAULT_SECRET, algorithm: 'sha256' }
-  const fastify = await buildFastify((request, reply) => {
+  const fastify = await buildFastify((_request, reply) => {
     reply.send(200)
   }, options)
   t.after(() => fastify.close())
@@ -434,7 +434,7 @@ test('should handle algorithm sha256', async (t) => {
 test('should handle algorithm sha512', async (t) => {
   t.plan(3)
   const options = { secret: DEFAULT_SECRET, algorithm: 'sha512' }
-  const fastify = await buildFastify((request, reply) => {
+  const fastify = await buildFastify((_request, reply) => {
     reply.send(200)
   }, options)
   t.after(() => fastify.close())
@@ -457,7 +457,7 @@ test('should handle custom signer', async (t) => {
   const signer = new Signer(DEFAULT_SECRET, 'sha512')
   t.plan(3)
   const options = { secret: signer }
-  const fastify = await buildFastify((request, reply) => {
+  const fastify = await buildFastify((_request, reply) => {
     reply.send(200)
   }, options)
   t.after(() => fastify.close())

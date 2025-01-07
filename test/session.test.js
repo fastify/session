@@ -308,14 +308,14 @@ test('should decryptSession with custom request object', async (t) => {
 
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
-  fastify.addHook('onRequest', (request, reply, done) => {
+  fastify.addHook('onRequest', (request, _reply, done) => {
     request.sessionStore.set(DEFAULT_SESSION_ID, {
       testData: 'this is a test',
       cookie: { secure: true, httpOnly: true, path: '/', expires: new Date(Date.now() + 1000) }
     }, done)
   })
 
-  fastify.get('/', (request, reply) => {
+  fastify.get('/', (_request, reply) => {
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
@@ -350,7 +350,7 @@ test('should decryptSession with custom cookie options', async (t) => {
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
 
-  fastify.get('/', (request, reply) => {
+  fastify.get('/', (_request, reply) => {
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
@@ -372,11 +372,11 @@ test('should bubble up errors with destroy call if session expired', async (t) =
   t.plan(2)
   const fastify = Fastify()
   const store = {
-    set (id, data, cb) { cb(null) },
-    get (id, cb) {
+    set (_id, _data, cb) { cb(null) },
+    get (_id, cb) {
       cb(null, { cookie: { expires: new Date(Date.now() - 1000) } })
     },
-    destroy (id, cb) { cb(new Error('No can do')) }
+    destroy (_id, cb) { cb(new Error('No can do')) }
   }
 
   const options = {
@@ -388,7 +388,7 @@ test('should bubble up errors with destroy call if session expired', async (t) =
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, options)
 
-  fastify.get('/', (request, reply) => {
+  fastify.get('/', (_request, reply) => {
     reply.send(200)
   })
   await fastify.listen({ port: 0 })
@@ -419,8 +419,8 @@ test('should not reset session cookie expiration if rolling is false', async (t)
     reply.send(request.session.expires)
   })
 
-  fastify.get('/', (request, reply) => reply.send(200))
-  fastify.get('/check', (request, reply) => reply.send(200))
+  fastify.get('/', (_request, reply) => reply.send(200))
+  fastify.get('/check', (_request, reply) => reply.send(200))
   await fastify.listen({ port: 0 })
   t.after(() => { fastify.close() })
 
@@ -456,8 +456,8 @@ test('should update the expires property of the session using Session#touch() ev
     reply.send(request.session.cookie.expires)
   })
 
-  fastify.get('/', (request, reply) => reply.send(200))
-  fastify.get('/check', (request, reply) => reply.send(200))
+  fastify.get('/', (_request, reply) => reply.send(200))
+  fastify.get('/check', (_request, reply) => reply.send(200))
   await fastify.listen({ port: 0 })
   t.after(() => { fastify.close() })
 
@@ -674,9 +674,9 @@ test('destroy supports rejecting promises', async t => {
   }, {
     ...DEFAULT_OPTIONS,
     store: {
-      set (id, data, cb) { cb(null) },
-      get (id, cb) { cb(null) },
-      destroy (id, cb) { cb(new Error('no can do')) }
+      set (_id, _data, cb) { cb(null) },
+      get (_id, cb) { cb(null) },
+      destroy (_id, cb) { cb(new Error('no can do')) }
     }
   })
   t.after(() => fastify.close())
@@ -720,9 +720,9 @@ test('regenerate supports rejecting promises', async t => {
   }, {
     ...DEFAULT_OPTIONS,
     store: {
-      set (id, data, cb) { cb(new Error('no can do')) },
-      get (id, cb) { cb(null) },
-      destroy (id, cb) { cb(null) }
+      set (_id, _data, cb) { cb(new Error('no can do')) },
+      get (_id, cb) { cb(null) },
+      destroy (_id, cb) { cb(null) }
     }
   })
   t.after(() => fastify.close())
@@ -766,9 +766,9 @@ test('reload supports rejecting promises', async t => {
   }, {
     ...DEFAULT_OPTIONS,
     store: {
-      set (id, data, cb) { cb(null) },
-      get (id, cb) { cb(new Error('no can do')) },
-      destroy (id, cb) { cb(null) }
+      set (_id, _data, cb) { cb(null) },
+      get (_id, cb) { cb(new Error('no can do')) },
+      destroy (_id, cb) { cb(null) }
     }
   })
   t.after(() => fastify.close())
@@ -806,9 +806,9 @@ test('save supports rejecting promises', async t => {
   }, {
     ...DEFAULT_OPTIONS,
     store: {
-      set (id, data, cb) { cb(new Error('no can do')) },
-      get (id, cb) { cb(null) },
-      destroy (id, cb) { cb(null) }
+      set (_id, _data, cb) { cb(new Error('no can do')) },
+      get (_id, cb) { cb(null) },
+      destroy (_id, cb) { cb(null) }
     }
   })
   t.after(() => fastify.close())
@@ -823,7 +823,7 @@ test('save supports rejecting promises', async t => {
 
 test("clears cookie if not backed by a session, and there's nothing to save", async t => {
   t.plan(2)
-  const fastify = await buildFastify((request, reply) => {
+  const fastify = await buildFastify((_request, reply) => {
     reply.send(200)
   }, DEFAULT_OPTIONS)
   t.after(() => fastify.close())
@@ -839,7 +839,7 @@ test("clears cookie if not backed by a session, and there's nothing to save", as
 
 test("clearing cookie sets the domain if it's specified in the cookie options", async t => {
   t.plan(2)
-  const fastify = await buildFastify((request, reply) => {
+  const fastify = await buildFastify((_request, reply) => {
     reply.send(200)
   }, {
     ...DEFAULT_OPTIONS,
@@ -858,7 +858,7 @@ test("clearing cookie sets the domain if it's specified in the cookie options", 
 
 test('does not clear cookie if no session cookie in request', async t => {
   t.plan(2)
-  const fastify = await buildFastify((request, reply) => {
+  const fastify = await buildFastify((_request, reply) => {
     reply.send(200)
   }, DEFAULT_OPTIONS)
   t.after(() => fastify.close())
@@ -1032,7 +1032,7 @@ test('will not update expires property of the session using Session#touch() if m
     rolling: false,
     cookie: { secure: false }
   })
-  fastify.addHook('onRequest', (request, reply, done) => {
+  fastify.addHook('onRequest', (request, _reply, done) => {
     request.session.touch()
     done()
   })

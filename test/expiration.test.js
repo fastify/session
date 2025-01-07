@@ -27,7 +27,7 @@ test('sessions should be deleted if expired', async (t) => {
     cookie: { maxAge: 1000, secure: false }
   }
 
-  const fastify = await buildFastify((request, reply) => {
+  const fastify = await buildFastify((_request, reply) => {
     reply.send(200)
   }, options)
   t.after(() => {
