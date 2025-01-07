@@ -75,6 +75,9 @@ declare namespace fastifySession {
     regenerate(): Promise<void>;
     regenerate(ignoreFields: string[]): Promise<void>;
 
+    /** Set the session cookie options for this request handler. */
+    options(opts: Partial<CookieOptions>): void
+
     /** Allows to destroy the session in the store. */
     destroy(callback: Callback): void;
     destroy(): Promise<void>;
