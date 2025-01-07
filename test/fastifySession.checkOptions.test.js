@@ -132,7 +132,7 @@ test('fastifySession.checkOptions: register should fail if a signer missing sign
   const fastify = Fastify()
 
   const invalidSigner = {
-    unsign: (x) => true
+    unsign: () => true
   }
 
   fastify.register(fastifyCookie)
