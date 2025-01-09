@@ -8,7 +8,9 @@ import fastify, {
 } from 'fastify'
 import Redis from 'ioredis'
 import { expectAssignable, expectNotAssignable, expectDocCommentIncludes, expectError, expectType } from 'tsd'
-import { CookieOptions, MemoryStore, SessionStore, default as fastifySession, default as plugin } from '..'
+import fastifySession, { CookieOptions, MemoryStore, SessionStore } from '..'
+
+const plugin = fastifySession
 
 class EmptyStore {
   set (_sessionId: string, _session: any, _callback: Function) {}
@@ -126,6 +128,20 @@ app.route({
     expectType<Promise<void>>(request.session.regenerate())
     expectType<Promise<void>>(request.session.regenerate(['foo']))
     expectType<Promise<void>>(request.session.save())
+    expectError(request.session.options({ keyNotInCookieOptions: true }))
+    expectError(request.session.options({ signed: true }))
+    expectType<void>(request.session.options({}))
+    expectType<void>(request.session.options({
+      domain: 'example.com',
+      expires: new Date(),
+      httpOnly: true,
+      maxAge: 1000,
+      partitioned: true,
+      path: '/',
+      sameSite: 'lax',
+      priority: 'low',
+      secure: 'auto'
+    }))
   }
 })
 
