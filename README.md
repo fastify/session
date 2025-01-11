@@ -35,7 +35,7 @@ app.addHook('preHandler', (request, reply, next) => {
 })
 ```
 **NOTE**: For all unencrypted (HTTP) connections, you need to set the `secure` cookie option to `false`. See below for all cookie options and their details.
-The `session` object has methods that allow you to get, save, reload and delete sessions.
+The `session` object has methods that allow you to get, save, reload, and delete sessions.
 ```js
 app.register(fastifySession, {secret: 'a secret with minimum length of 32 characters'});
 app.addHook('preHandler', (request, reply, next) => {
@@ -82,7 +82,7 @@ A session store. Needs the following methods:
 * get(sessionId, callback)
 * destroy(sessionId, callback)
 
-Compatible to stores from [express-session](https://github.com/expressjs/session).
+Compatible with stores from [express-session](https://github.com/expressjs/session).
 
 If you are terminating HTTPs at
 the reverse proxy, you need to add the `trustProxy` setting to your fastify instance if you want to use secure cookies.
@@ -95,7 +95,7 @@ Save sessions to the store, even when they are new and not modified— defaults 
 Setting this to `false` can save storage space and comply with the EU cookie law.
 
 ##### rolling (optional)
-Forces the session identifier cookie to be set on every response. The expiration is reset to the original maxAge - effectively resetting the cookie lifetime. This is typically used in conjuction with short, non-session-length maxAge values to provide a quick expiration of the session data with reduced potential of session expiration occurring during ongoing server interactions. Defaults to true.
+Forces the session identifier cookie to be set on every response. The expiration is reset to the original maxAge - effectively resetting the cookie lifetime. This is typically used in conjunction with short, non-session-length maxAge values to provide a quick expiration of the session data with reduced potential of session expiration occurring during ongoing server interactions. Defaults to true.
 
 ##### idGenerator(request) (optional)
 
@@ -150,7 +150,7 @@ fastify.get('/regenerate', (request, reply, done) => {
 });
 ```
 
-You can pass an array of fields that should be kept when the session is regenerated
+You can pass an array of fields that should be kept when the session is regenerated.
 
 #### Session#reload(callback)
 
@@ -174,7 +174,7 @@ Whether the session has been modified from what was loaded from the store (or cr
 
 #### Session#isSaved()
 
-Whether the session (and any of its potential modifications) has persisted to the store
+Whether the session (and any of its potential modifications) has persisted in the store.
 
 ### fastify.decryptSession(sessionId, request, cookieOptions, next)
 This plugin also decorates the fastify instance with `decryptSession` in case you want to decrypt the session manually.
@@ -193,7 +193,7 @@ fastify.decryptSession(sessionId, request, { maxAge: 86400 }, () => {
 ```
 
 ### Typescript support:
-This plugin supports typescript, and you can extend fastify module to add your custom session type.
+This plugin supports typescript, and you can extend the fastify module to add your custom session type.
 
 ```ts
 // Use module imports rather than commonjs' require for correct declaration merging in TypeScript.
@@ -228,4 +228,4 @@ fastify.get('/', async function(request) {
 
 ## License
 
-[MIT](./LICENSE)
+Licensed under [MIT](./LICENSE).
