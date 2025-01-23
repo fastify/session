@@ -110,6 +110,27 @@ idGenerator: (request) => {
 }
 ```
 
+##### idStore
+A session store. Needs the following methods:
+* get(request, key): string | undefined
+* set(reply, key, value, cookieOptions)
+* clear(reply, key, cookieOptions)
+  
+Custom implementation example:
+```js
+idStore: {
+    get: (request, key) => request.headers[key.toLowerCase()],
+    set: (reply, key, value) => {
+      reply.header(key, value);
+    },
+    clear: (reply, key) => {
+      reply.removeHeader(key);
+    },
+  },
+}
+```
+
+
 #### request.session
 
 Allows to access or modify the session data.
