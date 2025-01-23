@@ -111,10 +111,12 @@ idGenerator: (request) => {
 ```
 
 ##### idStore
-A session store. Needs the following methods:
+A session id store. Used to store and retrieve session ids.
 * get(request, key): string | undefined
 * set(reply, key, value, cookieOptions)
 * clear(reply, key, cookieOptions)
+
+Defaults to a cookie store.
   
 Custom implementation example:
 ```js
