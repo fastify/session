@@ -156,6 +156,12 @@ declare namespace fastifySession {
     store?: fastifySession.SessionStore;
 
     /**
+     * A session ID store.
+     * Defaults to a cookie based store.
+     */
+    idStore?: SessionIdStore;
+
+    /**
      * Save sessions to the store, even when they are new and not modified.
      * Defaults to true. Setting this to false can be useful to save storage space and to comply with the EU cookie law.
      */
@@ -180,6 +186,12 @@ declare namespace fastifySession {
   export interface CookieOptions extends Omit<CookieSerializeOptions, 'signed' | 'maxAge'> {
     /** A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `expires` is used. */
     maxAge?: number;
+  }
+
+  export interface SessionIdStore {
+    get: (request: Fastify.FastifyRequest, key: string) => string | undefined;
+    set?: (reply: Fastify.FastifyReply, key: string, value: string, cookieOptions: CookieOptions) => void;
+    clear?: (reply: Fastify.FastifyReply, key: string, cookieOptions: CookieOptions) => void;
   }
 
   export class MemoryStore implements fastifySession.SessionStore {
