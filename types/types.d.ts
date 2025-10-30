@@ -100,7 +100,7 @@ declare namespace fastifySession {
     isModified(): boolean;
 
     /** checks if the session has been saved to the store */
-    isSaved(): boolean
+    isSaved(): boolean;
   }
 
   export interface SessionStore {
