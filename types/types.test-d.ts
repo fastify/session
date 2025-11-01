@@ -118,6 +118,7 @@ app.route({
     expectType<string | undefined>(request.session.get('foo'))
     expectType<void>(request.session.touch())
     expectType<boolean>(request.session.isModified())
+    expectType<boolean>(request.session.isSaved())
     expectType<void>(request.session.reload(() => {}))
     expectType<void>(request.session.destroy(() => {}))
     expectType<void>(request.session.regenerate(() => {}))
