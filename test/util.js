@@ -6,7 +6,7 @@ const fastifySession = require('../lib/fastifySession')
 const TestStore = require('./TestStore')
 
 const DEFAULT_SECRET = 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'
-const DEFAULT_OPTIONS = { secret: DEFAULT_SECRET }
+const DEFAULT_OPTIONS = { secret: DEFAULT_SECRET, saveUninitialized: false }
 const DEFAULT_SESSION_ID = 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN'
 const DEFAULT_ENCRYPTED_SESSION_ID = `${DEFAULT_SESSION_ID}.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE`
 const DEFAULT_COOKIE_VALUE = `sessionId=${DEFAULT_ENCRYPTED_SESSION_ID};`
