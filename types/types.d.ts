@@ -24,6 +24,7 @@ declare module 'fastify' {
 type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions> & {
   Store: fastifySession.MemoryStore,
   MemoryStore: fastifySession.MemoryStore,
+  getDefaultClientInfoTag: () => string,
 }
 
 type Callback = (err?: any) => void
@@ -200,6 +201,14 @@ declare namespace fastifySession {
   }
 
   export const Store: MemoryStore
+
+  /**
+   * Get the default clientInfoTag for identifying the framework in Redis CLIENT SETINFO.
+   * This can be used when creating Redis clients for session stores.
+   * @link https://redis.io/docs/latest/commands/client-setinfo/
+   * @returns The client info tag (e.g., "fastify-session_v11.1.1")
+   */
+  export function getDefaultClientInfoTag (): string
 
   export const fastifySession: FastifySession
   export { fastifySession as default }
