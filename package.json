@@ -63,7 +63,7 @@
   "devDependencies": {
     "@fastify/cookie": "^11.0.0",
     "@types/node": "^25.0.3",
-    "c8": "^10.1.2",
+    "c8": "^11.0.0",
     "connect-mongo": "^6.0.0",
     "connect-redis": "^7.1.1",
     "cronometro": "^6.0.3",
