@@ -550,7 +550,7 @@ test('when cookie secure is set to false then store secure as false', async t =>
 })
 
 test('Cookie', async t => {
-  t.plan(4)
+  t.plan(5)
 
   const cookie = new Cookie({})
 
@@ -613,5 +613,12 @@ test('Cookie', async t => {
 
     t.assert.strictEqual(maxAge <= 1000 && maxAge >= 1000 - duration, true)
     t.assert.strictEqual(cookie.originalMaxAge, 1000)
+  })
+
+  await t.test('maxAge returns null when no expires date is set', t => {
+    t.plan(1)
+
+    const cookie = new Cookie({})
+    t.assert.strictEqual(cookie.maxAge, null)
   })
 })

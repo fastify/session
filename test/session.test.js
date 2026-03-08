@@ -1161,6 +1161,48 @@ test('Custom options', async t => {
   await sleep()
 })
 
+test('session.options should not leak cookie overrides to new sessions', async t => {
+  t.plan(4)
+
+  const fastify = Fastify()
+  await fastify.register(fastifyCookie)
+  await fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      path: '/'
+    }
+  })
+
+  fastify.post('/override', (request, reply) => {
+    request.session.set('data', 'overridden')
+    request.session.options({ httpOnly: false })
+    reply.send(200)
+  })
+
+  fastify.get('/default', (request, reply) => {
+    request.session.set('data', 'default')
+    reply.send(200)
+  })
+
+  t.after(async () => await fastify.close())
+
+  let response = await fastify.inject({
+    method: 'POST',
+    url: '/override'
+  })
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.doesNotMatch(response.headers['set-cookie'], /HttpOnly/)
+
+  response = await fastify.inject({
+    method: 'GET',
+    url: '/default'
+  })
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.match(response.headers['set-cookie'], /HttpOnly/)
+})
+
 test('Override global options', async t => {
   t.plan(11)
 
