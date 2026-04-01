@@ -17,7 +17,9 @@ function createServer (sessionPlugin, cookiePlugin, storeType) {
 
   if (storeType === 'redis') {
     if (!redisClient) {
-      redisClient = new Redis()
+      redisClient = new Redis({
+        clientInfoTag: fastifySession.getDefaultClientInfoTag()
+      })
     }
     store = new RedisStore({ client: redisClient })
   } else if (storeType === 'file') {
