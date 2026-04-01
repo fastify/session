@@ -10,7 +10,8 @@
     "test:typescript": "tsd",
     "benchmark": "node benchmark/bench.js",
     "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint:fix": "eslint --fix",
+    "prepack": "node scripts/generate-version.js"
   },
   "keywords": [
     "session",

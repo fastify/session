@@ -14,15 +14,15 @@ test('getDefaultClientInfoTag should be accessible from module', (t) => {
   t.assert.strictEqual(typeof fastifySession.getDefaultClientInfoTag, 'function')
 })
 
-test('getDefaultClientInfoTag should fallback to fastify-session when package.json version is unavailable', (t) => {
+test('getDefaultClientInfoTag should fallback to fastify-session when version is unavailable', (t) => {
   t.plan(1)
 
-  // Mock require to simulate missing package.json
+  // Mock require to simulate missing version.js
   const Module = require('module')
   const originalRequire = Module.prototype.require
 
   Module.prototype.require = function (id) {
-    if (id === '../package.json') {
+    if (id === './version') {
       throw new Error('Cannot find module')
     }
     return originalRequire.apply(this, arguments)
@@ -30,6 +30,7 @@ test('getDefaultClientInfoTag should fallback to fastify-session when package.js
 
   // Clear the require cache
   delete require.cache[require.resolve('..')]
+  delete require.cache[require.resolve('../lib/version')]
 
   const fastifySessionMocked = require('..')
   const tag = fastifySessionMocked.getDefaultClientInfoTag()
@@ -39,6 +40,7 @@ test('getDefaultClientInfoTag should fallback to fastify-session when package.js
 
   // Clear cache again
   delete require.cache[require.resolve('..')]
+  delete require.cache[require.resolve('../lib/version')]
 
   t.assert.strictEqual(tag, 'fastify-session')
 })
