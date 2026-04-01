@@ -70,7 +70,7 @@
     "eslint": "^9.17.0",
     "fastify": "^5.0.0",
     "ioredis": "^5.3.2",
-    "neostandard": "^0.12.0",
+    "neostandard": "^0.13.0",
     "session-file-store": "^1.5.0",
     "tsd": "^0.33.0"
   },
