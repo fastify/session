@@ -54,7 +54,7 @@ app.register(plugin, {
 
 const cookieMaxAge: CookieOptions = {}
 
-expect(cookieMaxAge.maxAge).type.toBeAssignableTo<number | undefined>()
+expect(cookieMaxAge.maxAge).type.toBe<number | undefined>()
 
 app.register(plugin, {
   secret,
@@ -84,13 +84,10 @@ app.register(plugin, {
   idGenerator: (request) => `${request === undefined ? 'null' : request.ip}-${Date.now()}`
 })
 
-// @ts-expect-error!
-app.register(plugin)
-// @ts-expect-error!
-app.register(plugin, {})
+expect(app.register).type.not.toBeCallableWith(plugin)
+expect(app.register).type.not.toBeCallableWith(plugin, {})
 
-// @ts-expect-error!
-app.decryptSession<string>('sessionId', {}, () => ({}))
+expect(app.decryptSession).type.not.toBeInstantiableWith<[string]>()
 app.decryptSession<{ hello: 'world' }>('sessionId', { hello: 'world' }, () => ({}))
 app.decryptSession<{ hello: 'world' }>('sessionId', { hello: 'world' }, { domain: '/' }, () => ({}))
 app.decryptSession('sessionId', {}, () => ({}))
@@ -106,19 +103,18 @@ app.route({
   async handler (request, reply) {
     expect(request).type.toBeAssignableTo<FastifyRequest>()
     expect(reply).type.toBeAssignableTo<FastifyReply>()
-    expect(request.sessionStore).type.toBeAssignableTo<Readonly<SessionStore>>()
+    expect(request.sessionStore).type.toBe<Readonly<SessionStore>>()
 
-    // @ts-expect-error!
-    request.sessionStore = null
-    // @ts-expect-error!
-    request.session.doesNotExist()
+    expect(request.session).type.not.toHaveProperty('doesNotExist')
 
     expect(request.session.user).type.toBe<{ id: number } | undefined>()
 
     request.sessionStore.set('session-set-test', request.session, () => {})
     request.sessionStore.get('', (err, session) => {
       const store = new MemoryStore()
-      if (session) store.set('session-set-test', session, () => {})
+      if (session) {
+        store.set('session-set-test', session, () => {})
+      }
       expect(err).type.toBe<any>()
       expect(session).type.toBe<Session | null | undefined>()
       expect(session?.user).type.toBe<{ id: number } | undefined>()
@@ -140,10 +136,8 @@ app.route({
     expect(request.session.regenerate(['foo'])).type.toBe<Promise<void>>()
     expect(request.session.save()).type.toBe<Promise<void>>()
 
-    // @ts-expect-error!
-    request.session.options({ keyNotInCookieOptions: true })
-    // @ts-expect-error!
-    request.session.options({ signed: true })
+    expect(request.session.options).type.not.toBeCallableWith({ keyNotInCookieOptions: true })
+    expect(request.session.options).type.not.toBeCallableWith({ signed: true })
 
     expect(request.session.options({})).type.toBe<void>()
     expect(request.session.options({
@@ -180,16 +174,13 @@ app2.get('/', async function (request) {
 
   expect(request.session.set('foo', 'bar')).type.toBe<void>()
 
-  // @ts-expect-error!
-  request.session.set('foo', 2)
+  expect(request.session.set).type.not.toBeCallableWith('foo', 2)
 
   expect(request.session.get('user')).type.toBe<undefined | { id: number }>()
   expect(request.session.set('user', { id: 2 })).type.toBeAssignableTo<any>()
 
-  // @ts-expect-error!
-  request.session.get('not exist')
-  // @ts-expect-error!
-  request.session.set('not exist', 'abc')
+  expect(request.session.get).type.not.toBeCallableWith('not exist')
+  expect(request.session.set).type.not.toBeCallableWith('not exist', 'abc')
 
   expect(request.session.get<any>('not exist')).type.toBe<any>()
   expect(request.session.set<any>('not exist', 'abc')).type.toBeAssignableTo<any>()
