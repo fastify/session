@@ -7,7 +7,7 @@
   "scripts": {
     "test": "npm run test:unit && npm run test:typescript",
     "test:unit": "c8 --100 node --test",
-    "test:typescript": "tsd",
+    "test:typescript": "tstyche",
     "benchmark": "node benchmark/bench.js",
     "lint": "eslint",
     "lint:fix": "eslint --fix"
@@ -72,11 +72,11 @@
     "ioredis": "^5.3.2",
     "neostandard": "^0.13.0",
     "session-file-store": "^1.5.0",
-    "tsd": "^0.33.0"
+    "tstyche": "^7.0.0"
   },
-  "types": "types/types.d.ts",
+  "types": "types/index.d.ts",
   "files": [
     "lib",
-    "types/types.d.ts"
+    "types/index.d.ts"
   ]
 }
