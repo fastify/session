@@ -3,7 +3,7 @@
 const test = require('node:test')
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
-const fastifySession = require('../lib/fastifySession')
+const fastifySession = require('..')
 const fastifyPlugin = require('fastify-plugin')
 const Cookie = require('../lib/cookie')
 const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, buildFastify, DEFAULT_SESSION_ID } = require('./util')
