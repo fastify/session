@@ -10,7 +10,8 @@ const fastify = Fastify()
 
 const store = new RedisStore({
   client: new Redis({
-    enableAutoPipelining: true
+    enableAutoPipelining: true,
+    clientInfoTag: fastifySession.getDefaultClientInfoTag()
   })
 })
 

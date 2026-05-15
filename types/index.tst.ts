@@ -31,6 +31,7 @@ declare module 'fastify' {
 
 expect(plugin.Store).type.toBe<SessionStore>()
 expect(plugin.MemoryStore).type.toBe<SessionStore>()
+expect(plugin.getDefaultClientInfoTag()).type.toBe<string>()
 
 const secret = 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345'
 
@@ -63,6 +64,14 @@ app.register(plugin, {
 app.register(plugin, {
   secret,
   store: new RedisStore({ client: new Redis() })
+})
+app.register(plugin, {
+  secret,
+  store: new RedisStore({
+    client: new Redis({
+      clientInfoTag: plugin.getDefaultClientInfoTag()
+    })
+  })
 })
 app.register(plugin, {
   secret,
