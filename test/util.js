@@ -2,7 +2,7 @@
 
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
-const fastifySession = require('../lib/fastifySession')
+const fastifySession = require('..')
 const TestStore = require('./TestStore')
 
 const DEFAULT_SECRET = 'cNaoPYAwF60HZJzkcNaoPYAwF60HZJzk'

@@ -22,7 +22,7 @@ test('getDefaultClientInfoTag should fallback to fastify-session when version is
   const originalRequire = Module.prototype.require
 
   Module.prototype.require = function (id) {
-    if (id === './version') {
+    if (id === './lib/version') {
       throw new Error('Cannot find module')
     }
     return originalRequire.apply(this, arguments)

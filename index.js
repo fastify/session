@@ -1,9 +1,9 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const idGenerator = require('./idGenerator')()
-const Store = require('./store')
-const Session = require('./session')
+const idGenerator = require('./lib/idGenerator')()
+const Store = require('./lib/store')
+const Session = require('./lib/session')
 
 /**
  * Get the default clientInfoTag for identifying the framework in Redis CLIENT SETINFO.
@@ -12,7 +12,7 @@ const Session = require('./session')
  */
 function getDefaultClientInfoTag () {
   try {
-    const version = require('./version')
+    const version = require('./lib/version')
     return `fastify-session_v${version}`
   } catch {
     return 'fastify-session'
