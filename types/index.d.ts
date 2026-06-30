@@ -146,7 +146,7 @@ declare namespace fastifySession {
     /**
      * The options object used to generate the `Set-Cookie` header of the session cookie.
      *
-     * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+     * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie
      */
     cookie?: CookieOptions;
 
