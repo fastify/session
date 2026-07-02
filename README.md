@@ -72,7 +72,7 @@ The options object is used to generate the `Set-Cookie` header of the session co
 * `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
 * `secure` - The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Value can be set to `auto`; in this case, the `Secure` attribute will be set to false for an HTTP request. In the case of HTTPS, it will be set to true.  Defaults to true.
 * `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `maxAge` is used.
-* `sameSite`- The `boolean` or `string` of the `SameSite` attribute. Using `Secure` mode with `auto` attribute will change the behavior of the `SameSite` attribute in `http` mode. The `SameSite` attribute will automatically be set to `Lax` with an `http` request. See this [link](https://www.chromium.org/updates/same-site).
+* `sameSite`- The `boolean` or `string` of the `SameSite` attribute. Using `Secure` mode with `auto` attribute will change the behavior of the `SameSite` attribute in `http` mode. The `SameSite` attribute will automatically be set to `Lax` with an `http` request. See this [link](https://www.chromium.org/updates/same-site/).
 * `domain` - The `Domain` attribute.
 * `partitioned` (**experimental**) - The `boolean` value of the `Partitioned` attribute. Using the Partitioned attribute as part of Cookies Having Independent Partitioned State (CHIPS) to allow cross-site access with a separate cookie used per site. Defaults to false.
 
