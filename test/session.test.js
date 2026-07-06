@@ -613,6 +613,32 @@ test('should reload the session', async (t) => {
   t.assert.strictEqual(response.statusCode, 200)
 })
 
+test('should save the reloaded session with callback', async (t) => {
+  t.plan(3)
+  const fastify = await buildFastify((request, reply) => {
+    request.session.someData = 'some-data'
+    request.session.save((err) => {
+      t.assert.ifError(err)
+
+      request.session.reload((err) => {
+        t.assert.ifError(err)
+
+        reply.send(200)
+      })
+    })
+  }, {
+    ...DEFAULT_OPTIONS,
+    cookie: { secure: false }
+  })
+  t.after(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+})
+
 test('should save the session', async (t) => {
   t.plan(6)
   const fastify = await buildFastify((request, reply) => {
