@@ -98,6 +98,9 @@ declare namespace fastifySession {
 
     /** checks if session has been modified since it was generated or loaded from the store. */
     isModified(): boolean;
+
+    /** checks if the session has been saved to the store */
+    isSaved(): boolean;
   }
 
   export interface SessionStore {
@@ -143,7 +146,7 @@ declare namespace fastifySession {
     /**
      * The options object used to generate the `Set-Cookie` header of the session cookie.
      *
-     * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+     * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie
      */
     cookie?: CookieOptions;
 

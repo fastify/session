@@ -1,9 +1,9 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const idGenerator = require('./idGenerator')()
-const Store = require('./store')
-const Session = require('./session')
+const idGenerator = require('./lib/idGenerator')()
+const Store = require('./lib/store')
+const Session = require('./lib/session')
 
 function fastifySession (fastify, options, next) {
   const error = checkOptions(options)

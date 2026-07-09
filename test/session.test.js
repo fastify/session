@@ -613,6 +613,32 @@ test('should reload the session', async (t) => {
   t.assert.strictEqual(response.statusCode, 200)
 })
 
+test('should save the reloaded session with callback', async (t) => {
+  t.plan(3)
+  const fastify = await buildFastify((request, reply) => {
+    request.session.someData = 'some-data'
+    request.session.save((err) => {
+      t.assert.ifError(err)
+
+      request.session.reload((err) => {
+        t.assert.ifError(err)
+
+        reply.send(200)
+      })
+    })
+  }, {
+    ...DEFAULT_OPTIONS,
+    cookie: { secure: false }
+  })
+  t.after(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+})
+
 test('should save the session', async (t) => {
   t.plan(6)
   const fastify = await buildFastify((request, reply) => {
@@ -1159,6 +1185,48 @@ test('Custom options', async t => {
   })
 
   await sleep()
+})
+
+test('session.options should not leak cookie overrides to new sessions', async t => {
+  t.plan(4)
+
+  const fastify = Fastify()
+  await fastify.register(fastifyCookie)
+  await fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      path: '/'
+    }
+  })
+
+  fastify.post('/override', (request, reply) => {
+    request.session.set('data', 'overridden')
+    request.session.options({ httpOnly: false })
+    reply.send(200)
+  })
+
+  fastify.get('/default', (request, reply) => {
+    request.session.set('data', 'default')
+    reply.send(200)
+  })
+
+  t.after(async () => await fastify.close())
+
+  let response = await fastify.inject({
+    method: 'POST',
+    url: '/override'
+  })
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.doesNotMatch(response.headers['set-cookie'], /HttpOnly/)
+
+  response = await fastify.inject({
+    method: 'GET',
+    url: '/default'
+  })
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.match(response.headers['set-cookie'], /HttpOnly/)
 })
 
 test('Override global options', async t => {
