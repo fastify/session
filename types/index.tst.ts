@@ -1,5 +1,5 @@
 import MongoStore from 'connect-mongo'
-import RedisStore from 'connect-redis'
+import { RedisStore } from 'connect-redis'
 import fastify, {
   type FastifyInstance,
   type FastifyReply,
