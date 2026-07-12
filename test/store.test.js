@@ -2,7 +2,7 @@
 
 const test = require('node:test')
 const fastifyPlugin = require('fastify-plugin')
-const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, DEFAULT_SESSION_ID } = require('./util')
+const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, DEFAULT_SESSION_ID, SIGNED_COOKIE_VALUE_PATTERN } = require('./util')
 
 test('should decorate request with sessionStore', async (t) => {
   t.plan(2)
@@ -64,7 +64,7 @@ test('should create new session if ENOENT error on store.get', async (t) => {
   })
 
   t.assert.strictEqual(response.headers['set-cookie'].includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(RegExp(pattern).test(response.headers['set-cookie']), true)
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.cookies[0].name, 'sessionId')

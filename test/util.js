@@ -11,6 +11,7 @@ const DEFAULT_SESSION_ID = 'Qk_XT2K7-clT-x1tVvoY6tIQ83iP72KN'
 const DEFAULT_ENCRYPTED_SESSION_ID = `${DEFAULT_SESSION_ID}.B7fUDYXU9fXF9pNuL3qm4NVmSduLJ6kzCOPh5JhHGoE`
 const DEFAULT_COOKIE_VALUE = `sessionId=${DEFAULT_ENCRYPTED_SESSION_ID};`
 const DEFAULT_COOKIE = `${DEFAULT_COOKIE_VALUE}; Path=/; HttpOnly; Secure`
+const SIGNED_COOKIE_VALUE_PATTERN = String.raw`[\w-]{32}\.[^;]+`
 
 async function buildFastify (handler, sessionOptions, plugin) {
   const fastify = Fastify({ trustProxy: true })
@@ -32,5 +33,6 @@ module.exports = {
   DEFAULT_SESSION_ID,
   DEFAULT_ENCRYPTED_SESSION_ID,
   DEFAULT_COOKIE_VALUE,
-  DEFAULT_COOKIE
+  DEFAULT_COOKIE,
+  SIGNED_COOKIE_VALUE_PATTERN
 }
