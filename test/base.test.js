@@ -3,7 +3,7 @@
 const test = require('node:test')
 const Signer = require('@fastify/cookie').Signer
 const fastifyPlugin = require('fastify-plugin')
-const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, buildFastify } = require('./util')
+const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, SIGNED_COOKIE_VALUE_PATTERN, buildFastify } = require('./util')
 const TestStore = require('./TestStore')
 const { setTimeout: sleep } = require('timers/promises')
 
@@ -72,7 +72,7 @@ test('should set session cookie', async (t) => {
   })
 
   t.assert.strictEqual(response1.statusCode, 200)
-  const pattern1 = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern1 = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern1).test(response1.headers['set-cookie']), true)
 
   const response2 = await fastify.inject({
@@ -81,7 +81,7 @@ test('should set session cookie', async (t) => {
   })
 
   t.assert.strictEqual(response2.statusCode, 200)
-  const pattern2 = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern2 = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern2).test(response2.headers['set-cookie']), true)
 })
 
@@ -129,7 +129,8 @@ test('should support multiple secrets', async (t) => {
     }
   })
   t.assert.strictEqual(response1.statusCode, 200)
-  t.assert.ok(response1.headers['set-cookie'].includes(encodeURIComponent(sessionIdSignedWithNewSecret)))
+  const setCookieValue = response1.headers['set-cookie'].split(';', 1)[0].slice('sessionId='.length)
+  t.assert.strictEqual(decodeURIComponent(setCookieValue), sessionIdSignedWithNewSecret)
 
   const response2 = await fastify.inject({
     url: '/',
@@ -162,7 +163,7 @@ test('should set session cookie using the specified cookie name', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`anothername=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`anothername=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -184,7 +185,7 @@ test('should set session cookie using the default cookie name', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -219,7 +220,7 @@ test('should set express sessions using the specified cookiePrefix', async (t) =
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`connect.sid=s%3A[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`connect.sid=s(?::|%3A)${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -315,7 +316,7 @@ test('should set new session cookie if expired', async (t) => {
 
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -338,7 +339,7 @@ test('should return new session cookie if does not exist in store', async (t) =>
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -387,7 +388,7 @@ test('should create new session if cookie contains invalid session', async (t) =
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes('badinvalidsignaturenoooo'), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -427,7 +428,7 @@ test('should handle algorithm sha256', async (t) => {
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -449,7 +450,7 @@ test('should handle algorithm sha512', async (t) => {
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -472,6 +473,6 @@ test('should handle custom signer', async (t) => {
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(RegExp(pattern).test(response.headers['set-cookie']), true)
 })
