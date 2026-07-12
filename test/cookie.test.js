@@ -6,7 +6,7 @@ const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
 const fastifyPlugin = require('fastify-plugin')
 const Cookie = require('../lib/cookie')
-const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, buildFastify, DEFAULT_SESSION_ID } = require('./util')
+const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, SIGNED_COOKIE_VALUE_PATTERN, buildFastify, DEFAULT_SESSION_ID } = require('./util')
 
 test('should set session cookie', async (t) => {
   t.plan(2)
@@ -29,7 +29,7 @@ test('should set session cookie', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -136,7 +136,7 @@ test('should set session cookie with expires if maxAge', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=[\w, :]{29}; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; Expires=[\w, :]{29}; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -158,7 +158,7 @@ test('should set session cookie with maxAge', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Domain=localhost; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Domain=localhost; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -180,7 +180,7 @@ test('should set session cookie with sameSite', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; SameSite=Strict`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure; SameSite=Strict`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -207,7 +207,7 @@ test('should set session another path in cookie', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[[\w-%]{43,57}; Path=\/a\/test\/path; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/a\/test\/path; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -231,7 +231,7 @@ test('should set session cookie with expires', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=Mon, 01 Feb 1971 00:01:01 GMT; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; Expires=Mon, 01 Feb 1971 00:01:01 GMT; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -253,7 +253,7 @@ test('should set session non HttpOnly cookie', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -274,8 +274,51 @@ test('should set session non secure cookie', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
+})
+
+test('should use session cookie secure override when saving non secure cookie', async (t) => {
+  t.plan(3)
+  const options = {
+    secret: DEFAULT_SECRET,
+    cookie: { secure: true }
+  }
+  const fastify = await buildFastify((request, reply) => {
+    request.session.options({ secure: false })
+    request.session.test = {}
+    reply.send(200)
+  }, options)
+  t.after(() => { fastify.close() })
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(typeof response.headers['set-cookie'], 'string')
+  t.assert.strictEqual(response.headers['set-cookie'].includes('Secure'), false)
+})
+
+test('should use session cookie secure override when saving secure cookie', async (t) => {
+  t.plan(2)
+  const options = {
+    secret: DEFAULT_SECRET,
+    cookie: { secure: false }
+  }
+  const fastify = await buildFastify((request, reply) => {
+    request.session.options({ secure: true })
+    request.session.test = {}
+    reply.send(200)
+  }, options)
+  t.after(() => { fastify.close() })
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.headers['set-cookie'], undefined)
 })
 
 test('should set session non secure cookie secureAuto', async (t) => {
@@ -295,7 +338,7 @@ test('should set session non secure cookie secureAuto', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -322,7 +365,7 @@ test('should set session cookie secureAuto', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; SameSite=Lax`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -349,7 +392,7 @@ test('should set session cookie secureAuto change SameSite', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; SameSite=Lax`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; SameSite=Lax`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -376,7 +419,7 @@ test('should set session cookie secureAuto keep SameSite when secured', async (t
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; SameSite=None`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure; SameSite=None`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -403,7 +446,7 @@ test('should set session secure cookie secureAuto http encrypted', async (t) => 
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -425,7 +468,7 @@ test('should set session secure cookie secureAuto x-forwarded-proto header', asy
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -452,7 +495,7 @@ test('should set session partitioned cookie secure http encrypted', async (t) =>
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure; Partitioned`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure; Partitioned`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -478,9 +521,9 @@ test('should use maxAge instead of expires in session if both are set in options
   t.assert.strictEqual(response.statusCode, 200)
   // Expires attribute should be determined by options.maxAge -> Date.now() + 1000 and should have the same year from response.body,
   // and not determined by options.expires and should not have the year of 1971
-  const pattern1 = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ 1971 \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure/`
+  const pattern1 = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; Expires=\w+, \d+ \w+ 1971 \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure/`
   t.assert.strictEqual(new RegExp(pattern1).exec(response.headers['set-cookie']), null)
-  const pattern2 = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; Expires=\w+, \d+ \w+ ${dateFromBody.getFullYear()} \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure`
+  const pattern2 = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; Expires=\w+, \d+ \w+ ${dateFromBody.getFullYear()} \d{2}:\d{2}:\d{2} GMT; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern2).test(response.headers['set-cookie']), true)
 })
 
@@ -545,7 +588,7 @@ test('when cookie secure is set to false then store secure as false', async t =>
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(typeof response.headers['set-cookie'], 'string')
-  const pattern = String.raw`^sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly$`
+  const pattern = String.raw`^sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly$`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
