@@ -1,6 +1,6 @@
 'use strict'
 
-const RedisStore = require('connect-redis').default
+const { RedisStore } = require('connect-redis')
 const Fastify = require('fastify')
 const Redis = require('ioredis')
 const fileStoreFactory = require('session-file-store')
