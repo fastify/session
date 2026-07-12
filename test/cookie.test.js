@@ -278,6 +278,49 @@ test('should set session non secure cookie', async (t) => {
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
+test('should use session cookie secure override when saving non secure cookie', async (t) => {
+  t.plan(3)
+  const options = {
+    secret: DEFAULT_SECRET,
+    cookie: { secure: true }
+  }
+  const fastify = await buildFastify((request, reply) => {
+    request.session.options({ secure: false })
+    request.session.test = {}
+    reply.send(200)
+  }, options)
+  t.after(() => { fastify.close() })
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(typeof response.headers['set-cookie'], 'string')
+  t.assert.strictEqual(response.headers['set-cookie'].includes('Secure'), false)
+})
+
+test('should use session cookie secure override when saving secure cookie', async (t) => {
+  t.plan(2)
+  const options = {
+    secret: DEFAULT_SECRET,
+    cookie: { secure: false }
+  }
+  const fastify = await buildFastify((request, reply) => {
+    request.session.options({ secure: true })
+    request.session.test = {}
+    reply.send(200)
+  }, options)
+  t.after(() => { fastify.close() })
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.headers['set-cookie'], undefined)
+})
+
 test('should set session non secure cookie secureAuto', async (t) => {
   t.plan(2)
   const options = {
