@@ -171,7 +171,7 @@ function fastifySession (fastify, options, next) {
       if (!saveSession || isInsecureConnection) {
         // if a session cookie is set, but has a different ID, clear it
         if (cookieSessionId && cookieSessionId !== session.encryptedSessionId) {
-          reply.clearCookie(cookieName, { domain: cookieOpts.domain })
+          reply.clearCookie(cookieName, { domain: cookieOpts.domain, path: cookieOpts.path || '/' })
         }
 
         if (session.isSaved()) {

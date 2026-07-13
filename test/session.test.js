@@ -882,6 +882,29 @@ test("clearing cookie sets the domain if it's specified in the cookie options", 
   t.assert.strictEqual(response.headers['set-cookie'], 'sessionId=; Max-Age=0; Domain=domain.test; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
 })
 
+test("clearing cookie sets the path if it's specified in the cookie options", async t => {
+  t.plan(2)
+  const fastify = Fastify({ trustProxy: true })
+  await fastify.register(fastifyCookie)
+  await fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    cookie: { path: '/admin' }
+  })
+  fastify.get('/admin', (_request, reply) => {
+    reply.send(200)
+  })
+  await fastify.listen({ port: 0 })
+  t.after(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/admin',
+    headers: { cookie: DEFAULT_COOKIE_VALUE }
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.headers['set-cookie'], 'sessionId=; Max-Age=0; Path=/admin; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
+})
+
 test('does not clear cookie if no session cookie in request', async t => {
   t.plan(2)
   const fastify = await buildFastify((_request, reply) => {
