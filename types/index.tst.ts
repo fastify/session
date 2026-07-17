@@ -8,7 +8,7 @@ import fastify, {
 } from 'fastify'
 import Redis from 'ioredis'
 import { expect } from 'tstyche'
-import fastifySession, { type CookieOptions, MemoryStore, type SessionStore } from '..'
+import fastifySession, { type CookieOptions, MemoryStore, type SessionLifecycleHooks, type SessionStore } from '..'
 
 const plugin = fastifySession
 
@@ -79,6 +79,30 @@ app.register(plugin, {
 app.register(plugin, {
   secret,
 })
+const lifecycleHooks: SessionLifecycleHooks = {
+  onCreate: (session, request) => {
+    request.log.debug({ sessionId: session.sessionId }, 'session created')
+  },
+  onLoad: async (session) => {
+    session.get('foo')
+  },
+  onLoadMiss: (sessionId) => {
+    sessionId.toUpperCase()
+  },
+  onSave: () => {},
+  onDestroy: () => {},
+  onRegenerate: () => {},
+  onExpire: () => {},
+  onCookieSkipped: (reason) => {
+    expect(reason).type.toBe<'not-needed' | 'insecure-connection'>()
+  },
+  onError: (error, context, request) => {
+    expect(error.message).type.toBe<string>()
+    expect(context.operation).type.toBe<string>()
+    request.log.error(error)
+  }
+}
+app.register(plugin, { secret, hooks: lifecycleHooks })
 app.register(plugin, {
   secret,
   idGenerator: (request) => `${request === undefined ? 'null' : request.ip}-${Date.now()}`

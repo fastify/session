@@ -97,6 +97,31 @@ Setting this to `false` can save storage space and comply with the EU cookie law
 ##### rolling (optional)
 Forces the session identifier cookie to be set on every response. The expiration is reset to the original maxAge - effectively resetting the cookie lifetime. This is typically used in conjunction with short, non-session-length maxAge values to provide a quick expiration of the session data with reduced potential of session expiration occurring during ongoing server interactions. Defaults to true.
 
+##### hooks (optional)
+Lifecycle hooks can be used to connect session events to application logging, metrics, or tracing systems. Hooks may be synchronous or asynchronous. Errors thrown by a hook are passed to `onError` and do not interrupt the request.
+
+```js
+app.register(fastifySession, {
+  secret: process.env.SESSION_SECRET,
+  hooks: {
+    onCreate (session, request) {
+      request.log.info({ sessionId: session.sessionId }, 'session created')
+    },
+    onLoad (session, request) {
+      request.log.debug({ sessionId: session.sessionId }, 'session loaded')
+    },
+    onSave (session) {
+      metrics.increment('session.saved')
+    },
+    onError (error, context, request) {
+      request.log.error({ error, context }, 'session lifecycle error')
+    }
+  }
+})
+```
+
+The available hooks are `onCreate`, `onLoad`, `onLoadMiss`, `onSave`, `onDestroy`, `onRegenerate`, `onExpire`, `onCookieSkipped`, and `onError`.
+
 ##### idGenerator(request) (optional)
 
 Function used to generate new session IDs.
