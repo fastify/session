@@ -8,7 +8,7 @@ import fastify, {
 } from 'fastify'
 import Redis from 'ioredis'
 import { expect } from 'tstyche'
-import fastifySession, { type CookieOptions, MemoryStore, type SessionLifecycleHooks, type SessionStore } from '..'
+import fastifySession, { type CookieOptions, MemoryStore, type FastifySessionOptions, type SessionLifecycleContext, type SessionLifecycleHooks, type SessionStore } from '..'
 
 const plugin = fastifySession
 
@@ -97,12 +97,33 @@ const lifecycleHooks: SessionLifecycleHooks = {
     expect(reason).type.toBe<'not-needed' | 'insecure-connection'>()
   },
   onError: (error, context, request) => {
-    expect(error.message).type.toBe<string>()
+    expect(error).type.toBe<unknown>()
     expect(context.operation).type.toBe<string>()
     request.log.error(error)
   }
 }
 app.register(plugin, { secret, hooks: lifecycleHooks })
+
+const lifecycleContext: SessionLifecycleContext = { operation: 'load', sessionId: 'session-id' }
+expect(lifecycleContext.operation).type.toBe<string>()
+
+type TraceRequest = { traceId: string }
+const customRequestHooks: SessionLifecycleHooks<TraceRequest> = {
+  onCreate: (_session, request) => {
+    expect(request.traceId).type.toBe<string>()
+  },
+  onError: (error, context, request) => {
+    expect(error).type.toBe<unknown>()
+    expect(context.sessionId).type.toBe<string | undefined>()
+    expect(request.traceId).type.toBe<string>()
+  }
+}
+const customRequestOptions: FastifySessionOptions<TraceRequest> = {
+  secret,
+  hooks: customRequestHooks
+}
+expect(customRequestOptions.hooks).type.toBe<SessionLifecycleHooks<TraceRequest> | undefined>()
+app.register(plugin, customRequestOptions)
 app.register(plugin, {
   secret,
   idGenerator: (request) => `${request === undefined ? 'null' : request.ip}-${Date.now()}`
