@@ -95,14 +95,8 @@ function fastifySession (fastify, options, next) {
       const expiration = restoredSession.cookie.originalExpires || restoredSession.cookie.expires
 
       if (expiration && expiration.getTime() <= Date.now()) {
-        restoredSession.destroy(err => {
-          if (err) {
-            done(err)
-            return
-          }
-
-          restoredSession.regenerate(done)
-        })
+        // `regenerate` destroys the expired session before issuing a new one.
+        restoredSession.regenerate(done)
         return
       }
 
