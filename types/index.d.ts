@@ -21,10 +21,11 @@ declare module 'fastify' {
   interface Session extends ExpressSessionData { }
 }
 
-type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions> & {
-  Store: fastifySession.MemoryStore,
-  MemoryStore: fastifySession.MemoryStore,
-}
+type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions> &
+  FastifyPluginCallback<fastifySession.FastifySessionOptions<any>> & {
+    Store: fastifySession.MemoryStore,
+    MemoryStore: fastifySession.MemoryStore,
+  }
 
 type Callback = (err?: any) => void
 type CallbackSession = (err: any, result?: Fastify.Session | null) => void
@@ -116,7 +117,28 @@ declare namespace fastifySession {
     destroy(sessionId: string, callback: Callback): void;
   }
 
-  export interface FastifySessionOptions {
+  export interface SessionLifecycleContext {
+    operation: string;
+    sessionId?: string;
+  }
+
+  type SessionLifecycleHook<Request, Arguments extends unknown[]> = {
+    bivarianceHack(...args: [...Arguments, request: Request]): void | Promise<void>;
+  }['bivarianceHack']
+
+  export interface SessionLifecycleHooks<Request extends Record<string, any> = Fastify.FastifyRequest> {
+    onCreate?: SessionLifecycleHook<Request, [session: FastifySessionObject]>;
+    onLoad?: SessionLifecycleHook<Request, [session: FastifySessionObject]>;
+    onLoadMiss?: SessionLifecycleHook<Request, [sessionId: string]>;
+    onSave?: SessionLifecycleHook<Request, [session: FastifySessionObject]>;
+    onDestroy?: SessionLifecycleHook<Request, [sessionId: string]>;
+    onRegenerate?: SessionLifecycleHook<Request, [oldSessionId: string, newSessionId: string]>;
+    onExpire?: SessionLifecycleHook<Request, [sessionId: string]>;
+    onCookieSkipped?: SessionLifecycleHook<Request, [reason: 'not-needed' | 'insecure-connection']>;
+    onError?: SessionLifecycleHook<Request, [error: unknown, context: SessionLifecycleContext]>;
+  }
+
+  export interface FastifySessionOptions<Request extends Record<string, any> = Fastify.FastifyRequest> {
     /**
      * The secret used to sign the cookie.
      *
@@ -178,6 +200,9 @@ declare namespace fastifySession {
      * Defaults to ""
      */
     cookiePrefix?: string;
+
+    /** Optional hooks for observing session lifecycle events. */
+    hooks?: SessionLifecycleHooks<Request>;
   }
 
   export interface CookieOptions extends Omit<CookieSerializeOptions, 'signed' | 'maxAge'> {

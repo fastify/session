@@ -5,6 +5,31 @@ const idGenerator = require('./lib/idGenerator')()
 const Store = require('./lib/store')
 const Session = require('./lib/session')
 
+function createHookEmitter (hooks = {}) {
+  function reportError (error, context, request) {
+    if (typeof hooks.onError !== 'function') return
+
+    try {
+      Promise.resolve(hooks.onError(error, context, request)).catch(() => {})
+    } catch {}
+  }
+
+  function emit (name, args, context, request) {
+    const hook = hooks[name]
+    if (typeof hook !== 'function') return
+
+    try {
+      Promise.resolve(hook(...args)).catch(error => {
+        reportError(error, { ...context, operation: `hook:${name}` }, request)
+      })
+    } catch (error) {
+      reportError(error, { ...context, operation: `hook:${name}` }, request)
+    }
+  }
+
+  return { emit, reportError }
+}
+
 function fastifySession (fastify, options, next) {
   const error = checkOptions(options)
   if (error) {
@@ -17,6 +42,7 @@ function fastifySession (fastify, options, next) {
   const cookieSigner = options.signer
   const cookieName = options.cookieName
   const cookiePrefix = options.cookiePrefix
+  const hookEmitter = createHookEmitter(options.hooks)
   const hasCookiePrefix = typeof cookiePrefix === 'string' && cookiePrefix.length !== 0
   const cookiePrefixLength = hasCookiePrefix && cookiePrefix.length
 
@@ -36,19 +62,28 @@ function fastifySession (fastify, options, next) {
   fastify.addHook('onSend', onSend(options))
   next()
 
+  function createSession (request, options) {
+    const session = new Session(
+      sessionStore,
+      request,
+      options.idGenerator,
+      options.cookie,
+      cookieSigner,
+      { hookEmitter }
+    )
+    request.session = session
+    hookEmitter.emit('onCreate', [session, request], { operation: 'create' }, request)
+    return session
+  }
+
   function decryptSession (sessionId, options, request, done) {
     const cookieOpts = options.cookie
     const idGenerator = options.idGenerator
 
     const unsignedCookie = cookieSigner.unsign(sessionId)
     if (unsignedCookie.valid === false) {
-      request.session = new Session(
-        sessionStore,
-        request,
-        idGenerator,
-        cookieOpts,
-        cookieSigner
-      )
+      hookEmitter.emit('onLoadMiss', [sessionId, request], { operation: 'load' }, request)
+      createSession(request, options)
       done()
       return
     }
@@ -56,28 +91,19 @@ function fastifySession (fastify, options, next) {
     sessionStore.get(decryptedSessionId, (err, session) => {
       if (err) {
         if (err.code === 'ENOENT') {
-          request.session = new Session(
-            sessionStore,
-            request,
-            idGenerator,
-            cookieOpts,
-            cookieSigner
-          )
+          hookEmitter.emit('onLoadMiss', [decryptedSessionId, request], { operation: 'load', sessionId: decryptedSessionId }, request)
+          createSession(request, options)
           done()
         } else {
+          hookEmitter.reportError(err, { operation: 'load', sessionId: decryptedSessionId }, request)
           done(err)
         }
         return
       }
 
       if (!session) {
-        request.session = new Session(
-          sessionStore,
-          request,
-          idGenerator,
-          cookieOpts,
-          cookieSigner
-        )
+        hookEmitter.emit('onLoadMiss', [decryptedSessionId, request], { operation: 'load', sessionId: decryptedSessionId }, request)
+        createSession(request, options)
         done()
         return
       }
@@ -88,13 +114,17 @@ function fastifySession (fastify, options, next) {
         idGenerator,
         cookieOpts,
         cookieSigner,
-        session,
-        decryptedSessionId
+        {
+          prevSession: session,
+          sessionId: decryptedSessionId,
+          hookEmitter
+        }
       )
 
       const expiration = restoredSession.cookie.originalExpires || restoredSession.cookie.expires
 
       if (expiration && expiration.getTime() <= Date.now()) {
+        hookEmitter.emit('onExpire', [decryptedSessionId, request], { operation: 'expire', sessionId: decryptedSessionId }, request)
         restoredSession.destroy(err => {
           if (err) {
             done(err)
@@ -107,6 +137,7 @@ function fastifySession (fastify, options, next) {
       }
 
       request.session = restoredSession
+      hookEmitter.emit('onLoad', [restoredSession, request], { operation: 'load', sessionId: decryptedSessionId }, request)
       done()
     })
   }
@@ -125,7 +156,6 @@ function fastifySession (fastify, options, next) {
 
   function onRequest (options) {
     const cookieOpts = options.cookie
-    const idGenerator = options.idGenerator
 
     return function handleSession (request, _reply, done) {
       request.session = {}
@@ -138,13 +168,7 @@ function fastifySession (fastify, options, next) {
 
       const cookieSessionId = getCookieSessionId(request)
       if (!cookieSessionId) {
-        request.session = new Session(
-          sessionStore,
-          request,
-          idGenerator,
-          cookieOpts,
-          cookieSigner
-        )
+        createSession(request, options)
         done()
       } else {
         decryptSession(cookieSessionId, options, request, done)
@@ -180,6 +204,13 @@ function fastifySession (fastify, options, next) {
             sessionIdWithPrefix,
             // we need to remove extra properties to align the same with `express-session`
             session.cookie.toJSON()
+          )
+        } else {
+          hookEmitter.emit(
+            'onCookieSkipped',
+            [isInsecureConnection ? 'insecure-connection' : 'not-needed', request],
+            { operation: 'cookie' },
+            request
           )
         }
 
@@ -231,6 +262,7 @@ function fastifySession (fastify, options, next) {
       ? new (require('@fastify/cookie').Signer)(options.secret, opts.algorithm)
       : options.secret
     opts.cookiePrefix = option(options, 'cookiePrefix', '')
+    opts.hooks = options.hooks || {}
     return opts
   }
 
