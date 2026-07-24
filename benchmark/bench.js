@@ -2,7 +2,7 @@
 
 const { RedisStore } = require('connect-redis')
 const Fastify = require('fastify')
-const Redis = require('ioredis')
+const { createClient } = require('redis')
 const fileStoreFactory = require('session-file-store')
 const { isMainThread } = require('node:worker_threads')
 
@@ -10,6 +10,7 @@ const fastifySession = require('..')
 const fastifyCookie = require('@fastify/cookie')
 
 let redisClient
+let redisClientConnecting
 
 function createServer (sessionPlugin, cookiePlugin, storeType) {
   let requestCounter = 0
@@ -17,7 +18,8 @@ function createServer (sessionPlugin, cookiePlugin, storeType) {
 
   if (storeType === 'redis') {
     if (!redisClient) {
-      redisClient = new Redis()
+      redisClient = createClient()
+      redisClientConnecting = redisClient.connect()
     }
     store = new RedisStore({ client: redisClient })
   } else if (storeType === 'file') {
@@ -55,6 +57,11 @@ function testFunction (sessionPlugin, cookiePlugin, storeType) {
   const server = createServer(sessionPlugin, cookiePlugin, storeType)
 
   return async function () {
+    if (redisClientConnecting) {
+      await redisClientConnecting
+      redisClientConnecting = null
+    }
+
     const { headers } = await server.inject('/')
     const setCookieHeader = headers['set-cookie']
 

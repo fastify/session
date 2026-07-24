@@ -6,9 +6,13 @@ import fastify, {
   type FastifyRequest,
   type Session
 } from 'fastify'
-import Redis from 'ioredis'
+import { createClient } from 'redis'
 import { expect } from 'tstyche'
-import fastifySession, { type CookieOptions, MemoryStore, type SessionStore } from '..'
+import fastifySession, {
+  type CookieOptions,
+  MemoryStore,
+  type SessionStore
+} from '..'
 
 const plugin = fastifySession
 
@@ -25,7 +29,7 @@ declare module 'fastify' {
     user?: {
       id: number;
     };
-    foo: string
+    foo: string;
   }
 }
 
@@ -62,7 +66,7 @@ app.register(plugin, {
 })
 app.register(plugin, {
   secret,
-  store: new RedisStore({ client: new Redis() })
+  store: new RedisStore({ client: createClient() })
 })
 app.register(plugin, {
   secret,
@@ -77,19 +81,29 @@ app.register(plugin, {
   idGenerator: () => Date.now() + ''
 })
 app.register(plugin, {
-  secret,
+  secret
 })
 app.register(plugin, {
   secret,
-  idGenerator: (request) => `${request === undefined ? 'null' : request.ip}-${Date.now()}`
+  idGenerator: (request) =>
+    `${request === undefined ? 'null' : request.ip}-${Date.now()}`
 })
 
 expect(app.register).type.not.toBeCallableWith(plugin)
 expect(app.register).type.not.toBeCallableWith(plugin, {})
 
 expect(app.decryptSession).type.not.toBeInstantiableWith<[string]>()
-app.decryptSession<{ hello: 'world' }>('sessionId', { hello: 'world' }, () => ({}))
-app.decryptSession<{ hello: 'world' }>('sessionId', { hello: 'world' }, { domain: '/' }, () => ({}))
+app.decryptSession<{ hello: 'world' }>(
+  'sessionId',
+  { hello: 'world' },
+  () => ({})
+)
+app.decryptSession<{ hello: 'world' }>(
+  'sessionId',
+  { hello: 'world' },
+  { domain: '/' },
+  () => ({})
+)
 app.decryptSession('sessionId', {}, () => ({}))
 app.decryptSession('sessionId', {}, { domain: '/' }, () => ({}))
 
@@ -136,21 +150,25 @@ app.route({
     expect(request.session.regenerate(['foo'])).type.toBe<Promise<void>>()
     expect(request.session.save()).type.toBe<Promise<void>>()
 
-    expect(request.session.options).type.not.toBeCallableWith({ keyNotInCookieOptions: true })
+    expect(request.session.options).type.not.toBeCallableWith({
+      keyNotInCookieOptions: true
+    })
     expect(request.session.options).type.not.toBeCallableWith({ signed: true })
 
     expect(request.session.options({})).type.toBe<void>()
-    expect(request.session.options({
-      domain: 'example.com',
-      expires: new Date(),
-      httpOnly: true,
-      maxAge: 1000,
-      partitioned: true,
-      path: '/',
-      sameSite: 'lax',
-      priority: 'low',
-      secure: 'auto'
-    })).type.toBe<void>()
+    expect(
+      request.session.options({
+        domain: 'example.com',
+        expires: new Date(),
+        httpOnly: true,
+        maxAge: 1000,
+        partitioned: true,
+        path: '/',
+        sameSite: 'lax',
+        priority: 'low',
+        secure: 'auto'
+      })
+    ).type.toBe<void>()
   }
 })
 
@@ -169,8 +187,12 @@ const app2 = fastify()
 app2.register(fastifySession, { secret: 'DizIzSecret' })
 
 app2.get('/', async function (request) {
-  expect(request.session.get('foo')).type.toBeAssignableTo<string | undefined>()
-  expect(request.session.get('foo')).type.not.toBeAssignableTo<number | undefined>()
+  expect(request.session.get('foo')).type.toBeAssignableTo<
+    string | undefined
+  >()
+  expect(request.session.get('foo')).type.not.toBeAssignableTo<
+    number | undefined
+  >()
 
   expect(request.session.set('foo', 'bar')).type.toBe<void>()
 
@@ -183,5 +205,7 @@ app2.get('/', async function (request) {
   expect(request.session.set).type.not.toBeCallableWith('not exist', 'abc')
 
   expect(request.session.get<any>('not exist')).type.toBe<any>()
-  expect(request.session.set<any>('not exist', 'abc')).type.toBeAssignableTo<any>()
+  expect(
+    request.session.set<any>('not exist', 'abc')
+  ).type.toBeAssignableTo<any>()
 })
