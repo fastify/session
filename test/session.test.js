@@ -761,6 +761,49 @@ test('regenerate supports rejecting promises', async t => {
   t.assert.strictEqual(response.statusCode, 200)
 })
 
+test('regenerate destroys the previous session in the store', async (t) => {
+  t.plan(6)
+  const { MemoryStore } = require('../lib/store')
+  const store = new MemoryStore()
+
+  let oldSessionId
+  let newSessionId
+
+  const fastify = await buildFastify((request, reply) => {
+    if (request.session.get('userId')) {
+      // Second request: a session already exists in the store, regenerate it.
+      oldSessionId = request.session.sessionId
+      request.session.regenerate(error => {
+        if (error) {
+          reply.status(500).send('Error ' + error)
+          return
+        }
+        newSessionId = request.session.sessionId
+        reply.send(200)
+      })
+    } else {
+      // First request: create and persist a session.
+      request.session.set('userId', 42)
+      reply.send(200)
+    }
+  }, { ...DEFAULT_OPTIONS, cookie: { secure: false }, store })
+  t.after(() => fastify.close())
+
+  const response1 = await fastify.inject({ url: '/' })
+  t.assert.strictEqual(response1.statusCode, 200)
+  t.assert.strictEqual(store.store.size, 1)
+
+  const response2 = await fastify.inject({
+    url: '/',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.assert.strictEqual(response2.statusCode, 200)
+
+  t.assert.notStrictEqual(newSessionId, oldSessionId)
+  t.assert.strictEqual(store.store.has(oldSessionId), false)
+  t.assert.strictEqual(store.store.has(newSessionId), true)
+})
+
 test('reload supports promises', async t => {
   t.plan(2)
   const fastify = await buildFastify(async (request, reply) => {
