@@ -180,9 +180,20 @@ declare namespace fastifySession {
     cookiePrefix?: string;
   }
 
-  export interface CookieOptions extends Omit<CookieSerializeOptions, 'signed' | 'maxAge'> {
+  export interface CookieOptions extends Omit<CookieSerializeOptions, 'signed' | 'maxAge' | 'httpOnly' | 'secure'> {
     /** A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `expires` is used. */
     maxAge?: number;
+    /**
+     * The `boolean` value of the `HttpOnly` attribute.
+     * @default true
+     */
+    httpOnly?: boolean;
+    /**
+     * The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection.
+     * Value can be set to `auto`; in that case the `Secure` attribute is false for HTTP and true for HTTPS.
+     * @default true
+     */
+    secure?: boolean | 'auto';
   }
 
   export class MemoryStore implements fastifySession.SessionStore {
