@@ -56,9 +56,11 @@ app.register(plugin, {
   }
 })
 
-const cookieMaxAge: CookieOptions = {}
+const cookieOptions: CookieOptions = {}
 
-expect(cookieMaxAge.maxAge).type.toBe<number | undefined>()
+expect(cookieOptions.maxAge).type.toBe<number | undefined>()
+expect(cookieOptions.httpOnly).type.toBe<boolean | undefined>()
+expect(cookieOptions.secure).type.toBe<boolean | 'auto' | undefined>()
 
 app.register(plugin, {
   secret,
