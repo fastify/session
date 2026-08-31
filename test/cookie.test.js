@@ -499,6 +499,27 @@ test('should set session partitioned cookie secure http encrypted', async (t) =>
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
+test('should set session cookie with priority', async (t) => {
+  t.plan(2)
+  const options = {
+    secret: DEFAULT_SECRET,
+    cookie: { priority: 'high', secure: false }
+  }
+  const fastify = await buildFastify((request, reply) => {
+    request.session.test = {}
+    reply.send(200)
+  }, options)
+  t.after(() => { fastify.close() })
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Priority=High`
+  t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
+})
+
 test('should use maxAge instead of expires in session if both are set in options.cookie', async (t) => {
   t.plan(3)
   const expires = new Date(34214461000) // 1971-02-01T00:01:01.000Z
