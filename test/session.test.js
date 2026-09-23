@@ -1365,6 +1365,7 @@ test('Override global options with regenerate', async t => {
   fastify.register(fastifyCookie)
   fastify.register(fastifySession, {
     ...DEFAULT_OPTIONS,
+    saveUninitialized: true,
     cookie: {
       secure: false,
       maxAge: 42,
