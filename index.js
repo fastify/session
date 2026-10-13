@@ -160,7 +160,7 @@ function fastifySession (fastify, options, next) {
 
       const cookieSessionId = getCookieSessionId(request)
       const saveSession = shouldSaveSession(request, cookieSessionId, saveUninitializedSession, rollingSessions)
-      const isInsecureConnection = session.cookie.secure === true && request.protocol !== 'https'
+      const isInsecureConnection = session.cookie.secure === true && request.protocol !== 'https' && request.hostname !== 'localhost'
       const sessionIdWithPrefix = hasCookiePrefix ? `${cookiePrefix}${session.encryptedSessionId}` : session.encryptedSessionId
       if (!saveSession || isInsecureConnection) {
         // if a session cookie is set, but has a different ID, clear it
