@@ -2,10 +2,11 @@
 
 const test = require('node:test')
 const { buildFastify, DEFAULT_SECRET } = require('./util')
+const { getSessionGeneration } = require('../lib/sessionMetadata')
 const { setTimeout: sleep } = require('node:timers/promises')
 
-test('sessions should be deleted if expired', async (t) => {
-  t.plan(5)
+test('sessions should be regenerated if expired', async (t) => {
+  t.plan(6)
 
   const sessions = {}
   const options = {
@@ -16,6 +17,16 @@ test('sessions should be deleted if expired', async (t) => {
         cb(null, sessions[id])
       },
       set (id, session, cb) {
+        sessions[id] = session
+        cb()
+      },
+      compareAndSet (id, expectedGeneration, session, cb) {
+        t.assert.ok(id)
+        const storedSession = sessions[id]
+        if (!storedSession || getSessionGeneration(storedSession, id) !== expectedGeneration) {
+          cb(Object.assign(new Error(), { code: 'ENOENT' }))
+          return
+        }
         sessions[id] = session
         cb()
       },

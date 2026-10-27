@@ -11,7 +11,56 @@ const fastify = Fastify()
 const redisClient = createClient()
 redisClient.connect().catch(console.error)
 
-const store = new RedisStore({
+class AtomicRedisStore extends RedisStore {
+  async compareAndSet (sessionId, expectedGeneration, session, callback) {
+    const script = `
+      local current = redis.call('GET', KEYS[1])
+      if not current then return 0 end
+      local decoded = cjson.decode(current)
+      local metadata = decoded['__fastifySessionMetadata']
+      local generation = metadata and metadata['generation'] or ARGV[1]
+      if generation ~= ARGV[2] then return 0 end
+      if tonumber(ARGV[4]) > 0 then
+        redis.call('SET', KEYS[1], ARGV[3], 'EX', ARGV[4])
+      else
+        redis.call('SET', KEYS[1], ARGV[3])
+      end
+      return 1
+    `
+
+    try {
+      const ttl = this.disableTTL ? 0 : this.getTTL(session)
+      if (!this.disableTTL && ttl <= 0) {
+        const error = new Error('The session does not exist or has changed')
+        error.code = 'ENOENT'
+        callback(error)
+        return
+      }
+
+      const result = await this.client.eval(script, {
+        keys: [this.prefix + sessionId],
+        arguments: [
+          sessionId,
+          expectedGeneration,
+          this.serializer.stringify(session),
+          String(ttl)
+        ]
+      })
+      if (result === 0) {
+        const error = new Error('The session does not exist or has changed')
+        error.code = 'ENOENT'
+        callback(error)
+        return
+      }
+
+      callback()
+    } catch (error) {
+      callback(error)
+    }
+  }
+}
+
+const store = new AtomicRedisStore({
   client: redisClient
 })
 
