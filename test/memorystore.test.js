@@ -63,6 +63,47 @@ test('MemoryStore.get: should return undefined for an invalid sessionId ', t => 
   })
 })
 
+test('MemoryStore.compareAndSet: should replace a matching session', t => {
+  t.plan(2)
+
+  const internalStore = new Map([['someId', { key: 'old' }]])
+  const store = new MemoryStore(internalStore)
+
+  store.compareAndSet('someId', 'someId', { key: 'new' }, error => {
+    t.assert.ifError(error)
+    t.assert.deepStrictEqual(internalStore.get('someId'), { key: 'new' })
+  })
+})
+
+test('MemoryStore.compareAndSet: should not create a missing session', t => {
+  t.plan(3)
+
+  const internalStore = new Map()
+  const store = new MemoryStore(internalStore)
+
+  store.compareAndSet('someId', 'someId', { key: 'value' }, error => {
+    t.assert.strictEqual(error.code, 'ENOENT')
+    t.assert.strictEqual(error.message, 'The session does not exist or has changed')
+    t.assert.strictEqual(internalStore.has('someId'), false)
+  })
+})
+
+test('MemoryStore.compareAndSet: should reject a stale generation', t => {
+  t.plan(2)
+
+  const current = {
+    __fastifySessionMetadata: { generation: 'current' },
+    key: 'old'
+  }
+  const internalStore = new Map([['someId', current]])
+  const store = new MemoryStore(internalStore)
+
+  store.compareAndSet('someId', 'stale', { key: 'new' }, error => {
+    t.assert.strictEqual(error.code, 'ENOENT')
+    t.assert.strictEqual(internalStore.get('someId'), current)
+  })
+})
+
 test('MemoryStore.destroy: should remove a sessionId / 1', t => {
   t.plan(2)
 

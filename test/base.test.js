@@ -3,8 +3,9 @@
 const test = require('node:test')
 const Signer = require('@fastify/cookie').Signer
 const fastifyPlugin = require('fastify-plugin')
-const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, buildFastify } = require('./util')
+const { DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_ENCRYPTED_SESSION_ID, SIGNED_COOKIE_VALUE_PATTERN, buildFastify } = require('./util')
 const TestStore = require('./TestStore')
+const Session = require('../lib/session')
 const { setTimeout: sleep } = require('timers/promises')
 
 test('should not set session cookie on post without params', async (t) => {
@@ -36,8 +37,8 @@ test('should save the session properly', async (t) => {
       const session = [...storeMap.entries()][0][1]
       const keys = Object.keys(session)
 
-      // Only storing two keys: cookie and test
-      t.assert.strictEqual(keys.length, 2)
+      // Store the cookie, user data, and internal generation metadata.
+      t.assert.strictEqual(keys.length, 3)
       t.assert.ok(keys.includes('cookie'))
       t.assert.ok(keys.includes('test'))
       t.assert.strictEqual(keys.includes('sessionId'), false)
@@ -46,7 +47,7 @@ test('should save the session properly', async (t) => {
       t.assert.ok(session.cookie)
       t.assert.strictEqual(session.test, true)
       t.assert.strictEqual(session.sessionId, undefined)
-      t.assert.strictEqual(session.encryptedSessionId, undefined)
+      t.assert.strictEqual(session.__fastifySessionMetadata.generation, storeMap.keys().next().value)
     })
     reply.send()
   }, { ...DEFAULT_OPTIONS, store })
@@ -72,7 +73,7 @@ test('should set session cookie', async (t) => {
   })
 
   t.assert.strictEqual(response1.statusCode, 200)
-  const pattern1 = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern1 = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern1).test(response1.headers['set-cookie']), true)
 
   const response2 = await fastify.inject({
@@ -81,7 +82,7 @@ test('should set session cookie', async (t) => {
   })
 
   t.assert.strictEqual(response2.statusCode, 200)
-  const pattern2 = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern2 = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern2).test(response2.headers['set-cookie']), true)
 })
 
@@ -93,7 +94,6 @@ test('should support multiple secrets', async (t) => {
 
   const sessionId = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e'
   const sessionIdSignedWithOldSecret = sign(sessionId, DEFAULT_SECRET)
-  const sessionIdSignedWithNewSecret = sign(sessionId, newSecret)
 
   const storeMap = new Map()
   const store = new TestStore(storeMap)
@@ -129,19 +129,94 @@ test('should support multiple secrets', async (t) => {
     }
   })
   t.assert.strictEqual(response1.statusCode, 200)
-  t.assert.ok(response1.headers['set-cookie'].includes(encodeURIComponent(sessionIdSignedWithNewSecret)))
+  const setCookieValue = response1.headers['set-cookie'].split(';', 1)[0].slice('sessionId='.length)
+  const unsignedCookie = require('@fastify/cookie/signer').unsign(decodeURIComponent(setCookieValue), newSecret)
+  t.assert.deepStrictEqual(Session.decodeSessionId(unsignedCookie.value), {
+    sessionStoreId: sessionId,
+    sessionId
+  })
 
   const response2 = await fastify.inject({
     url: '/',
     headers: {
       'x-forwarded-proto': 'https',
-      cookie: `sessionId=${sessionIdSignedWithNewSecret}; Path=/; HttpOnly; Secure`
+      cookie: response1.headers['set-cookie'].split(';', 1)[0]
     }
   })
   t.assert.strictEqual(storeMap.get(sessionId).sessionId, undefined)
   t.assert.strictEqual(storeMap.get(sessionId).test, 2)
   t.assert.strictEqual(response2.statusCode, 200)
-  t.assert.strictEqual(response2.headers['set-cookie'].includes(sessionId), true)
+  const nextCookieValue = response2.headers['set-cookie'].split(';', 1)[0].slice('sessionId='.length)
+  const nextUnsignedCookie = require('@fastify/cookie/signer').unsign(decodeURIComponent(nextCookieValue), newSecret)
+  t.assert.strictEqual(Session.decodeSessionId(nextUnsignedCookie.value).sessionId, sessionId)
+})
+
+test('should not log out an existing session when upgrading the cookie format with saveUninitialized disabled', async (t) => {
+  t.plan(4)
+  const sign = require('@fastify/cookie/signer').sign
+
+  const sessionId = 'aYb4uTIhdBXCfk_ylik4QN6-u26K0u0e'
+  const legacyCookie = sign(sessionId, DEFAULT_SECRET)
+
+  const storeMap = new Map()
+  const store = new TestStore(storeMap)
+  // A session persisted by an earlier version, without the generation metadata.
+  storeMap.set(sessionId, { user: 'alice', cookie: {} })
+
+  const fastify = await buildFastify(
+    async function handler (request, reply) {
+      t.assert.strictEqual(request.session.user, 'alice')
+      reply.send(200)
+    }, { secret: DEFAULT_SECRET, store, saveUninitialized: false })
+
+  t.after(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: {
+      'x-forwarded-proto': 'https',
+      cookie: `sessionId=${legacyCookie}; Path=/; HttpOnly; Secure`
+    }
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+  // The existing cookie must be re-issued in the current format, not cleared.
+  t.assert.strictEqual(/Max-Age=0|Expires=Thu, 01 Jan 1970/.test(response.headers['set-cookie']), false)
+  const setCookieValue = response.headers['set-cookie'].split(';', 1)[0].slice('sessionId='.length)
+  const unsignedCookie = require('@fastify/cookie/signer').unsign(decodeURIComponent(setCookieValue), DEFAULT_SECRET)
+  t.assert.deepStrictEqual(Session.decodeSessionId(unsignedCookie.value), {
+    sessionStoreId: sessionId,
+    sessionId
+  })
+})
+
+test('should clear an unknown session cookie when saveUninitialized is disabled', async (t) => {
+  t.plan(3)
+  const sign = require('@fastify/cookie/signer').sign
+
+  const unknownCookie = sign('nonexistent-session-id-000000000', DEFAULT_SECRET)
+
+  const store = new TestStore(new Map())
+
+  const fastify = await buildFastify(
+    async function handler (request, reply) {
+      t.assert.strictEqual(request.session.user, undefined)
+      reply.send(200)
+    }, { secret: DEFAULT_SECRET, store, saveUninitialized: false })
+
+  t.after(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: {
+      'x-forwarded-proto': 'https',
+      cookie: `sessionId=${unknownCookie}; Path=/; HttpOnly; Secure`
+    }
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+  // An unknown cookie has no backing store entry, so it must be cleared, not re-issued.
+  t.assert.strictEqual(/Max-Age=0|Expires=Thu, 01 Jan 1970/.test(response.headers['set-cookie']), true)
 })
 
 test('should set session cookie using the specified cookie name', async (t) => {
@@ -162,7 +237,7 @@ test('should set session cookie using the specified cookie name', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`anothername=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`anothername=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -184,7 +259,7 @@ test('should set session cookie using the default cookie name', async (t) => {
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -219,7 +294,7 @@ test('should set express sessions using the specified cookiePrefix', async (t) =
   })
 
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`connect.sid=s%3A[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`connect.sid=s(?::|%3A)${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -315,7 +390,7 @@ test('should set new session cookie if expired', async (t) => {
 
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
   t.assert.strictEqual(response.statusCode, 200)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -338,7 +413,7 @@ test('should return new session cookie if does not exist in store', async (t) =>
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -387,7 +462,7 @@ test('should create new session if cookie contains invalid session', async (t) =
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes('badinvalidsignaturenoooo'), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -427,7 +502,7 @@ test('should handle algorithm sha256', async (t) => {
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
 })
 
@@ -449,8 +524,28 @@ test('should handle algorithm sha512', async (t) => {
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(new RegExp(pattern).test(response.headers['set-cookie']), true)
+})
+
+test('should create a new session when custom signer returns no value', async t => {
+  t.plan(2)
+  const signer = {
+    sign: value => value,
+    unsign: () => ({ valid: true, renew: false, value: null })
+  }
+  const fastify = await buildFastify((request, reply) => {
+    t.assert.ok(request.session.sessionId)
+    reply.send(200)
+  }, { secret: signer })
+  t.after(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/',
+    headers: { cookie: DEFAULT_COOKIE }
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
 })
 
 test('should handle custom signer', async (t) => {
@@ -472,6 +567,6 @@ test('should handle custom signer', async (t) => {
 
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.headers['set-cookie'].includes(DEFAULT_ENCRYPTED_SESSION_ID), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,135}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(RegExp(pattern).test(response.headers['set-cookie']), true)
 })

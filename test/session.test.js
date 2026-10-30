@@ -1,11 +1,23 @@
 'use strict'
 
+const assert = require('node:assert/strict')
 const test = require('node:test')
 const Fastify = require('fastify')
 const fastifyCookie = require('@fastify/cookie')
 const fastifySession = require('..')
+const Session = require('../lib/session')
+const { getSessionGeneration } = require('../lib/sessionMetadata')
 const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SESSION_ID, DEFAULT_SECRET, DEFAULT_COOKIE_VALUE } = require('./util')
 const { setTimeout: sleep } = require('timers/promises')
+
+test('malformed versioned session identifiers remain legacy identifiers', () => {
+  const sessionId = '@fastify/session:v1.not-json'
+
+  assert.deepStrictEqual(Session.decodeSessionId(sessionId), {
+    sessionStoreId: sessionId,
+    sessionId
+  })
+})
 
 test('should add session object to request', async (t) => {
   t.plan(2)
@@ -368,7 +380,7 @@ test('should decryptSession with custom cookie options', async (t) => {
   })
 })
 
-test('should bubble up errors with destroy call if session expired', async (t) => {
+test('should bubble up compare-and-set errors if session expired', async (t) => {
   t.plan(2)
   const fastify = Fastify()
   const store = {
@@ -376,7 +388,8 @@ test('should bubble up errors with destroy call if session expired', async (t) =
     get (_id, cb) {
       cb(null, { cookie: { expires: new Date(Date.now() - 1000) } })
     },
-    destroy (_id, cb) { cb(new Error('No can do')) }
+    compareAndSet (_id, _expectedGeneration, _data, cb) { cb(new Error('No can do')) },
+    destroy (_id, cb) { cb(null) }
   }
 
   const options = {
@@ -613,6 +626,32 @@ test('should reload the session', async (t) => {
   t.assert.strictEqual(response.statusCode, 200)
 })
 
+test('should save the reloaded session with callback', async (t) => {
+  t.plan(3)
+  const fastify = await buildFastify((request, reply) => {
+    request.session.someData = 'some-data'
+    request.session.save((err) => {
+      t.assert.ifError(err)
+
+      request.session.reload((err) => {
+        t.assert.ifError(err)
+
+        reply.send(200)
+      })
+    })
+  }, {
+    ...DEFAULT_OPTIONS,
+    cookie: { secure: false }
+  })
+  t.after(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/'
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+})
+
 test('should save the session', async (t) => {
   t.plan(6)
   const fastify = await buildFastify((request, reply) => {
@@ -659,6 +698,29 @@ test('destroy supports promises', async t => {
   t.assert.strictEqual(response.statusCode, 200)
 })
 
+test('save rejects after the same session object has been destroyed', async t => {
+  t.plan(3)
+  const fastify = await buildFastify(async (request, reply) => {
+    const session = request.session
+    await session.save()
+    await session.destroy()
+
+    await t.assert.rejects(
+      session.save(),
+      error => {
+        t.assert.strictEqual(error.code, 'ENOENT')
+        return true
+      }
+    )
+
+    reply.send(200)
+  }, DEFAULT_OPTIONS)
+  t.after(() => fastify.close())
+
+  const response = await fastify.inject({ url: '/' })
+  t.assert.strictEqual(response.statusCode, 200)
+})
+
 test('destroy supports rejecting promises', async t => {
   t.plan(3)
   const fastify = await buildFastify(async (request, reply) => {
@@ -676,6 +738,7 @@ test('destroy supports rejecting promises', async t => {
     store: {
       set (_id, _data, cb) { cb(null) },
       get (_id, cb) { cb(null) },
+      compareAndSet (_id, _expectedGeneration, _data, cb) { cb(null) },
       destroy (_id, cb) { cb(new Error('no can do')) }
     }
   })
@@ -722,6 +785,7 @@ test('regenerate supports rejecting promises', async t => {
     store: {
       set (_id, _data, cb) { cb(new Error('no can do')) },
       get (_id, cb) { cb(null) },
+      compareAndSet (_id, _expectedGeneration, _data, cb) { cb(new Error('no can do')) },
       destroy (_id, cb) { cb(null) }
     }
   })
@@ -733,6 +797,49 @@ test('regenerate supports rejecting promises', async t => {
 
   // 200 since we assert inline and swallow the error
   t.assert.strictEqual(response.statusCode, 200)
+})
+
+test('regenerate updates the existing session store record', async (t) => {
+  t.plan(6)
+  const { MemoryStore } = require('../lib/store')
+  const store = new MemoryStore()
+
+  let oldSessionId
+  let newSessionId
+
+  const fastify = await buildFastify((request, reply) => {
+    if (request.session.get('userId')) {
+      // Second request: a session already exists in the store, regenerate it.
+      oldSessionId = request.session.sessionId
+      request.session.regenerate(error => {
+        if (error) {
+          reply.status(500).send('Error ' + error)
+          return
+        }
+        newSessionId = request.session.sessionId
+        reply.send(200)
+      })
+    } else {
+      // First request: create and persist a session.
+      request.session.set('userId', 42)
+      reply.send(200)
+    }
+  }, { ...DEFAULT_OPTIONS, cookie: { secure: false }, store })
+  t.after(() => fastify.close())
+
+  const response1 = await fastify.inject({ url: '/' })
+  t.assert.strictEqual(response1.statusCode, 200)
+  t.assert.strictEqual(store.store.size, 1)
+
+  const response2 = await fastify.inject({
+    url: '/',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.assert.strictEqual(response2.statusCode, 200)
+
+  t.assert.notStrictEqual(newSessionId, oldSessionId)
+  t.assert.strictEqual(store.store.has(oldSessionId), true)
+  t.assert.strictEqual(store.store.get(oldSessionId).__fastifySessionMetadata.generation, newSessionId)
 })
 
 test('reload supports promises', async t => {
@@ -768,6 +875,7 @@ test('reload supports rejecting promises', async t => {
     store: {
       set (_id, _data, cb) { cb(null) },
       get (_id, cb) { cb(new Error('no can do')) },
+      compareAndSet (_id, _expectedGeneration, _data, cb) { cb(null) },
       destroy (_id, cb) { cb(null) }
     }
   })
@@ -808,6 +916,7 @@ test('save supports rejecting promises', async t => {
     store: {
       set (_id, _data, cb) { cb(new Error('no can do')) },
       get (_id, cb) { cb(null) },
+      compareAndSet (_id, _expectedGeneration, _data, cb) { cb(new Error('no can do')) },
       destroy (_id, cb) { cb(null) }
     }
   })
@@ -856,6 +965,29 @@ test("clearing cookie sets the domain if it's specified in the cookie options", 
   t.assert.strictEqual(response.headers['set-cookie'], 'sessionId=; Max-Age=0; Domain=domain.test; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
 })
 
+test("clearing cookie sets the path if it's specified in the cookie options", async t => {
+  t.plan(2)
+  const fastify = Fastify({ trustProxy: true })
+  await fastify.register(fastifyCookie)
+  await fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    cookie: { path: '/admin' }
+  })
+  fastify.get('/admin', (_request, reply) => {
+    reply.send(200)
+  })
+  await fastify.listen({ port: 0 })
+  t.after(() => fastify.close())
+
+  const response = await fastify.inject({
+    url: '/admin',
+    headers: { cookie: DEFAULT_COOKIE_VALUE }
+  })
+
+  t.assert.strictEqual(response.statusCode, 200)
+  t.assert.strictEqual(response.headers['set-cookie'], 'sessionId=; Max-Age=0; Path=/admin; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
+})
+
 test('does not clear cookie if no session cookie in request', async t => {
   t.plan(2)
   const fastify = await buildFastify((_request, reply) => {
@@ -892,6 +1024,16 @@ test('when rolling is false, only save session when it changes', async t => {
         cb(null)
       },
       get (id, cb) { cb(null, store.get(id)) },
+      compareAndSet (id, expectedGeneration, data, cb) {
+        const storedSession = store.get(id)
+        if (!storedSession || getSessionGeneration(storedSession, id) !== expectedGeneration) {
+          cb(Object.assign(new Error(), { code: 'ENOENT' }))
+          return
+        }
+        ++setCount
+        store.set(id, data)
+        cb(null)
+      },
       destroy (id, cb) {
         store.delete(id)
         cb(null)
@@ -944,6 +1086,16 @@ test('when rolling is false, only save session when it changes, but.assert.notSt
         cb(null)
       },
       get (id, cb) { cb(null, store.get(id)) },
+      compareAndSet (id, expectedGeneration, data, cb) {
+        const storedSession = store.get(id)
+        if (!storedSession || getSessionGeneration(storedSession, id) !== expectedGeneration) {
+          cb(Object.assign(new Error(), { code: 'ENOENT' }))
+          return
+        }
+        ++setCount
+        store.set(id, data)
+        cb(null)
+      },
       destroy (id, cb) {
         store.delete(id)
         cb(null)
@@ -992,6 +1144,16 @@ test('when rolling is true, keep saving the session', async t => {
         cb(null)
       },
       get (id, cb) { cb(null, store.get(id)) },
+      compareAndSet (id, expectedGeneration, data, cb) {
+        const storedSession = store.get(id)
+        if (!storedSession || getSessionGeneration(storedSession, id) !== expectedGeneration) {
+          cb(Object.assign(new Error(), { code: 'ENOENT' }))
+          return
+        }
+        ++setCount
+        store.set(id, data)
+        cb(null)
+      },
       destroy (id, cb) {
         store.delete(id)
         cb(null)

@@ -61,6 +61,9 @@ declare namespace fastifySession {
   export interface FastifySessionObject extends Fastify.Session {
     sessionId: string;
 
+    /** The stable identifier used as the session store key. */
+    sessionStoreId: string;
+
     encryptedSessionId: string;
 
     /** Updates the `expires` property of the session's cookie. */
@@ -102,19 +105,28 @@ declare namespace fastifySession {
 
     /** checks if the session has been saved to the store */
     isSaved(): boolean;
+
+    /** checks if the session is backed by an existing store entry */
+    isPersisted(): boolean;
   }
 
   export interface SessionStore {
     set(
-      sessionId: string,
+      sessionStoreId: string,
       session: Fastify.Session,
       callback: Callback
     ): void;
     get(
-      sessionId: string,
+      sessionStoreId: string,
       callback: CallbackSession
     ): void;
-    destroy(sessionId: string, callback: Callback): void;
+    compareAndSet(
+      sessionStoreId: string,
+      expectedGeneration: string,
+      session: Fastify.Session,
+      callback: Callback
+    ): void;
+    destroy(sessionStoreId: string, callback: Callback): void;
   }
 
   export interface FastifySessionOptions {
@@ -147,13 +159,13 @@ declare namespace fastifySession {
     /**
      * The options object used to generate the `Set-Cookie` header of the session cookie.
      *
-     * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+     * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie
      */
     cookie?: CookieOptions;
 
     /**
      * A session store.
-     * Compatible to stores from express-session.
+     * Express-session stores need an adapter that implements atomic `compareAndSet`.
      * Defaults to a simple in memory store.
      * Note: The default store should not be used in a production environment because it will leak memory.
      */
@@ -181,23 +193,40 @@ declare namespace fastifySession {
     cookiePrefix?: string;
   }
 
-  export interface CookieOptions extends Omit<CookieSerializeOptions, 'signed' | 'maxAge'> {
+  export interface CookieOptions extends Omit<CookieSerializeOptions, 'signed' | 'maxAge' | 'httpOnly' | 'secure'> {
     /** A `number` in milliseconds that specifies the `Expires` attribute by adding the specified milliseconds to the current date. If both `expires` and `maxAge` are set, then `expires` is used. */
     maxAge?: number;
+    /**
+     * The `boolean` value of the `HttpOnly` attribute.
+     * @default true
+     */
+    httpOnly?: boolean;
+    /**
+     * The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection.
+     * Value can be set to `auto`; in that case the `Secure` attribute is false for HTTP and true for HTTPS.
+     * @default true
+     */
+    secure?: boolean | 'auto';
   }
 
   export class MemoryStore implements fastifySession.SessionStore {
     constructor (map?: Map<string, Fastify.Session>)
     set (
-      sessionId: string,
+      sessionStoreId: string,
       session: Fastify.Session,
       callback: Callback
     ): void
     get (
-      sessionId: string,
+      sessionStoreId: string,
       callback: CallbackSession
     ): void
-    destroy (sessionId: string, callback: Callback): void
+    compareAndSet (
+      sessionStoreId: string,
+      expectedGeneration: string,
+      session: Fastify.Session,
+      callback: Callback
+    ): void
+    destroy (sessionStoreId: string, callback: Callback): void
   }
 
   export const Store: MemoryStore

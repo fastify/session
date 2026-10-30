@@ -2,7 +2,7 @@
 
 const test = require('node:test')
 const fastifyPlugin = require('fastify-plugin')
-const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, DEFAULT_SESSION_ID } = require('./util')
+const { buildFastify, DEFAULT_OPTIONS, DEFAULT_COOKIE, DEFAULT_SECRET, DEFAULT_SESSION_ID, SIGNED_COOKIE_VALUE_PATTERN } = require('./util')
 
 test('should decorate request with sessionStore', async (t) => {
   t.plan(2)
@@ -64,7 +64,7 @@ test('should create new session if ENOENT error on store.get', async (t) => {
   })
 
   t.assert.strictEqual(response.headers['set-cookie'].includes('AAzZgRQddT1TKLkT3OZcnPsDiLKgV1uM1XHy2bIyqIg'), false)
-  const pattern = String.raw`sessionId=[\w-]{32}.[\w-%]{43,57}; Path=\/; HttpOnly; Secure`
+  const pattern = String.raw`sessionId=${SIGNED_COOKIE_VALUE_PATTERN}; Path=\/; HttpOnly; Secure`
   t.assert.strictEqual(RegExp(pattern).test(response.headers['set-cookie']), true)
   t.assert.strictEqual(response.statusCode, 200)
   t.assert.strictEqual(response.cookies[0].name, 'sessionId')
@@ -92,11 +92,11 @@ test('should pass error to done if non-ENOENT error on store.get', async (t) => 
   t.assert.strictEqual(statusCode, 500)
 })
 
-test('should set new session cookie if expired', async (t) => {
+test('should pass compare-and-set errors if expired', async (t) => {
   t.plan(2)
   const options = {
     secret: DEFAULT_SECRET,
-    store: new FailOnDestroyStore()
+    store: new FailOnCompareAndSetStore()
   }
   const plugin = fastifyPlugin(async (fastify) => {
     fastify.addHook('onRequest', (request, _reply, done) => {
@@ -124,7 +124,7 @@ test('should set new session cookie if expired', async (t) => {
   t.assert.strictEqual(cookie, undefined)
 })
 
-class FailOnDestroyStore {
+class FailOnCompareAndSetStore {
   constructor () {
     this.store = {}
   }
@@ -139,8 +139,13 @@ class FailOnDestroyStore {
     callback(null, session)
   }
 
-  destroy (_sessionId, callback) {
+  compareAndSet (_sessionId, _expectedGeneration, _session, callback) {
     callback(new Error())
+  }
+
+  destroy (sessionId, callback) {
+    this.store[sessionId] = undefined
+    callback()
   }
 }
 
@@ -159,6 +164,10 @@ class EnoentErrorStore {
     callback(error)
   }
 
+  compareAndSet (_sessionId, _expectedGeneration, _session, callback) {
+    callback(Object.assign(new Error(), { code: 'ENOENT' }))
+  }
+
   destroy (sessionId, callback) {
     this.store[sessionId] = undefined
     callback()
@@ -172,6 +181,10 @@ class FailingStore {
 
   get (_sessionId, callback) {
     callback(new Error())
+  }
+
+  compareAndSet (_sessionId, _expectedGeneration, _session, callback) {
+    callback(new Error('store.compareAndSet'))
   }
 
   destroy (_sessionId, callback) {

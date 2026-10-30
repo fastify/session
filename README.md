@@ -4,7 +4,7 @@
 [![NPM version](https://img.shields.io/npm/v/@fastify/session.svg?style=flat)](https://www.npmjs.com/package/@fastify/session)
 [![neostandard javascript style](https://img.shields.io/badge/code_style-neostandard-brightgreen?style=flat)](https://github.com/neostandard/neostandard)
 
-A session plugin for [fastify](http://fastify.dev/).
+A session plugin for [fastify](https://fastify.dev/).
 Requires the [@fastify/cookie](https://github.com/fastify/fastify-cookie) plugin.
 
 **NOTE:** This is the continuation of [fastify-session](https://github.com/SerayaEryn/fastify-session) which is unmaintained by now. All work credit till [`e201f7`](https://github.com/fastify/session/commit/e201f78fc9d7bd33c6f2e84988be7c8af4b5a8a3) commit goes to [SerayaEryn](https://github.com/SerayaEryn) and contributors.
@@ -72,17 +72,20 @@ The options object is used to generate the `Set-Cookie` header of the session co
 * `httpOnly` - The `boolean` value of the `HttpOnly` attribute. Defaults to true.
 * `secure` - The `boolean` value of the `Secure` attribute. Set this option to false when communicating over an unencrypted (HTTP) connection. Value can be set to `auto`; in this case, the `Secure` attribute will be set to false for an HTTP request. In the case of HTTPS, it will be set to true.  Defaults to true.
 * `expires` - The expiration `date` used for the `Expires` attribute. If both `expires` and `maxAge` are set, then `maxAge` is used.
-* `sameSite`- The `boolean` or `string` of the `SameSite` attribute. Using `Secure` mode with `auto` attribute will change the behavior of the `SameSite` attribute in `http` mode. The `SameSite` attribute will automatically be set to `Lax` with an `http` request. See this [link](https://www.chromium.org/updates/same-site).
+* `sameSite`- The `boolean` or `string` of the `SameSite` attribute. Using `Secure` mode with `auto` attribute will change the behavior of the `SameSite` attribute in `http` mode. The `SameSite` attribute will automatically be set to `Lax` with an `http` request. See this [link](https://www.chromium.org/updates/same-site/).
 * `domain` - The `Domain` attribute.
 * `partitioned` (**experimental**) - The `boolean` value of the `Partitioned` attribute. Using the Partitioned attribute as part of Cookies Having Independent Partitioned State (CHIPS) to allow cross-site access with a separate cookie used per site. Defaults to false.
 
 ##### store
 A session store. Needs the following methods:
-* set(sessionId, session, callback)
-* get(sessionId, callback)
-* destroy(sessionId, callback)
+* `set(sessionStoreId, session, callback)`
+* `get(sessionStoreId, callback)`
+* `compareAndSet(sessionStoreId, expectedGeneration, session, callback)`
+* `destroy(sessionStoreId, callback)`
 
-Compatible with stores from [express-session](https://github.com/expressjs/session).
+`compareAndSet` must atomically replace an existing session only when it exists and its `__fastifySessionMetadata.generation` equals `expectedGeneration`. For sessions without this metadata, use `sessionStoreId` as the generation. It must pass an error with `code` set to `ENOENT` when the session is missing or the generation does not match. This prevents an in-flight request from recreating or overwriting a destroyed or regenerated session.
+
+Stores written for [express-session](https://github.com/expressjs/session) need an adapter that implements `compareAndSet`.
 
 If you are terminating HTTPs at
 the reverse proxy, you need to add the `trustProxy` setting to your fastify instance if you want to use secure cookies.
@@ -114,6 +117,10 @@ idGenerator: (request) => {
 
 Allows to access or modify the session data.
 
+#### Session#sessionStoreId
+
+The stable identifier used as the key in the session store. Use this value when calling `request.sessionStore` methods directly. Unlike `sessionId`, this value does not change when the session is regenerated.
+
 #### Session#destroy(callback)
 
 Allows to destroy the session in the store. If you do not pass a callback, a Promise will be returned.
@@ -137,7 +144,7 @@ fastify.post('/', (request, reply) => {
 
 #### Session#regenerate([ignoreFields, ]callback)
 
-Regenerates the session by generating a new `sessionId` and persist it to the store. If you do not pass a callback, a Promise will be returned.
+Regenerates the session by generating a new public `sessionId` and atomically replacing the data stored under the stable `sessionStoreId`. If you do not pass a callback, a Promise will be returned.
 ```js
 fastify.get('/regenerate', (request, reply, done) => {
   request.session.regenerate(error => {
