@@ -87,6 +87,19 @@ A session store. Needs the following methods:
 
 Stores written for [express-session](https://github.com/expressjs/session) need an adapter that implements `compareAndSet`.
 
+When the store is backed by Redis, you can make its connection identify this plugin to the server through [`CLIENT SETINFO`](https://redis.io/docs/latest/commands/client-setinfo/), so that it shows up in `CLIENT LIST` as `node-redis(fastify-session_v<version>)` instead of a plain `node-redis`:
+
+```js
+const { createClient } = require('redis')
+const { RedisStore } = require('connect-redis')
+
+const client = createClient({ clientInfoTag: fastifySession.getDefaultClientInfoTag() })
+client.connect().catch(console.error)
+const store = new RedisStore({ client })
+```
+
+`getDefaultClientInfoTag()` returns `fastify-session_v<version>`; ioredis accepts the same `clientInfoTag` option.
+
 If you are terminating HTTPs at
 the reverse proxy, you need to add the `trustProxy` setting to your fastify instance if you want to use secure cookies.
 
