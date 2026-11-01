@@ -27,7 +27,7 @@ type FastifySession = FastifyPluginCallback<fastifySession.FastifySessionOptions
 }
 
 type Callback = (err?: any) => void
-type CallbackSession = (err: any, result?: Fastify.Session | null) => void
+type CallbackSession = (err?: any, result?: Fastify.Session | null) => void
 
 interface ExpressSessionData {
   /** The cookie properties as defined by express-session */
