@@ -26,6 +26,32 @@ class EmptyStore {
   destroy (_sessionId: string, _callback: Function) {}
 }
 
+const customTypedStore: SessionStore = {
+  set (_sessionStoreId, _session, callback) {
+    callback()
+  },
+  get (_sessionStoreId, callback) {
+    callback()
+    callback(null)
+    callback(null, null)
+    callback(null, undefined)
+    callback(new Error('failed'))
+    callback(new Error('failed'), null)
+    callback(null, {
+      cookie: {
+        originalMaxAge: null
+      },
+      foo: 'bar'
+    })
+  },
+  compareAndSet (_sessionStoreId, _expectedGeneration, _session, callback) {
+    callback()
+  },
+  destroy (_sessionStoreId, callback) {
+    callback()
+  }
+}
+
 declare module 'fastify' {
   interface Session {
     user?: {
@@ -67,6 +93,10 @@ expect(cookieOptions.secure).type.toBe<boolean | 'auto' | undefined>()
 app.register(plugin, {
   secret,
   store: new EmptyStore() as any
+})
+app.register(plugin, {
+  secret,
+  store: customTypedStore
 })
 expect(app.register).type.not.toBeCallableWith(plugin, {
   secret,
