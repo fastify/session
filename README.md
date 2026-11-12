@@ -82,8 +82,11 @@ A session store. Needs the following methods:
 * `get(sessionStoreId, callback)`
 * `compareAndSet(sessionStoreId, expectedGeneration, session, callback)`
 * `destroy(sessionStoreId, callback)`
+* `touch(sessionStoreId, session, callback)` (optional)
 
 `compareAndSet` must atomically replace an existing session only when it exists and its `__fastifySessionMetadata.generation` equals `expectedGeneration`. For sessions without this metadata, use `sessionStoreId` as the generation. It must pass an error with `code` set to `ENOENT` when the session is missing or the generation does not match. This prevents an in-flight request from recreating or overwriting a destroyed or regenerated session.
+
+`touch` is used when a persisted session is saved again without data changes and with the same generation, which is what `rolling` does on an otherwise idle request. Refresh the expiry there without rewriting the session body. Call back with an error whose `code` is `ENOENT` when the session is already gone, and do not recreate it. `regenerate()` still uses `compareAndSet`, because that changes the generation. A store without `touch` keeps the full `compareAndSet` write.
 
 Stores written for [express-session](https://github.com/expressjs/session) need an adapter that implements `compareAndSet`.
 

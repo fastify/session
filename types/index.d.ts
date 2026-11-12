@@ -126,6 +126,16 @@ declare namespace fastifySession {
       callback: Callback
     ): void;
     destroy(sessionStoreId: string, callback: Callback): void;
+    /**
+     * Refresh expiry for an existing session without rewriting its body.
+     * Called when a persisted session is saved again and its data is unchanged.
+     * Call back with `code: 'ENOENT'` when the session is already gone.
+     */
+    touch?(
+      sessionStoreId: string,
+      session: Fastify.Session,
+      callback: Callback
+    ): void;
   }
 
   export interface FastifySessionOptions {
@@ -222,6 +232,11 @@ declare namespace fastifySession {
     compareAndSet (
       sessionStoreId: string,
       expectedGeneration: string,
+      session: Fastify.Session,
+      callback: Callback
+    ): void
+    touch? (
+      sessionStoreId: string,
       session: Fastify.Session,
       callback: Callback
     ): void
