@@ -104,6 +104,48 @@ test('MemoryStore.compareAndSet: should reject a stale generation', t => {
   })
 })
 
+test('MemoryStore.touch: refreshes expiry without replacing the stored body', t => {
+  t.plan(4)
+
+  const stored = {
+    key: 'value',
+    cookie: { expires: new Date('2020-01-01T00:00:00.000Z'), originalMaxAge: 1000 }
+  }
+  const internalStore = new Map([['someId', stored]])
+  const store = new MemoryStore(internalStore)
+  const expires = new Date('2030-01-01T00:00:00.000Z')
+
+  store.touch('someId', { cookie: { expires, originalMaxAge: 5000 }, key: 'other' }, error => {
+    t.assert.strictEqual(error, undefined)
+    t.assert.strictEqual(internalStore.get('someId'), stored)
+    t.assert.strictEqual(stored.key, 'value')
+    t.assert.strictEqual(stored.cookie.originalMaxAge, 5000)
+  })
+})
+
+test('MemoryStore.touch: reports ENOENT when the session is gone', t => {
+  t.plan(2)
+
+  const store = new MemoryStore()
+  store.touch('missing', { cookie: { expires: new Date(), originalMaxAge: 1 } }, error => {
+    t.assert.strictEqual(error.code, 'ENOENT')
+    t.assert.strictEqual(store.store.size, 0)
+  })
+})
+
+test('MemoryStore.touch: leaves a record without a cookie unchanged', t => {
+  t.plan(2)
+
+  const stored = { key: 'value' }
+  const store = new MemoryStore(new Map([['someId', stored]]))
+  store.touch('someId', { cookie: null }, () => {
+    t.assert.deepStrictEqual(stored, { key: 'value' })
+    store.touch('someId', {}, () => {
+      t.assert.deepStrictEqual(stored, { key: 'value' })
+    })
+  })
+})
+
 test('MemoryStore.destroy: should remove a sessionId / 1', t => {
   t.plan(2)
 
