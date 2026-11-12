@@ -1184,6 +1184,101 @@ test('when rolling is true, keep saving the session', async t => {
   t.assert.strictEqual(typeof setCookieHeader2, 'string')
 })
 
+function countingStore (calls, store, touch) {
+  return {
+    set (id, data, cb) {
+      calls.push('set')
+      store.set(id, data)
+      cb(null)
+    },
+    get (id, cb) { cb(null, store.get(id)) },
+    compareAndSet (id, expectedGeneration, data, cb) {
+      const storedSession = store.get(id)
+      if (!storedSession || getSessionGeneration(storedSession, id) !== expectedGeneration) {
+        cb(Object.assign(new Error(), { code: 'ENOENT' }))
+        return
+      }
+      calls.push('compareAndSet')
+      store.set(id, data)
+      cb(null)
+    },
+    touch,
+    destroy (id, cb) {
+      store.delete(id)
+      cb(null)
+    }
+  }
+}
+
+test('when rolling is true and the store implements touch, an unchanged session is touched instead of rewritten', async t => {
+  t.plan(5)
+  const calls = []
+  const store = new Map()
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 60000 },
+    rolling: true,
+    store: countingStore(calls, store, (_id, _data, cb) => {
+      calls.push('touch')
+      cb(null)
+    })
+  })
+  fastify.get('/', (request, reply) => {
+    if (request.session.userId == null) request.session.userId = 42
+    reply.send(200)
+  })
+  fastify.get('/edit', (request, reply) => {
+    request.session.userId = 7
+    reply.send(200)
+  })
+
+  const response1 = await fastify.inject('/')
+  const { sessionId } = fastify.parseCookie(response1.headers['set-cookie'])
+  const cookie = { cookie: `sessionId=${sessionId}` }
+  const unchanged = await fastify.inject({ path: '/', headers: cookie })
+  const edited = await fastify.inject({ method: 'GET', url: '/edit', headers: cookie })
+
+  t.assert.strictEqual(response1.statusCode, 200)
+  t.assert.strictEqual(unchanged.statusCode, 200)
+  t.assert.strictEqual(typeof unchanged.headers['set-cookie'], 'string')
+  t.assert.strictEqual(edited.statusCode, 200)
+  t.assert.deepStrictEqual(calls, ['set', 'touch', 'compareAndSet'])
+})
+
+test('a touch that reports a missing session does not recreate it', async t => {
+  t.plan(3)
+  const calls = []
+  const store = new Map()
+  const fastify = Fastify()
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    ...DEFAULT_OPTIONS,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 60000 },
+    rolling: true,
+    store: countingStore(calls, store, (id, _data, cb) => {
+      calls.push('touch')
+      store.delete(id)
+      cb(Object.assign(new Error('gone'), { code: 'ENOENT' }))
+    })
+  })
+  fastify.get('/', (request, reply) => {
+    if (request.session.userId == null) request.session.userId = 42
+    reply.send(200)
+  })
+
+  const response1 = await fastify.inject('/')
+  const { sessionId } = fastify.parseCookie(response1.headers['set-cookie'])
+  const response2 = await fastify.inject({ path: '/', headers: { cookie: `sessionId=${sessionId}` } })
+
+  t.assert.strictEqual(response2.statusCode, 200)
+  t.assert.strictEqual(store.size, 0)
+  t.assert.deepStrictEqual(calls, ['set', 'touch'])
+})
+
 test('will not update expires property of the session using Session#touch() if maxAge is not set', async (t) => {
   t.plan(4)
 
