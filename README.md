@@ -93,12 +93,12 @@ When the store is backed by Redis, you can make its connection identify this plu
 const { createClient } = require('redis')
 const { RedisStore } = require('connect-redis')
 
-const client = createClient({ clientInfoTag: fastifySession.getDefaultClientInfoTag() })
+const client = createClient({ clientInfoTag: fastifySession.getPluginClientInfoTag() })
 client.connect().catch(console.error)
 const store = new RedisStore({ client })
 ```
 
-`getDefaultClientInfoTag()` returns `fastify-session_v<version>`; ioredis accepts the same `clientInfoTag` option.
+`getPluginClientInfoTag()` returns `fastify-session_v<version>`; ioredis accepts the same `clientInfoTag` option.
 
 If you are terminating HTTPs at
 the reverse proxy, you need to add the `trustProxy` setting to your fastify instance if you want to use secure cookies.

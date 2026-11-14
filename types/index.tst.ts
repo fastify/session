@@ -37,7 +37,7 @@ declare module 'fastify' {
 
 expect(plugin.Store).type.toBe<SessionStore>()
 expect(plugin.MemoryStore).type.toBe<SessionStore>()
-expect(plugin.getDefaultClientInfoTag()).type.toBe<string>()
+expect(plugin.getPluginClientInfoTag()).type.toBe<string>()
 
 const secret = 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345'
 

@@ -9,7 +9,7 @@ const { RedisStore } = require('connect-redis')
 const fastify = Fastify()
 
 const redisClient = createClient({
-  clientInfoTag: fastifySession.getDefaultClientInfoTag()
+  clientInfoTag: fastifySession.getPluginClientInfoTag()
 })
 redisClient.connect().catch(console.error)
 

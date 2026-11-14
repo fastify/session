@@ -1,46 +1,20 @@
 'use strict'
 
-const test = require('node:test')
+const fs = require('node:fs')
+const path = require('node:path')
+const { test } = require('node:test')
 const fastifySession = require('..')
 
-test('getDefaultClientInfoTag should return version tag', (t) => {
+test('getPluginClientInfoTag should be accessible from module', (t) => {
   t.plan(1)
-  const tag = fastifySession.getDefaultClientInfoTag()
-  t.assert.match(tag, /^fastify-session_v\d+\.\d+\.\d+$/)
+  t.assert.strictEqual(typeof fastifySession.getPluginClientInfoTag, 'function')
 })
 
-test('getDefaultClientInfoTag should be accessible from module', (t) => {
-  t.plan(1)
-  t.assert.strictEqual(typeof fastifySession.getDefaultClientInfoTag, 'function')
-})
-
-test('getDefaultClientInfoTag should fallback to fastify-session when version is unavailable', (t) => {
+test('getPluginClientInfoTag should return the version from package.json', (t) => {
   t.plan(1)
 
-  // Mock require to simulate missing version.js
-  const Module = require('module')
-  const originalRequire = Module.prototype.require
+  // Fails when the VERSION constant in index.js drifts: run `node scripts/sync-version.js`
+  const json = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json')).toString('utf8'))
 
-  Module.prototype.require = function (id) {
-    if (id === './lib/version') {
-      throw new Error('Cannot find module')
-    }
-    return originalRequire.apply(this, arguments)
-  }
-
-  // Clear the require cache
-  delete require.cache[require.resolve('..')]
-  delete require.cache[require.resolve('../lib/version')]
-
-  const fastifySessionMocked = require('..')
-  const tag = fastifySessionMocked.getDefaultClientInfoTag()
-
-  // Restore original require
-  Module.prototype.require = originalRequire
-
-  // Clear cache again
-  delete require.cache[require.resolve('..')]
-  delete require.cache[require.resolve('../lib/version')]
-
-  t.assert.strictEqual(tag, 'fastify-session')
+  t.assert.strictEqual(fastifySession.getPluginClientInfoTag(), `fastify-session_v${json.version}`)
 })

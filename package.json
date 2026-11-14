@@ -12,8 +12,7 @@
     "benchmark": "node benchmark/bench.js",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "prepack": "node scripts/generate-version.js",
-    "version": "node scripts/generate-version.js"
+    "release:build": "node scripts/sync-version.js && git add index.js"
   },
   "keywords": [
     "session",
