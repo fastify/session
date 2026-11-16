@@ -100,6 +100,14 @@ Setting this to `false` can save storage space and comply with the EU cookie law
 ##### rolling (optional)
 Forces the session identifier cookie to be set on every response. The expiration is reset to the original maxAge - effectively resetting the cookie lifetime. This is typically used in conjunction with short, non-session-length maxAge values to provide a quick expiration of the session data with reduced potential of session expiration occurring during ongoing server interactions. Defaults to true.
 
+Set `rolling` to an object with an `excluded` array to skip this behavior on specific request paths:
+
+```js
+rolling: { excluded: ['/session'] }
+```
+
+Requests to an excluded path still save a session that changed, but do not reset the cookie expiration.
+
 ##### idGenerator(request) (optional)
 
 Function used to generate new session IDs.
