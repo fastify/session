@@ -151,7 +151,7 @@ function fastifySession (fastify, options, next) {
   function onSend (options) {
     const cookieOpts = options.cookie
     const saveUninitializedSession = options.saveUninitialized
-    const rollingSessions = options.rolling
+    const rollingOption = options.rolling
 
     return function saveSession (request, reply, _payload, done) {
       const session = request.session
@@ -161,7 +161,7 @@ function fastifySession (fastify, options, next) {
       }
 
       const cookieSessionId = getCookieSessionId(request)
-      const saveSession = shouldSaveSession(request, cookieSessionId, saveUninitializedSession, rollingSessions)
+      const saveSession = shouldSaveSession(request, cookieSessionId, saveUninitializedSession, shouldRollSession(rollingOption, request))
       const isInsecureConnection = session.cookie.secure === true && request.protocol !== 'https'
       const sessionIdWithPrefix = hasCookiePrefix ? `${cookiePrefix}${session.encryptedSessionId}` : session.encryptedSessionId
       if (!saveSession || isInsecureConnection) {
@@ -244,6 +244,15 @@ function fastifySession (fastify, options, next) {
       : options.secret
     opts.cookiePrefix = option(options, 'cookiePrefix', '')
     return opts
+  }
+
+  function shouldRollSession (rolling, request) {
+    if (typeof rolling === 'boolean') {
+      return rolling
+    }
+    const excluded = rolling.excluded
+    const url = request.url
+    return !excluded.some((excludedPath) => url === excludedPath || url.startsWith(`${excludedPath}?`))
   }
 
   function shouldSaveSession (request, cookieId, saveUninitializedSession, rollingSessions) {

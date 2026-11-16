@@ -128,6 +128,11 @@ declare namespace fastifySession {
     destroy(sessionStoreId: string, callback: Callback): void;
   }
 
+  export interface RollingOptions {
+    /** Request paths that skip the rolling behavior. */
+    excluded: string[];
+  }
+
   export interface FastifySessionOptions {
     /**
      * The secret used to sign the cookie.
@@ -180,7 +185,7 @@ declare namespace fastifySession {
      * Force the session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown.
      * Defaults to true. This is typically used in conjuction with short, non-session-length maxAge values to provide a quick timeout of the session data with reduced potential of it occurring during on going server interactions.
      */
-    rolling?: boolean;
+    rolling?: boolean | RollingOptions;
 
     /** Function used to generate new session IDs. */
     idGenerator?(request?: Fastify.FastifyRequest): string;

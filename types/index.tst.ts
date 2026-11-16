@@ -43,6 +43,7 @@ const secret = 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345'
 const app: FastifyInstance = fastify()
 app.register(plugin, { secret: 'DizIzSecret' })
 app.register(plugin, { secret: 'DizIzSecret', rolling: true })
+app.register(plugin, { secret: 'DizIzSecret', rolling: { excluded: ['/session'] } })
 app.register(plugin, {
   secret,
   rolling: false,

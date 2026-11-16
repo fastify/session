@@ -451,6 +451,41 @@ test('should not reset session cookie expiration if rolling is false', async (t)
   t.assert.strictEqual(response1.body, response2.body)
 })
 
+test('should not roll the session on an excluded path', async (t) => {
+  t.plan(3)
+
+  const fastify = Fastify()
+
+  const options = {
+    secret: DEFAULT_SECRET,
+    rolling: { excluded: ['/session'] },
+    cookie: { secure: false, maxAge: 10000 }
+  }
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, options)
+
+  fastify.get('/', (_request, reply) => reply.send(200))
+  fastify.get('/session', (_request, reply) => reply.send(200))
+  fastify.get('/check', (_request, reply) => reply.send(200))
+  await fastify.listen({ port: 0 })
+  t.after(() => { fastify.close() })
+
+  const response1 = await fastify.inject({ url: '/' })
+  t.assert.ok(response1.headers['set-cookie'])
+
+  const response2 = await fastify.inject({
+    url: '/session',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.assert.strictEqual(response2.headers['set-cookie'], undefined)
+
+  const response3 = await fastify.inject({
+    url: '/check',
+    headers: { Cookie: response1.headers['set-cookie'] }
+  })
+  t.assert.ok(response3.headers['set-cookie'])
+})
+
 test('should update the expires property of the session using Session#touch() even if rolling is false', async (t) => {
   t.plan(3)
 
