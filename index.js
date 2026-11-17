@@ -4,6 +4,7 @@ const fp = require('fastify-plugin')
 const idGenerator = require('./lib/idGenerator')()
 const Store = require('./lib/store')
 const Session = require('./lib/session')
+const { getSessionGeneration } = require('./lib/sessionMetadata')
 
 function fastifySession (fastify, options, next) {
   const error = checkOptions(options)
@@ -41,7 +42,7 @@ function fastifySession (fastify, options, next) {
     const idGenerator = options.idGenerator
 
     const unsignedCookie = cookieSigner.unsign(sessionId)
-    if (unsignedCookie.valid === false) {
+    if (unsignedCookie.valid === false || typeof unsignedCookie.value !== 'string') {
       request.session = new Session(
         sessionStore,
         request,
@@ -52,8 +53,8 @@ function fastifySession (fastify, options, next) {
       done()
       return
     }
-    const decryptedSessionId = unsignedCookie.value
-    sessionStore.get(decryptedSessionId, (err, session) => {
+    const { sessionStoreId, sessionId: decryptedSessionId } = Session.decodeSessionId(unsignedCookie.value)
+    sessionStore.get(sessionStoreId, (err, session) => {
       if (err) {
         if (err.code === 'ENOENT') {
           request.session = new Session(
@@ -70,7 +71,7 @@ function fastifySession (fastify, options, next) {
         return
       }
 
-      if (!session) {
+      if (!session || getSessionGeneration(session, sessionStoreId) !== decryptedSessionId) {
         request.session = new Session(
           sessionStore,
           request,
@@ -89,13 +90,14 @@ function fastifySession (fastify, options, next) {
         cookieOpts,
         cookieSigner,
         session,
-        decryptedSessionId
+        decryptedSessionId,
+        sessionStoreId
       )
 
       const expiration = restoredSession.cookie.originalExpires || restoredSession.cookie.expires
 
       if (expiration && expiration.getTime() <= Date.now()) {
-        // `regenerate` destroys the expired session before issuing a new one.
+        // `regenerate` atomically replaces the expired session with a new generation.
         restoredSession.regenerate(done)
         return
       }
@@ -149,7 +151,7 @@ function fastifySession (fastify, options, next) {
   function onSend (options) {
     const cookieOpts = options.cookie
     const saveUninitializedSession = options.saveUninitialized
-    const rollingSessions = options.rolling
+    const rollingOption = options.rolling
 
     return function saveSession (request, reply, _payload, done) {
       const session = request.session
@@ -159,13 +161,19 @@ function fastifySession (fastify, options, next) {
       }
 
       const cookieSessionId = getCookieSessionId(request)
-      const saveSession = shouldSaveSession(request, cookieSessionId, saveUninitializedSession, rollingSessions)
+      const saveSession = shouldSaveSession(request, cookieSessionId, saveUninitializedSession, shouldRollSession(rollingOption, request))
       const isInsecureConnection = session.cookie.secure === true && request.protocol !== 'https'
       const sessionIdWithPrefix = hasCookiePrefix ? `${cookiePrefix}${session.encryptedSessionId}` : session.encryptedSessionId
       if (!saveSession || isInsecureConnection) {
-        // if a session cookie is set, but has a different ID, clear it
+        // if a session cookie is set, but has a different ID, clear it, unless the
+        // session is already persisted, in which case re-issue its cookie so an
+        // existing session survives a cookie-format upgrade instead of being logged out
         if (cookieSessionId && cookieSessionId !== session.encryptedSessionId) {
-          reply.clearCookie(cookieName, { domain: cookieOpts.domain, path: cookieOpts.path || '/' })
+          if (session.isPersisted() && !isInsecureConnection) {
+            reply.setCookie(cookieName, sessionIdWithPrefix, session.cookie.toJSON())
+          } else {
+            reply.clearCookie(cookieName, { domain: cookieOpts.domain, path: cookieOpts.path || '/' })
+          }
         }
 
         if (session.isSaved()) {
@@ -183,6 +191,12 @@ function fastifySession (fastify, options, next) {
 
       session.save((err) => {
         if (err) {
+          if (err.code === 'ENOENT') {
+            reply.clearCookie(cookieName, { domain: cookieOpts.domain, path: cookieOpts.path || '/' })
+            done()
+            return
+          }
+
           done(err)
           return
         }
@@ -209,6 +223,10 @@ function fastifySession (fastify, options, next) {
     } else if (!(options.secret && typeof options.secret.sign === 'function' && typeof options.secret.unsign === 'function')) {
       return new Error('the secret option is required, and must be a String, Array of Strings, or a signer object with .sign and .unsign methods')
     }
+
+    if (options.store && typeof options.store.compareAndSet !== 'function') {
+      return new Error('the store must implement compareAndSet')
+    }
   }
 
   function ensureDefaults (options) {
@@ -226,6 +244,15 @@ function fastifySession (fastify, options, next) {
       : options.secret
     opts.cookiePrefix = option(options, 'cookiePrefix', '')
     return opts
+  }
+
+  function shouldRollSession (rolling, request) {
+    if (typeof rolling === 'boolean') {
+      return rolling
+    }
+    const excluded = rolling.excluded
+    const url = request.url
+    return !excluded.some((excludedPath) => url === excludedPath || url.startsWith(`${excludedPath}?`))
   }
 
   function shouldSaveSession (request, cookieId, saveUninitializedSession, rollingSessions) {

@@ -92,6 +92,29 @@ test('fastifySession.checkOptions: register should fail if no secret is present 
   )
 })
 
+test('fastifySession.checkOptions: register should fail if store.compareAndSet is missing', async t => {
+  t.plan(2)
+  const fastify = Fastify()
+  const store = {
+    set (_id, _session, callback) { callback() },
+    get (_id, callback) { callback() },
+    destroy (_id, callback) { callback() }
+  }
+
+  fastify.register(fastifyCookie)
+  fastify.register(fastifySession, {
+    secret: crypto.randomBytes(16).toString('hex'),
+    store
+  })
+  await t.assert.rejects(
+    fastify.ready(),
+    (err) => {
+      t.assert.strictEqual(err.message, 'the store must implement compareAndSet')
+      return true
+    }
+  )
+})
+
 test('fastifySession.checkOptions: register should fail if a Buffer is passed', async t => {
   t.plan(2)
   const fastify = Fastify()

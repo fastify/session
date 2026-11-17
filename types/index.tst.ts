@@ -21,6 +21,8 @@ class EmptyStore {
 
   get (_sessionId: string, _callback: Function) {}
 
+  compareAndSet (_sessionId: string, _expectedGeneration: string, _session: any, _callback: Function) {}
+
   destroy (_sessionId: string, _callback: Function) {}
 }
 
@@ -41,6 +43,7 @@ const secret = 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345'
 const app: FastifyInstance = fastify()
 app.register(plugin, { secret: 'DizIzSecret' })
 app.register(plugin, { secret: 'DizIzSecret', rolling: true })
+app.register(plugin, { secret: 'DizIzSecret', rolling: { excluded: ['/session'] } })
 app.register(plugin, {
   secret,
   rolling: false,
@@ -66,11 +69,11 @@ app.register(plugin, {
   secret,
   store: new EmptyStore() as any
 })
-app.register(plugin, {
+expect(app.register).type.not.toBeCallableWith(plugin, {
   secret,
   store: new RedisStore({ client: createClient() })
 })
-app.register(plugin, {
+expect(app.register).type.not.toBeCallableWith(plugin, {
   secret,
   store: MongoStore.create({ mongoUrl: 'mongodb://connection-string' })
 })
@@ -126,6 +129,7 @@ app.route({
     expect(request.session.user).type.toBe<{ id: number } | undefined>()
 
     request.sessionStore.set('session-set-test', request.session, () => {})
+    request.sessionStore.compareAndSet('session-set-test', 'generation', request.session, () => {})
     request.sessionStore.get('', (err, session) => {
       const store = new MemoryStore()
       if (session) {
@@ -136,6 +140,7 @@ app.route({
       expect(session?.user).type.toBe<{ id: number } | undefined>()
     })
 
+    expect(request.session.sessionStoreId).type.toBe<string>()
     expect(request.session.set('foo', 'bar')).type.toBe<void>()
     expect(request.session.get('foo')).type.toBe<string | undefined>()
     expect(request.session.touch()).type.toBe<void>()

@@ -60,6 +60,9 @@ declare namespace fastifySession {
   export interface FastifySessionObject extends Fastify.Session {
     sessionId: string;
 
+    /** The stable identifier used as the session store key. */
+    sessionStoreId: string;
+
     encryptedSessionId: string;
 
     /** Updates the `expires` property of the session's cookie. */
@@ -101,19 +104,33 @@ declare namespace fastifySession {
 
     /** checks if the session has been saved to the store */
     isSaved(): boolean;
+
+    /** checks if the session is backed by an existing store entry */
+    isPersisted(): boolean;
   }
 
   export interface SessionStore {
     set(
-      sessionId: string,
+      sessionStoreId: string,
       session: Fastify.Session,
       callback: Callback
     ): void;
     get(
-      sessionId: string,
+      sessionStoreId: string,
       callback: CallbackSession
     ): void;
-    destroy(sessionId: string, callback: Callback): void;
+    compareAndSet(
+      sessionStoreId: string,
+      expectedGeneration: string,
+      session: Fastify.Session,
+      callback: Callback
+    ): void;
+    destroy(sessionStoreId: string, callback: Callback): void;
+  }
+
+  export interface RollingOptions {
+    /** Request paths that skip the rolling behavior. */
+    excluded: string[];
   }
 
   export interface FastifySessionOptions {
@@ -152,7 +169,7 @@ declare namespace fastifySession {
 
     /**
      * A session store.
-     * Compatible to stores from express-session.
+     * Express-session stores need an adapter that implements atomic `compareAndSet`.
      * Defaults to a simple in memory store.
      * Note: The default store should not be used in a production environment because it will leak memory.
      */
@@ -168,7 +185,7 @@ declare namespace fastifySession {
      * Force the session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown.
      * Defaults to true. This is typically used in conjuction with short, non-session-length maxAge values to provide a quick timeout of the session data with reduced potential of it occurring during on going server interactions.
      */
-    rolling?: boolean;
+    rolling?: boolean | RollingOptions;
 
     /** Function used to generate new session IDs. */
     idGenerator?(request?: Fastify.FastifyRequest): string;
@@ -199,15 +216,21 @@ declare namespace fastifySession {
   export class MemoryStore implements fastifySession.SessionStore {
     constructor (map?: Map<string, Fastify.Session>)
     set (
-      sessionId: string,
+      sessionStoreId: string,
       session: Fastify.Session,
       callback: Callback
     ): void
     get (
-      sessionId: string,
+      sessionStoreId: string,
       callback: CallbackSession
     ): void
-    destroy (sessionId: string, callback: Callback): void
+    compareAndSet (
+      sessionStoreId: string,
+      expectedGeneration: string,
+      session: Fastify.Session,
+      callback: Callback
+    ): void
+    destroy (sessionStoreId: string, callback: Callback): void
   }
 
   export const Store: MemoryStore

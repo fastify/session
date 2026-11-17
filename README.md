@@ -78,11 +78,14 @@ The options object is used to generate the `Set-Cookie` header of the session co
 
 ##### store
 A session store. Needs the following methods:
-* set(sessionId, session, callback)
-* get(sessionId, callback)
-* destroy(sessionId, callback)
+* `set(sessionStoreId, session, callback)`
+* `get(sessionStoreId, callback)`
+* `compareAndSet(sessionStoreId, expectedGeneration, session, callback)`
+* `destroy(sessionStoreId, callback)`
 
-Compatible with stores from [express-session](https://github.com/expressjs/session).
+`compareAndSet` must atomically replace an existing session only when it exists and its `__fastifySessionMetadata.generation` equals `expectedGeneration`. For sessions without this metadata, use `sessionStoreId` as the generation. It must pass an error with `code` set to `ENOENT` when the session is missing or the generation does not match. This prevents an in-flight request from recreating or overwriting a destroyed or regenerated session.
+
+Stores written for [express-session](https://github.com/expressjs/session) need an adapter that implements `compareAndSet`.
 
 If you are terminating HTTPs at
 the reverse proxy, you need to add the `trustProxy` setting to your fastify instance if you want to use secure cookies.
@@ -96,6 +99,14 @@ Setting this to `false` can save storage space and comply with the EU cookie law
 
 ##### rolling (optional)
 Forces the session identifier cookie to be set on every response. The expiration is reset to the original maxAge - effectively resetting the cookie lifetime. This is typically used in conjunction with short, non-session-length maxAge values to provide a quick expiration of the session data with reduced potential of session expiration occurring during ongoing server interactions. Defaults to true.
+
+Set `rolling` to an object with an `excluded` array to skip this behavior on specific request paths:
+
+```js
+rolling: { excluded: ['/session'] }
+```
+
+Requests to an excluded path still save a session that changed, but do not reset the cookie expiration.
 
 ##### idGenerator(request) (optional)
 
@@ -113,6 +124,10 @@ idGenerator: (request) => {
 #### request.session
 
 Allows to access or modify the session data.
+
+#### Session#sessionStoreId
+
+The stable identifier used as the key in the session store. Use this value when calling `request.sessionStore` methods directly. Unlike `sessionId`, this value does not change when the session is regenerated.
 
 #### Session#destroy(callback)
 
@@ -137,7 +152,7 @@ fastify.post('/', (request, reply) => {
 
 #### Session#regenerate([ignoreFields, ]callback)
 
-Regenerates the session by generating a new `sessionId` and persist it to the store. If you do not pass a callback, a Promise will be returned.
+Regenerates the session by generating a new public `sessionId` and atomically replacing the data stored under the stable `sessionStoreId`. If you do not pass a callback, a Promise will be returned.
 ```js
 fastify.get('/regenerate', (request, reply, done) => {
   request.session.regenerate(error => {
