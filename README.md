@@ -83,7 +83,9 @@ A session store. Needs the following methods:
 * `compareAndSet(sessionStoreId, expectedGeneration, session, callback)`
 * `destroy(sessionStoreId, callback)`
 
-`compareAndSet` must atomically replace an existing session only when it exists and its `__fastifySessionMetadata.generation` equals `expectedGeneration`. For sessions without this metadata, use `sessionStoreId` as the generation. It must pass an error with `code` set to `ENOENT` when the session is missing or the generation does not match. This prevents an in-flight request from recreating or overwriting a destroyed or regenerated session.
+Each method can either call `callback` or return a promise, so stores written with async functions are supported. `get` resolves with the session, or with `null`/`undefined` when there is none.
+
+`compareAndSet` must atomically replace an existing session only when it exists and its `__fastifySessionMetadata.generation` equals `expectedGeneration`. For sessions without this metadata, use `sessionStoreId` as the generation. It must pass (or reject with) an error with `code` set to `ENOENT` when the session is missing or the generation does not match. This prevents an in-flight request from recreating or overwriting a destroyed or regenerated session.
 
 Stores written for [express-session](https://github.com/expressjs/session) need an adapter that implements `compareAndSet`.
 
