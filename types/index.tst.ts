@@ -35,8 +35,8 @@ declare module 'fastify' {
   }
 }
 
-expect(plugin.Store).type.toBe<SessionStore>()
-expect(plugin.MemoryStore).type.toBe<SessionStore>()
+expect(plugin.Store).type.toBeAssignableTo<SessionStore>()
+expect(plugin.MemoryStore).type.toBeAssignableTo<SessionStore>()
 
 const secret = 'ABCDEFGHIJKLNMOPQRSTUVWXYZ012345'
 
@@ -80,6 +80,21 @@ expect(app.register).type.not.toBeCallableWith(plugin, {
 app.register(plugin, {
   secret,
   store: new MemoryStore(new Map<string, Session>())
+})
+
+class AsyncStore {
+  async set (_sessionStoreId: string, _session: Session) {}
+  async get (_sessionStoreId: string): Promise<Session | null> { return null }
+  async compareAndSet (_sessionStoreId: string, _expectedGeneration: string, _session: Session) {}
+  async destroy (_sessionStoreId: string) {}
+}
+app.register(plugin, {
+  secret,
+  store: new AsyncStore()
+})
+expect(app.register).type.not.toBeCallableWith(plugin, {
+  secret,
+  store: {} as Omit<AsyncStore, 'get'> & { get (sessionStoreId: string): Promise<number> }
 })
 app.register(plugin, {
   secret,

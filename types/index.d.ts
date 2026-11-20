@@ -109,23 +109,27 @@ declare namespace fastifySession {
     isPersisted(): boolean;
   }
 
+  /**
+   * Each method either calls `callback` or returns a promise (e.g., when it is
+   * an async function).
+   */
   export interface SessionStore {
     set(
       sessionStoreId: string,
       session: Fastify.Session,
       callback: Callback
-    ): void;
+    ): void | Promise<unknown>;
     get(
       sessionStoreId: string,
       callback: CallbackSession
-    ): void;
+    ): void | Promise<Fastify.Session | null | undefined>;
     compareAndSet(
       sessionStoreId: string,
       expectedGeneration: string,
       session: Fastify.Session,
       callback: Callback
-    ): void;
-    destroy(sessionStoreId: string, callback: Callback): void;
+    ): void | Promise<unknown>;
+    destroy(sessionStoreId: string, callback: Callback): void | Promise<unknown>;
   }
 
   export interface RollingOptions {
