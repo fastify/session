@@ -6,6 +6,18 @@ const Store = require('./lib/store')
 const Session = require('./lib/session')
 const { getSessionGeneration } = require('./lib/sessionMetadata')
 
+// Kept in sync with package.json by scripts/sync-version.js
+const VERSION = '11.1.6'
+
+/**
+ * Get the plugin's clientInfoTag for identifying it in Redis CLIENT SETINFO.
+ * This can be used when creating Redis clients for session stores.
+ * @returns {string} The client info tag (e.g., "fastify-session_v11.1.1")
+ */
+function getPluginClientInfoTag () {
+  return `fastify-session_v${VERSION}`
+}
+
 function fastifySession (fastify, options, next) {
   const error = checkOptions(options)
   if (error) {
@@ -297,3 +309,4 @@ module.exports.fastifySession = fastifySession
 
 module.exports.Store = Store
 module.exports.MemoryStore = Store
+module.exports.getPluginClientInfoTag = getPluginClientInfoTag

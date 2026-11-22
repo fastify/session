@@ -8,7 +8,9 @@ const { RedisStore } = require('connect-redis')
 
 const fastify = Fastify()
 
-const redisClient = createClient()
+const redisClient = createClient({
+  clientInfoTag: fastifySession.getPluginClientInfoTag()
+})
 redisClient.connect().catch(console.error)
 
 class AtomicRedisStore extends RedisStore {
