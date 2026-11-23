@@ -4,6 +4,7 @@ const fp = require('fastify-plugin')
 const idGenerator = require('./lib/idGenerator')()
 const Store = require('./lib/store')
 const Session = require('./lib/session')
+const callStore = require('./lib/callStore')
 const { getSessionGeneration } = require('./lib/sessionMetadata')
 
 function fastifySession (fastify, options, next) {
@@ -54,7 +55,7 @@ function fastifySession (fastify, options, next) {
       return
     }
     const { sessionStoreId, sessionId: decryptedSessionId } = Session.decodeSessionId(unsignedCookie.value)
-    sessionStore.get(sessionStoreId, (err, session) => {
+    callStore(sessionStore, 'get', [sessionStoreId], (err, session) => {
       if (err) {
         if (err.code === 'ENOENT') {
           request.session = new Session(
