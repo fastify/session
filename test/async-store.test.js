@@ -169,3 +169,32 @@ test('should not hide a rejection that comes after the callback was called', (t)
   t.assert.throws(() => onRejected(late), late)
   t.assert.strictEqual(calls, 1)
 })
+
+test('should call the callback outside of the promise handlers', async (t) => {
+  for (const settle of ['resolve', 'reject']) {
+    let handlers
+    const store = {
+      get () {
+        return { then (resolve, reject) { handlers = { resolve, reject } } }
+      }
+    }
+    const calls = []
+    callStore(store, 'get', ['id'], (...args) => { calls.push(args) })
+
+    // What the callback throws must not end up in the promise chain
+    if (settle === 'resolve') {
+      handlers.resolve('session')
+    } else {
+      handlers.reject(new Error('get failed'))
+    }
+    t.assert.strictEqual(calls.length, 0)
+
+    await new Promise(resolve => process.nextTick(resolve))
+    t.assert.strictEqual(calls.length, 1)
+    if (settle === 'resolve') {
+      t.assert.deepStrictEqual(calls[0], [null, 'session'])
+    } else {
+      t.assert.strictEqual(calls[0][0].message, 'get failed')
+    }
+  }
+})
